@@ -288,3 +288,19 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .recharts-brush { opacity: .9; }
 .recharts-brush-slide { fill: var(--accent-soft); fill-opacity: 1; }
 .recharts-brush-traveller { fill: var(--accent); }
+
+
+/* ---------- tab order editor ---------- */
+.tabs-wrap { position: relative; }
+.tabs { align-items: stretch; }
+.tab-edit { flex: none; margin-left: auto; background: transparent; color: var(--ink-2); border: 0; border-bottom: 2px solid transparent; padding: 9px 12px; font: inherit; font-size: 12px; cursor: pointer; }
+.tab-edit:hover, .tab-edit.on { color: var(--accent); }
+.tab-editor { position: absolute; z-index: 20; right: 0; top: calc(100% + 6px); width: min(320px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-s); box-shadow: 0 8px 24px rgba(25,30,40,.10); padding: 14px; }
+.tab-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.tab-editor p { margin: 0 0 10px; color: var(--ink-2); font-size: 12px; line-height: 1.5; }
+.tab-editor ol { list-style: none; padding: 0; margin: 0; }
+.tab-editor li { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; border-top: 1px solid var(--rule); font-size: 13px; }
+.tab-move { display: flex; gap: 4px; }
+.tab-move button, .tab-reset { min-width: 32px; min-height: 32px; padding: 4px 8px; border: 1px solid var(--rule); border-radius: 5px; background: var(--surface); color: var(--ink-2); font: inherit; cursor: pointer; }
+.tab-move button:hover:not(:disabled), .tab-reset:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.tab-move button:disabled { opacity: .35; cursor: default; }
