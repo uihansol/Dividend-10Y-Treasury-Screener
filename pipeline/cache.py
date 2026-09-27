@@ -79,21 +79,30 @@ def update_stock_price_cache(code: str, today: date | None = None,
     today = today or datetime.now(KST).date()
     old = load_prices(code)
     if len(old):
-        start = date.fromisoformat(old["date"].max()) + timedelta(days=1)
+        oldest = date.fromisoformat(old["date"].min())
+        latest = date.fromisoformat(old["date"].max())
+        start = latest + timedelta(days=1)
         mode = "incremental"
+        # 기존 캐시도 과거 차트 기간을 확장할 수 있도록, 시작일보다 오래된 구간을 한 번만 보강한다.
+        backfill = fetch(code, C.PRICE_START, (oldest - timedelta(days=1)).isoformat()) if oldest > date.fromisoformat(C.PRICE_START) else pd.DataFrame(columns=PRICE_COLS)
     else:
         start = date.fromisoformat(C.PRICE_START)
         mode = "initial"
+        backfill = pd.DataFrame(columns=PRICE_COLS)
     if start > today:
-        return old, {"mode": "skip", "added": 0}
-    new = fetch(code, start.isoformat(), today.isoformat())
+        new = pd.DataFrame(columns=PRICE_COLS)
+    else:
+        new = fetch(code, start.isoformat(), today.isoformat())
     new = new[new["date"] >= start.isoformat()] if len(new) else new
-    df = (pd.concat([old, new], ignore_index=True) if len(old) else new) if len(new) else old
+    if len(backfill):
+        backfill = backfill[backfill["date"] >= C.PRICE_START]
+    pieces = [x for x in (old, backfill, new) if len(x)]
+    df = pd.concat(pieces, ignore_index=True) if pieces else old
     df = df.drop_duplicates("date", keep="last").sort_values("date").reset_index(drop=True)
     if len(new):
         stock_dir(code).mkdir(parents=True, exist_ok=True)
         df.to_csv(stock_dir(code) / "prices.csv", index=False)
-    return df, {"mode": mode, "added": int(len(new)), "from": start.isoformat()}
+    return df, {"mode": mode, "added": int(len(new)) + int(len(backfill)), "from": (C.PRICE_START if len(backfill) else start.isoformat())}
 
 
 # ---------------------------------------------------------------- 배당 캐시
