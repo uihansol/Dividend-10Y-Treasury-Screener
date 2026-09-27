@@ -121,7 +121,7 @@ def build() -> dict:
 
         reps = reports.get(code, [])
         years = build_fiscal_years(reps, actions)
-        exp = expected_dps_asof(as_of, years, C.EXPECTED_DPS_MODE) if years else None
+        exp = expected_dps_asof(as_of, years) if years else None
         dps = exp.value if exp else None
         y = dividend_yield(dps, last_price) if traded_today else None
         m = us10y_multiple(y, cur_us, C.MIN_US10Y_FOR_MULTIPLE)
@@ -134,7 +134,7 @@ def build() -> dict:
         if years:
             i0 = next((i for i, d in enumerate(dates) if d >= hist_start), len(dates))
             s = daily_series(dates[i0:], adj[i0:], years, us_dates, us_vals,
-                             C.MIN_US10Y_FOR_MULTIPLE, C.EXPECTED_DPS_MODE)
+                             C.MIN_US10Y_FOR_MULTIPLE)
             hist = history_stats([p.multiple for p in s], m)
             yhist = history_stats([p.div_yield for p in s], y)
             detail_series = s
@@ -191,7 +191,6 @@ def build() -> dict:
     meta = {
         "built_at": now_kst(), "as_of": as_of.isoformat(),
         "us10y": _r(cur_us, 3), "us10y_date": cur_us_date.isoformat() if cur_us_date else None,
-        "expected_dps_mode": C.EXPECTED_DPS_MODE,
         "sources": src_view, "rules": C.DATA_RULES,
         "counts": {"rows": len(rows), "with_dividend_data": sum(r["has_div_data"] for r in rows),
                    "with_multiple": sum(r["multiple"] is not None for r in rows),
