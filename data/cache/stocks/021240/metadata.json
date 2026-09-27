@@ -1,0 +1,41 @@
+{
+ "code": "021240",
+ "name": "코웨이",
+ "market": "KOSPI",
+ "price_through": "2026-09-23",
+ "dividend_through": null,
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-27T18:24:33+09:00",
+ "updated_at": "2026-09-27T18:24:33+09:00",
+ "last_attempt": "2026-09-27T18:24:33+09:00",
+ "last_error": {
+  "dividends": "ConnectTimeout(MaxRetryError(\"HTTPSConnectionPool(host='opendart.fss.or.kr', port=443): Max retries exceeded with url: /api/alotMatter.json?crtfc_key=ec6c957ff8f9b45d3b178a078f1a48264aa8a565&corp_code=00170558&bsns_year=2026&reprt_code=11012 (Caused by ConnectTimeoutError(<HTTPSConnection(host='open"
+ },
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2631,
+   "from": "2016-01-01"
+  }
+ },
+ "summary": {
+  "code": "021240",
+  "name": "코웨이",
+  "market": "KOSPI",
+  "price": 99800.0,
+  "price_date": "2026-09-23",
+  "dps": null,
+  "yield": null,
+  "multiple": null,
+  "paid10": null,
+  "known10": null,
+  "paid5": null,
+  "pct": null,
+  "p10": null,
+  "p90": null,
+  "mcap": null,
+  "tv": 23512651150.0,
+  "has_div_data": false,
+  "flags": []
+ }
+}
