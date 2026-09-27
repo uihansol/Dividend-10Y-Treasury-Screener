@@ -306,7 +306,7 @@ export function DetailPage({ d }: { d: Detail }) {
       <div style={show("밴드")}>
       <section className="panel">
         <div className="panel-head">
-          <h2>배당/10Y 배수</h2>
+          <h2>배당/10Y 배수 &amp; 주가</h2>
         </div>
         {st ? (
           <>
@@ -317,6 +317,8 @@ export function DetailPage({ d }: { d: Detail }) {
                   <XAxis dataKey="date" tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
                   <YAxis yAxisId="mult" domain={[0, yMax ?? "auto"]} allowDataOverflow width={44}
                     tick={{ fontSize: 12, fill: C.line }} tickFormatter={(v: number) => `${v.toFixed(1)}x`} />
+                  <YAxis yAxisId="price" orientation="right" domain={["auto", "auto"]} width={0}
+                    axisLine={false} tickLine={false} tick={false} />
                   <Tooltip content={<BandTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} onClick={togM.onLegendClick} formatter={togM.legendFormatter} />
                   {([["p90", "상단"], ["p10", "하단"]] as const).map(([k, lab]) => (
@@ -325,6 +327,8 @@ export function DetailPage({ d }: { d: Detail }) {
                   ))}
                   <Line yAxisId="mult" type="monotone" dataKey="m" name="배당/10Y" stroke={C.line} dot={false} strokeWidth={2.5}
                     isAnimationActive={false} connectNulls={false} hide={togM.isHidden("m")} />
+                  <Line yAxisId="price" type="monotone" dataKey="px" name="주가" stroke={C.price} dot={false} strokeWidth={2}
+                    isAnimationActive={false} connectNulls={false} hide={togM.isHidden("px")} />
                   {lastM?.m != null && !togM.isHidden("m") && (
                     <ReferenceDot yAxisId="mult" x={lastM.date} y={lastM.m} r={5} fill={C.line} stroke="var(--surface)" />
                   )}
