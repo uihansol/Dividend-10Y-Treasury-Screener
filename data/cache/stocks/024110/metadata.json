@@ -1,0 +1,58 @@
+{
+ "code": "024110",
+ "name": "기업은행",
+ "market": "KOSPI",
+ "price_through": "2026-09-23",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T01:05:31+09:00",
+ "updated_at": "2026-09-28T01:05:31+09:00",
+ "last_attempt": "2026-09-28T01:05:31+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2879,
+   "from": "2015-01-01"
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 34
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 2
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-09-25",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "summary": {
+  "code": "024110",
+  "name": "기업은행",
+  "market": "KOSPI",
+  "price": 20400.0,
+  "price_date": "2026-09-23",
+  "dps": 1258.0,
+  "yield": 6.1667,
+  "multiple": 1.2433,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 12.7,
+  "p10": 1.1817,
+  "p90": 5.8,
+  "mcap": null,
+  "tv": 30601138000.0,
+  "has_div_data": true,
+  "flags": [
+   "provisional_dividend_used"
+  ]
+ }
+}
