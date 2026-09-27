@@ -54,14 +54,14 @@ jobs:
         run: |
           git config user.name "dividend-bot"
           git config user.email "actions@users.noreply.github.com"
+          # 'Update' 단계 결과(10Y + 재계산된 캐시)를 전부 백업해 둔다.
+          # data/cache는 git에 추적되는 파일이라 아래 'git reset --hard'가 커밋 전 상태로 되돌리므로,
+          # 백업 없이 reset하면 recompute_cached()가 만든 변경이 그대로 사라진다.
           mkdir -p /tmp/keep
-          for p in data/us10y data/stocks data/sources.json; do [ -e "$p" ] && cp -r "$p" /tmp/keep/; done
+          for p in data/us10y data/stocks data/sources.json data/cache; do [ -e "$p" ] && cp -r "$p" /tmp/keep/; done
           for i in 1 2 3 4 5 6; do
             git fetch -q origin main && git reset -q --hard origin/main
-            OLD10Y="$(md5sum data/us10y/dgs10.csv 2>/dev/null)"
             cp -r /tmp/keep/. data/
-            # 미국10Y가 바뀌었으면 이미 조회한 종목만 네트워크 없이 다시 계산
-            if [ "$OLD10Y" != "$(md5sum data/us10y/dgs10.csv 2>/dev/null)" ]; then python -m pipeline.update recompute; fi
             python -m pipeline.update index > /dev/null
             for p in data/us10y data/stocks data/sources.json data/cache; do [ -e "$p" ] && git add "$p"; done
             git diff --cached --quiet && { echo "변경 없음"; exit 0; }
