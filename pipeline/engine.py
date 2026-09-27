@@ -215,7 +215,7 @@ def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "annual
     - 현재 연도의 배당이 아직 하나도 확정되지 않았다면 직전 연도의 확정 연간 DPS를 사용한다.
     - 분기/중간배당 기업이라도 필요한 전년도 기간별 자료가 없으면 임의로 0을 넣지 않고
       확인 가능한 부분만으로 계산하지 않는다. 다만 전년도 기말배당은 연간 보고서로 확인한다.
-    - mode는 기존 호환성을 위해 인자로 유지하지만, 이제 위 규칙이 단일 계산 규칙이다.
+    - mode는 기존 호출부와의 호환성을 위해 인자로 유지하며 계산에는 사용하지 않는다.
     """
     confirmed = [fy for fy in years.values()
                  if fy.fy_total is not None and fy.fy_confirmed is not None and fy.fy_confirmed <= t]
@@ -253,7 +253,6 @@ def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "annual
     # 분기배당 기업: 현재 확정 누계 + 전년도 미확정 기간의 동일 기간 배당.
     if O.is_quarterly():
         latest_period = current_rec[0]
-        quarter_periods = _quarter_amounts(O)
         prior = years.get(F.year)
         prior_quarters = _quarter_amounts(prior)
 
