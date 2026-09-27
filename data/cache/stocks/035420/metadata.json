@@ -1,0 +1,56 @@
+{
+ "code": "035420",
+ "name": "NAVER",
+ "market": "KOSPI",
+ "price_through": "2026-09-23",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T00:36:49+09:00",
+ "updated_at": "2026-09-28T00:36:49+09:00",
+ "last_attempt": "2026-09-28T00:36:49+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2879,
+   "from": "2015-01-01"
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 43
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-09-25",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "summary": {
+  "code": "035420",
+  "name": "NAVER",
+  "market": "KOSPI",
+  "price": 194700.0,
+  "price_date": "2026-09-23",
+  "dps": 2630.0,
+  "yield": 1.3508,
+  "multiple": 0.2723,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 95.8,
+  "p10": 0.0645,
+  "p90": 0.1993,
+  "mcap": null,
+  "tv": 225541510150.0,
+  "has_div_data": true,
+  "flags": []
+ }
+}
