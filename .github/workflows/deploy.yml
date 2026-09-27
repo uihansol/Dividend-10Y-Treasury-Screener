@@ -50,6 +50,7 @@ jobs:
           sed -i "s#^GITHUB_REPO = .*#GITHUB_REPO = \"${{ github.repository }}\"#" wrangler.toml
 
       - name: Deploy to Cloudflare Workers
+        id: deploy
         if: env.HAS_CF == 'true'
         uses: cloudflare/wrangler-action@v3
         env:
@@ -60,8 +61,14 @@ jobs:
           wranglerVersion: "4"
           workingDirectory: web
           command: deploy
-          secrets: |
-            GITHUB_TOKEN
+          # WORKER_GITHUB_TOKEN 이 있을 때만 Worker 비밀값으로 올린다 (없으면 /api 가 설정 안내 오류를 반환)
+          secrets: ${{ secrets.WORKER_GITHUB_TOKEN != '' && 'GITHUB_TOKEN' || '' }}
+
+      - name: 배포 주소
+        if: steps.deploy.outcome == 'success'
+        run: |
+          echo "::notice::배포 주소 ${{ steps.deploy.outputs.deployment-url }}"
+          [ -n "${{ secrets.WORKER_GITHUB_TOKEN }}" ] || echo "::warning::WORKER_GITHUB_TOKEN 시크릿이 없어 /api 가 동작하지 않습니다"
 
       - name: Cloudflare 미설정 안내
         if: env.HAS_CF != 'true'
