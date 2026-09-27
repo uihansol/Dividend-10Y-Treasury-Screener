@@ -24,7 +24,7 @@ CACHE_INDEX_JSON = DATA / "cache" / "index.json"  # 조회한 종목 요약 목�
 # 같은 종목을 짧은 시간 안에 다시 요청하면 네트워크 조회 없이 캐시를 그대로 쓴다(초)
 REFRESH_COOLDOWN_SEC = int(os.environ.get("REFRESH_COOLDOWN_SEC", "600"))
 
-PRICE_START = "2016-01-01"   # 주가 수집 시작일
+PRICE_START = "2015-01-01"   # 주가 수집 시작일
 DART_FIRST_YEAR = 2015       # OpenDART 정기보고서 주요정보는 2015 사업연도부터 제공
 HISTORY_YEARS = 10           # 역사적 배수/백분위 계산 기간
 
