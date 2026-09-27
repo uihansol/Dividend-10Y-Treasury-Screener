@@ -5,22 +5,91 @@ import { loadRecent } from "../lib/recent";
 import { BandGauge } from "../components/BandGauge";
 import { SearchBox } from "../components/SearchBox";
 
-type SortKey = "mult_desc" | "yield_desc" | "paid_desc" | "recent";
+type MetricKey = "yield" | "multiple" | "paid10" | "pct";
+type SortDirection = "asc" | "desc";
+type SortState = { key: MetricKey; direction: SortDirection };
+type ColumnOrder = MetricKey[];
+
+const DEFAULT_COLUMNS: ColumnOrder = ["yield", "multiple", "paid10", "pct"];
+const COLUMN_ORDER_KEY = "dividend-10y-home-column-order-v1";
+const SORT_KEY = "dividend-10y-home-sort-v1";
+
+const COLUMN_LABELS: Record<MetricKey, string> = {
+  yield: "배당률",
+  multiple: "배당/10Y",
+  paid10: "10년 배당",
+  pct: "역사적 위치",
+};
+
+function loadColumnOrder(): ColumnOrder {
+  try {
+    const raw = localStorage.getItem(COLUMN_ORDER_KEY);
+    if (!raw) return DEFAULT_COLUMNS;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return DEFAULT_COLUMNS;
+    const valid = parsed.filter((x): x is MetricKey => DEFAULT_COLUMNS.includes(x));
+    return valid.length === DEFAULT_COLUMNS.length && new Set(valid).size === DEFAULT_COLUMNS.length ? valid : DEFAULT_COLUMNS;
+  } catch {
+    return DEFAULT_COLUMNS;
+  }
+}
+
+function loadSort(): SortState {
+  try {
+    const raw = localStorage.getItem(SORT_KEY);
+    if (!raw) return { key: "multiple", direction: "desc" };
+    const parsed = JSON.parse(raw);
+    if (DEFAULT_COLUMNS.includes(parsed?.key) && (parsed?.direction === "asc" || parsed?.direction === "desc")) return parsed;
+  } catch {}
+  return { key: "multiple", direction: "desc" };
+}
 
 export function Home({ master, index, indexError, onPick }: {
   master: MasterStock[] | null; index: CacheIndex | null; indexError: string | null; onPick: (s: MasterStock) => void;
 }) {
-  const [sort, setSort] = useState<SortKey>("mult_desc");
+  const [columns, setColumns] = useState<ColumnOrder>(() => loadColumnOrder());
+  const [editingColumns, setEditingColumns] = useState(false);
+  const [sort, setSort] = useState<SortState>(() => loadSort());
+  const [sortMenu, setSortMenu] = useState<MetricKey | null>(null);
+
+  const saveColumns = (next: ColumnOrder) => {
+    setColumns(next);
+    localStorage.setItem(COLUMN_ORDER_KEY, JSON.stringify(next));
+  };
+
+  const moveColumn = (index: number, delta: number) => {
+    const next = [...columns];
+    const target = index + delta;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    saveColumns(next);
+  };
+
+  const resetColumns = () => saveColumns(DEFAULT_COLUMNS);
+
+  const chooseSort = (key: MetricKey, direction: SortDirection) => {
+    const next = { key, direction };
+    setSort(next);
+    localStorage.setItem(SORT_KEY, JSON.stringify(next));
+    setSortMenu(null);
+  };
+
   const rows = useMemo(() => {
     const r = [...(index?.stocks ?? [])];
-    const k = (v: number | null | undefined) => (v == null ? -Infinity : v);
-    r.sort((a, b) =>
-      sort === "recent" ? (b.updated_at ?? "").localeCompare(a.updated_at ?? "")
-      : sort === "yield_desc" ? k(b.yield) - k(a.yield)
-      : sort === "paid_desc" ? k(b.paid10) - k(a.paid10) || k(b.multiple) - k(a.multiple)
-      : k(b.multiple) - k(a.multiple));
+    const value = (row: typeof r[number], key: MetricKey): number => {
+      if (key === "yield") return row.yield ?? -Infinity;
+      if (key === "multiple") return row.multiple ?? -Infinity;
+      if (key === "paid10") return row.paid10 ?? -Infinity;
+      return row.pct ?? -Infinity;
+    };
+    r.sort((a, b) => {
+      const diff = value(a, sort.key) - value(b, sort.key);
+      if (diff !== 0) return sort.direction === "asc" ? diff : -diff;
+      return a.name.localeCompare(b.name, "ko");
+    });
     return r;
   }, [index, sort]);
+
   const us = index?.sources?.us10y;
   const recent = useMemo(() => loadRecent(), []);   // 이 브라우저에서만 남는 방문 기록(서버 저장 아님)
 
@@ -54,14 +123,23 @@ export function Home({ master, index, indexError, onPick }: {
       <section>
         <div className="list-head">
           <h2>조회한 종목</h2>
-          <label className="inline">정렬
-            <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
-              <option value="mult_desc">배당/10Y 높은 순</option>
-              <option value="yield_desc">배당수익률 높은 순</option>
-              <option value="paid_desc">배당 지속성 높은 순</option>
-              <option value="recent">최근 조회 순</option>
-            </select>
-          </label>
+          <div className="list-actions">
+            <button type="button" className={`column-edit-btn${editingColumns ? " on" : ""}`} onClick={() => setEditingColumns((v) => !v)} aria-expanded={editingColumns}>
+              편집
+            </button>
+            {editingColumns && (
+              <div className="column-editor" role="dialog" aria-label="지표 순서 편집">
+                <div className="column-editor-head"><strong>지표 순서</strong><button type="button" className="column-reset" onClick={resetColumns}>기본 순서</button></div>
+                <p>▲ ▼ 버튼으로 메인 표의 지표 순서를 바꿀 수 있습니다.</p>
+                <ol>
+                  {columns.map((key, i) => <li key={key}><span>{COLUMN_LABELS[key]}</span><span className="column-move">
+                    <button type="button" onClick={() => moveColumn(i, -1)} disabled={i === 0} aria-label={`${COLUMN_LABELS[key]} 위로`}>▲</button>
+                    <button type="button" onClick={() => moveColumn(i, 1)} disabled={i === columns.length - 1} aria-label={`${COLUMN_LABELS[key]} 아래로`}>▼</button>
+                  </span></li>)}
+                </ol>
+              </div>
+            )}
+          </div>
         </div>
         {indexError && <p className="err">목록을 불러오지 못했습니다: {indexError}</p>}
         {index && rows.length === 0 && <p className="empty-msg">아직 조회한 종목이 없습니다. 위에서 종목을 검색해 보세요.</p>}
@@ -71,8 +149,20 @@ export function Home({ master, index, indexError, onPick }: {
               <thead><tr>
                 <th className="stick">종목</th><th className="hide-sm">시장</th>
                 <th className="num hide-sm">주가</th><th className="num hide-sm">예상 DPS</th>
-                <th className="num">배당률</th><th className="num key">배당/10Y</th>
-                <th className="num">10년 배당</th><th>역사적 위치</th><th className="hide-sm">기준일</th>
+                {columns.map((key) => (
+                  <th key={key} className={`num metric-th${key === "multiple" ? " key" : ""}`}>
+                    <div className="metric-title-wrap">
+                      <button type="button" className="metric-title" onClick={() => setSortMenu(sortMenu === key ? null : key)} aria-haspopup="menu" aria-expanded={sortMenu === key}>
+                        {COLUMN_LABELS[key]} <span className="sort-indicator" aria-hidden="true">{sort.key === key ? (sort.direction === "asc" ? "↑" : "↓") : "↕"}</span>
+                      </button>
+                      {sortMenu === key && <div className="sort-menu" role="menu">
+                        <button type="button" role="menuitem" className={sort.key === key && sort.direction === "asc" ? "selected" : ""} onClick={() => chooseSort(key, "asc")}>오름차순</button>
+                        <button type="button" role="menuitem" className={sort.key === key && sort.direction === "desc" ? "selected" : ""} onClick={() => chooseSort(key, "desc")}>내림차순</button>
+                      </div>}
+                    </div>
+                  </th>
+                ))}
+                <th className="hide-sm">기준일</th>
               </tr></thead>
               <tbody>
                 {rows.map((r) => (
@@ -84,10 +174,12 @@ export function Home({ master, index, indexError, onPick }: {
                     <td className="hide-sm">{r.market}</td>
                     <td className="num hide-sm">{won(r.price)}</td>
                     <td className="num hide-sm">{r.has_div_data ? won(r.dps) : NA}</td>
-                    <td className="num">{pct(r.yield)}</td>
-                    <td className="num key">{mult(r.multiple)}</td>
-                    <td className="num">{r.paid10 == null ? NA : `${r.paid10}/10`}</td>
-                    <td><BandGauge pct={r.pct} /></td>
+                    {columns.map((key) => {
+                      if (key === "yield") return <td key={key} className="num">{pct(r.yield)}</td>;
+                      if (key === "multiple") return <td key={key} className="num key">{mult(r.multiple)}</td>;
+                      if (key === "paid10") return <td key={key} className="num">{r.paid10 == null ? NA : `${r.paid10}/10`}</td>;
+                      return <td key={key}><BandGauge pct={r.pct} /></td>;
+                    })}
                     <td className="hide-sm num">{r.price_date}</td>
                   </tr>
                 ))}
