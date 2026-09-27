@@ -55,13 +55,15 @@ a { color: var(--accent); }
 .empty h1 { font-size: 1.4rem; }
 
 /* ---------- masthead ---------- */
-.masthead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 32px;
-  padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
-.masthead h1 { margin: 0; font-size: clamp(1.45rem, 3.2vw, 2.1rem); font-weight: 700; letter-spacing: -0.02em; }
+.masthead { display: block; padding: 0; border-bottom: 1px solid var(--rule); }
+.masthead-title { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 7px 12px; }
+.masthead h1 { margin: 0; font-size: clamp(1.05rem, 2vw, 1.3rem); font-weight: 650; letter-spacing: -0.02em; line-height: 1.35; }
 .headline-figures { display: flex; gap: 28px; margin: 0; }
 .headline-figures dt { font-size: 0.8rem; color: var(--ink-2); }
 .headline-figures dd { margin: 0; font-size: 1.35rem; font-weight: 600; }
 .headline-figures small { font-size: 0.75rem; color: var(--ink-3); font-weight: 400; margin-left: 4px; }
+.home-footer-figures { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.home-footer-figures .headline-figures { justify-content: flex-end; }
 
 /* ---------- controls ---------- */
 .controls { display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: flex-end; padding: 16px 0; border-bottom: 1px solid var(--rule); }
