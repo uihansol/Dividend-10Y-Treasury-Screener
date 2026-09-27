@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { CacheIndex, MasterStock } from "../lib/types";
 import { mult, pct, won, NA } from "../lib/format";
 import { loadRecent, removeRecent, removeRecentMany, type RecentEntry } from "../lib/recent";
@@ -53,7 +53,7 @@ export function Home({ master, index, indexError, onPick }: {
   const [recent, setRecent] = useState<RecentEntry[]>(() => loadRecent());
   const [editingRecent, setEditingRecent] = useState(false);
   const [selectedRecent, setSelectedRecent] = useState<Set<string>>(() => new Set());
-  const [swipedRecent, setSwipedRecent] = useState<string | null>(null);
+  const [swipedRecent, setSwipedRecent] = useState<string | null>(null);\n  const longPressTimer = useRef<number | null>(null);\n  const longPressTriggered = useRef(false);
 
   const saveColumns = (next: ColumnOrder) => {
     setColumns(next);
@@ -111,7 +111,7 @@ export function Home({ master, index, indexError, onPick }: {
     setSelectedRecent(new Set());
     setEditingRecent(false);
   };
-  const toggleRecentEdit = () => {
+  const startRowLongPress = (code: string) => {\n    longPressTriggered.current = false;\n    if (longPressTimer.current !== null) window.clearTimeout(longPressTimer.current);\n    longPressTimer.current = window.setTimeout(() => {\n      longPressTriggered.current = true;\n      deleteRecent(code);\n    }, 650);\n  };\n  const cancelRowLongPress = () => {\n    if (longPressTimer.current !== null) {\n      window.clearTimeout(longPressTimer.current);\n      longPressTimer.current = null;\n    }\n  };\n\n  const toggleRecentEdit = () => {
     setEditingRecent((v) => !v);
     setSelectedRecent(new Set());
     setSwipedRecent(null);
@@ -198,7 +198,7 @@ export function Home({ master, index, indexError, onPick }: {
               </tr></thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r.code} onClick={() => { window.location.hash = `#/stock/${r.code}`; }}>
+                  <tr key={r.code}\n                    onTouchStart={() => startRowLongPress(r.code)}\n                    onTouchEnd={cancelRowLongPress}\n                    onTouchMove={cancelRowLongPress}\n                    onTouchCancel={cancelRowLongPress}\n                    onClick={(e) => {\n                      if (longPressTriggered.current) {\n                        e.preventDefault();\n                        longPressTriggered.current = false;\n                        return;\n                      }\n                      window.location.hash = `#/stock/${r.code}`;\n                    }}>
                     <td className="stick">
                       <a href={`#/stock/${r.code}`} className="name">{r.name}</a>
                       <span className="code">{r.code}<span className="show-sm"> {r.market}</span></span>
