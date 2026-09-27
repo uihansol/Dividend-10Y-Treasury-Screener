@@ -124,15 +124,16 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 
 /* ---------- detail ---------- */
 .back { display: inline-block; margin-bottom: 10px; text-decoration: none; }
-.detail-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); padding-bottom: 14px; }
-.detail-head h1 { margin: 0; font-size: clamp(1.45rem, 3.2vw, 2rem); font-weight: 700; letter-spacing: -0.025em; }
+.detail-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); padding-bottom: 8px; }
+.detail-head h1 { margin: 0; font-size: clamp(1.15rem, 2.4vw, 1.5rem); font-weight: 700; letter-spacing: -0.025em; }
+.detail-head .code { font-size: 0.82rem; }
 .detail-head .code { color: var(--ink-2); }
 /* flex + wrap: 마지막 줄에 카드가 하나만 남아도 grid처럼 빈 칸이 보이지 않고 그 카드가 남은 폭을 채운다 */
-.cards { display: flex; flex-wrap: wrap; gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin: 18px 0; }
-.card { background: var(--surface); padding: 14px 16px; flex: 1 1 148px; }
-.card-label { font-size: 0.8rem; color: var(--ink-2); }
-.card-value { font-size: 1.32rem; font-weight: 700; letter-spacing: -0.02em; }
-.card-sub { font-size: 0.76rem; color: var(--ink-3); }
+.cards { display: flex; flex-wrap: wrap; gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin: 8px 0 10px; }
+.card { background: var(--surface); padding: 7px 10px; flex: 1 1 130px; min-width: 0; }
+.card-label { font-size: 0.68rem; color: var(--ink-2); line-height: 1.3; }
+.card-value { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; }
+.card-sub { font-size: 0.64rem; color: var(--ink-3); line-height: 1.25; }
 .card.strong { background: var(--accent); color: #fff; }
 .card.strong .card-label { color: #dcdcff; }
 .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-s); padding: 18px; margin-bottom: 18px; }
@@ -197,6 +198,18 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 
 @media (max-width: 720px) {
   body { font-size: 15px; }
+  .top-search { gap: 5px; padding-top: 7px; padding-bottom: 7px; }
+  .top-search .back { font-size: 0.72rem; }
+  .detail-search .search-field input { min-height: 34px; font-size: 0.82rem; }
+  .refresh-btn { min-height: 34px; padding: 5px 8px; font-size: 0.72rem; }
+  .detail-head { padding-bottom: 5px; gap: 5px; }
+  .detail-head h1 { font-size: 1.12rem; }
+  .detail-head .code { font-size: 0.72rem; }
+  .cards { margin: 5px 0 7px; }
+  .card { padding: 5px 7px; flex-basis: 92px; }
+  .card-label { font-size: 0.62rem; }
+  .card-value { font-size: 0.9rem; }
+  .card-sub { font-size: 0.56rem; }
   .page { padding: 14px 6px; }
   .hide-sm { display: none; }
   .show-sm { display: inline; }
@@ -235,8 +248,13 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .search-list .s-code { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .search-list .s-mkt { color: var(--ink-3); font-size: 0.82rem; min-width: 4.5em; text-align: right; }
 .search-list .search-empty { color: var(--ink-3); cursor: default; display: block; }
-.top-search { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: flex-end; padding-bottom: 0; }
-.top-search .search { flex: 1 1 280px; }
+.top-search { display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; padding-top: 10px; padding-bottom: 10px; }
+.top-search .back { flex: 0 0 auto; margin: 0; white-space: nowrap; font-size: 0.82rem; }
+.detail-search { flex: 1 1 auto; min-width: 0; }
+.detail-search .search { max-width: none; }
+.detail-search .search-label { display: none; }
+.detail-search .search-field input { min-height: 38px; padding: 7px 38px 7px 10px; font-size: 0.92rem; }
+.refresh-btn { flex: 0 0 auto; margin-top: 0; min-height: 38px; padding: 6px 10px; font-size: 0.82rem; }
 .refresh-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .refresh-btn:disabled { opacity: 0.6; cursor: default; }
 .refresh-icon { display: inline-block; font-size: 1.05em; line-height: 1; }
