@@ -1,7 +1,7 @@
 name: Common data (US10Y + master)
 
 # 전체 종목 가격·배당을 수집하지 않는다. 모든 종목이 공통으로 쓰는 데이터만 관리한다.
-#  - 미국 10년물(DGS10): 평일 매일 증분 업데이트
+#  - 미국 10년물(DGS10): 평일 매일 증분 업데이트 → 이미 조회한 종목만 네트워크 없이 재계산
 #  - 종목 master(검색용 목록): 매주 월요일 갱신
 on:
   schedule:
@@ -50,12 +50,23 @@ jobs:
           # 결과를 실행 요약(annotation)으로 남김
           while IFS= read -r line; do echo "::notice::${line:0:900}"; done < /tmp/out.txt
 
-      - name: Commit
+      - name: Commit (종목 분석 커밋과 겹쳐도 안전하게 재시도)
         run: |
           git config user.name "dividend-bot"
           git config user.email "actions@users.noreply.github.com"
-          for p in data/us10y data/stocks data/sources.json data/cache/index.json; do [ -e "$p" ] && git add "$p"; done
-          git diff --cached --quiet && { echo "변경 없음"; exit 0; }
-          git commit -m "data: common $(date -u +%F)"
-          for i in 1 2 3 4 5; do git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0; sleep 5; done
+          mkdir -p /tmp/keep
+          for p in data/us10y data/stocks data/sources.json; do [ -e "$p" ] && cp -r "$p" /tmp/keep/; done
+          for i in 1 2 3 4 5 6; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            OLD10Y="$(md5sum data/us10y/dgs10.csv 2>/dev/null)"
+            cp -r /tmp/keep/. data/
+            # 미국10Y가 바뀌었으면 이미 조회한 종목만 네트워크 없이 다시 계산
+            if [ "$OLD10Y" != "$(md5sum data/us10y/dgs10.csv 2>/dev/null)" ]; then python -m pipeline.update recompute; fi
+            python -m pipeline.update index > /dev/null
+            for p in data/us10y data/stocks data/sources.json data/cache; do [ -e "$p" ] && git add "$p"; done
+            git diff --cached --quiet && { echo "변경 없음"; exit 0; }
+            git commit -q -m "data: common $(date -u +%F)"
+            git push -q origin HEAD:main && exit 0
+            sleep $((RANDOM % 6 + 3))
+          done
           exit 1

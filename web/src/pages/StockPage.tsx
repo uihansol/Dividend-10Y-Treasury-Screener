@@ -11,7 +11,22 @@ type Phase =
   | { kind: "ready"; data: Detail; refreshing: boolean; note?: string }
   | { kind: "error"; message: string };
 
-const POLL_MS = 8000;
+const POLL_MS = 6000;
+const STEPS = [
+  "가격 데이터 확인 (2016년~, KRX)",
+  "배당 데이터 확인 (2015년~, DART 정기보고서)",
+  "미국 10년물 데이터 확인 (FRED)",
+  "분석 계산 중",
+];
+
+/** Actions step 상태 → 각 단계 표시: done | current | todo */
+function stepStates(run?: RunInfo): ("done" | "current" | "todo")[] {
+  const st = run?.steps ?? [];
+  return STEPS.map((_, i) => {
+    const s = st.find((x) => x.name.startsWith("①②③④"[i]));
+    return s?.status === "completed" ? "done" : s?.status === "in_progress" ? "current" : "todo";
+  });
+}
 const TIMEOUT_MS = 10 * 60 * 1000;
 
 export function StockPage({ code, master, onPick }: {
@@ -86,13 +101,17 @@ export function StockPage({ code, master, onPick }: {
           <section className="panel preparing" aria-live="polite">
             <h2>{name} 데이터를 준비하고 있습니다.</h2>
             <ol className="steps">
-              <li>가격 데이터 확인 (2016년~, KRX)</li>
-              <li>배당 데이터 확인 (2015년~, DART 정기보고서)</li>
-              <li>미국 10년물 데이터 확인 (FRED)</li>
-              <li>분석 계산 중</li>
+              {stepStates(phase.run).map((st, i) => (
+                <li key={i} className={`step-${st}`}>
+                  <span className="step-mark" aria-hidden>{"①②③④"[i]}</span> {STEPS[i]}
+                  {st === "done" && <span className="step-tag"> 완료</span>}
+                  {st === "current" && <span className="step-tag"> 진행 중…</span>}
+                </li>
+              ))}
             </ol>
             <p className="note">
-              {phase.run ? (phase.run.status === "queued" ? "작업 대기 중" : "작업 실행 중") : "작업 요청 중"} ·
+              {!phase.run ? "작업 요청 중" : phase.run.status === "queued" ? "작업 대기 중"
+                : stepStates(phase.run).every((x) => x === "todo") ? "실행 환경 준비 중" : "작업 실행 중"} ·
               경과 {Math.floor((now - phase.since) / 1000)}초 · 보통 1~3분 걸립니다.
               {phase.run && <> <a href={phase.run.url} target="_blank" rel="noreferrer">실행 기록</a></>}
             </p>

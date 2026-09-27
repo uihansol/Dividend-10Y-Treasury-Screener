@@ -11,6 +11,7 @@ analyze_stock(code)
   캐시 없음 → 2016-01-01부터 가격 + 2015년부터 배당 최초 수집
   캐시 있음 → 마지막 날짜 이후 가격, 아직 안 받은 보고서만 조회
   cooldown(기본 10분) 안에 다시 요청 → 네트워크 없이 캐시 재계산만
+  단계(prices → dividends → us10y → compute)를 한 번에 또는 따로 실행할 수 있다
   KRX/DART 실패 → 기존 캐시로 계산하고 오류를 metadata에 기록, 캐시도 없으면 DataUnavailable
 """
 from __future__ import annotations
@@ -86,7 +87,7 @@ def update_stock_price_cache(code: str, today: date | None = None,
         return old, {"mode": "skip", "added": 0}
     new = fetch(code, start.isoformat(), today.isoformat())
     new = new[new["date"] >= start.isoformat()] if len(new) else new
-    df = pd.concat([old, new], ignore_index=True) if len(new) else old
+    df = (pd.concat([old, new], ignore_index=True) if len(old) else new) if len(new) else old
     df = df.drop_duplicates("date", keep="last").sort_values("date").reset_index(drop=True)
     if len(new):
         stock_dir(code).mkdir(parents=True, exist_ok=True)
@@ -222,63 +223,127 @@ def _within_cooldown(meta: dict | None) -> bool:
     return (datetime.now(KST) - t).total_seconds() < C.REFRESH_COOLDOWN_SEC
 
 
+# 수집 단계. GitHub Actions에서는 단계마다 별도 step으로 실행해 화면에 진행 상황(①~④)을 보여준다.
+STAGES = ("prices", "dividends", "us10y")
+STAGE_CHOICES = STAGES + ("compute",)
+
+
+def _run_file(code: str):
+    return stock_dir(code) / ".run.json"   # 단계 사이에 넘기는 이번 실행의 steps/errors (커밋하지 않음)
+
+
+def _run_stage(code: str, stage: str, state: dict, info: dict, today, fetch_prices, fetch_dividends,
+               update_us: bool) -> None:
+    steps, errors = state["steps"], state["errors"]
+    if state["skip"]:
+        steps["cache"] = "cooldown: 네트워크 조회 생략"
+        return
+    try:
+        if stage == "prices":
+            steps["prices"] = update_stock_price_cache(code, today, fetch_prices)[1]
+        elif stage == "dividends":
+            steps["dividends"] = update_stock_dividend_cache(code, info["corp_code"], today, fetch_dividends)[1]
+        elif stage == "us10y" and update_us:
+            from .fred import update_us10y
+            src = read_json(C.SOURCES_JSON, {}).get("us10y", {})
+            # 오늘 이미 성공했으면 생략. 실패만 했으면 짧게 한 번 더 시도(종목 분석을 오래 붙잡지 않음).
+            if str(src.get("last_success", ""))[:10] != now_kst()[:10]:
+                r = update_us10y(quick=True)
+                steps["us10y"] = r
+                if not r.get("ok"):
+                    errors["us10y"] = r.get("error")
+    except Exception as e:
+        errors[stage] = repr(e)[:300]
+
+
 def analyze_stock(code: str, *, force: bool = False, master: dict | None = None, today: date | None = None,
                   fetch_prices: Callable | None = None, fetch_dividends: Callable | None = None,
-                  update_us: bool = True) -> dict:
+                  update_us: bool = True, stage: str | None = None) -> dict:
+    """종목 1개: 캐시 확인 → (필요하면) 가격·배당·미국10Y 업데이트 → engine 계산 → 캐시 저장.
+
+    stage=None 이면 전부 한 번에. stage='prices'|'dividends'|'us10y' 는 그 단계만 실행하고
+    이번 실행 상태를 .run.json에 넘기며, stage='compute' 가 마지막에 계산·저장한다.
+    """
     from .master import load_master
     code = str(code).zfill(6)
     master = master if master is not None else load_master()
     if code not in master:
         raise StockNotFound(code)
+    if stage is not None and stage not in STAGE_CHOICES:
+        raise ValueError(stage)
     info = master[code]
     d = stock_dir(code)
     with _lock(code):
         meta = read_json(d / "metadata.json")
-        errors, steps = {}, {}
-        prices, div = load_prices(code), load_dividends(code)
-        if force or not _within_cooldown(meta):
-            try:
-                prices, steps["prices"] = update_stock_price_cache(code, today, fetch_prices)
-            except Exception as e:
-                errors["prices"] = repr(e)[:300]
-            try:
-                div, steps["dividends"] = update_stock_dividend_cache(code, info["corp_code"], today, fetch_dividends)
-            except Exception as e:
-                errors["dividends"] = repr(e)[:300]
-            if update_us:
-                from .fred import update_us10y
-                src = read_json(C.SOURCES_JSON, {}).get("us10y", {})
-                # 오늘 이미 성공했으면 생략. 실패만 했으면 다시 시도한다.
-                if str(src.get("last_success", ""))[:10] != now_kst()[:10]:
-                    r = update_us10y()
-                    steps["us10y"] = r
-                    if not r.get("ok"):
-                        errors["us10y"] = r.get("error")
+        if stage in (None, "prices"):   # 실행의 시작: cooldown 판단
+            state = {"skip": not force and _within_cooldown(meta), "steps": {}, "errors": {}}
         else:
-            steps["cache"] = "cooldown: 네트워크 조회 생략"
+            state = read_json(_run_file(code)) or {"skip": True, "steps": {}, "errors": {}}
+        for s in (STAGES if stage is None else [x for x in STAGES if x == stage]):
+            _run_stage(code, s, state, info, today, fetch_prices, fetch_dividends, update_us)
+        if stage in STAGES:
+            write_json(_run_file(code), state)
+            return state
+        _run_file(code).unlink(missing_ok=True)
+        steps, errors = state["steps"], state["errors"]
 
+        prices, div = load_prices(code), load_dividends(code)
         if prices.empty:
             write_json(d / "metadata.json", {**(meta or {}), "code": code, "name": info["name"],
-                       "market": info["market"], "last_error": errors, "last_attempt": now_kst()})
+                       "market": info["market"], "last_error": errors or {"prices": "no data"},
+                       "last_attempt": now_kst()})
             raise DataUnavailable(f"{info['name']} 데이터를 가져오지 못했습니다: {errors}")
 
-        us_dates, us_vals = load_us10y()
-        analysis = compute_analysis(info, prices, div, us_dates, us_vals)
-        new_meta = {
-            "code": code, "name": info["name"], "market": info["market"],
-            "price_through": prices["date"].max(),
-            "dividend_through": max((r["fetched_at"][:10] for r in div["log"].values()), default=None),
-            "us10y_through": us_dates[-1].isoformat() if us_dates else None,
-            "created_at": (meta or {}).get("created_at") or now_kst(),
+        analysis = _save_analysis(code, info, prices, div, meta, {
             "updated_at": now_kst() if not errors else (meta or {}).get("updated_at", now_kst()),
             "last_attempt": now_kst(), "last_error": errors or None, "steps": steps,
-            "summary": analysis["summary"],
-        }
-        analysis["metadata"] = {k: v for k, v in new_meta.items() if k != "summary"}
-        write_json(d / "analysis.json", analysis, compact=True)
-        write_json(d / "metadata.json", new_meta)
+        })
     rebuild_index()
     return analysis
+
+
+def _save_analysis(code: str, info: dict, prices: pd.DataFrame, div: dict, meta: dict | None, extra: dict) -> dict:
+    us_dates, us_vals = load_us10y()
+    analysis = compute_analysis(info, prices, div, us_dates, us_vals)
+    new_meta = {
+        "code": code, "name": info["name"], "market": info["market"],
+        "price_through": prices["date"].max(),
+        "dividend_through": max((r["fetched_at"][:10] for r in div["log"].values()), default=None),
+        "us10y_through": us_dates[-1].isoformat() if us_dates else None,
+        "created_at": (meta or {}).get("created_at") or now_kst(),
+        **{k: (meta or {}).get(k) for k in ("updated_at", "last_attempt", "last_error", "steps")},
+        **extra,
+        "summary": analysis["summary"],
+    }
+    analysis["metadata"] = {k: v for k, v in new_meta.items() if k != "summary"}
+    write_json(stock_dir(code) / "analysis.json", analysis, compact=True)
+    write_json(stock_dir(code) / "metadata.json", new_meta)
+    return analysis
+
+
+def recompute_cached(master: dict | None = None) -> dict:
+    """이미 캐시된 종목만, 네트워크 없이 다시 계산 (미국10Y가 갱신됐을 때 배수·백분위 반영).
+    KRX·DART를 호출하지 않으며 조회한 적 없는 종목은 건드리지 않는다."""
+    from .master import load_master
+    master = master if master is not None else load_master()
+    done, failed = [], {}
+    if C.CACHE_DIR.exists():
+        for p in sorted(C.CACHE_DIR.glob("*/prices.csv")):
+            code = p.parent.name
+            if code not in master:
+                continue
+            try:
+                with _lock(code):
+                    prices = load_prices(code)
+                    if prices.empty:
+                        continue
+                    _save_analysis(code, master[code], prices, load_dividends(code),
+                                   read_json(stock_dir(code) / "metadata.json"), {"recomputed_at": now_kst()})
+                done.append(code)
+            except Exception as e:
+                failed[code] = repr(e)[:200]
+    rebuild_index()
+    return {"recomputed": len(done), "failed": failed or None}
 
 
 def rebuild_index() -> dict:

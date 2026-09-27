@@ -41,18 +41,41 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
 
-      - name: Analyze (가격 → 배당 → 미국10Y → 계산)
+      # 단계마다 step을 나눠 화면에 진행 상황을 보여준다 (Worker가 step 이름의 ①~④를 읽음).
+      # 수집 단계의 실패는 .run.json에 기록되고 ④에서 기존 캐시로 계산한다.
+      - name: ① 가격 데이터 확인
         env:
           CODE: ${{ inputs.code }}
           FORCE: ${{ inputs.force }}
-          DART_API_KEY: ${{ secrets.DART_API_KEY }}
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
-          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: |
           ARGS=""; [ "$FORCE" = "true" ] && ARGS="--force"
+          python -m pipeline.update stock "$CODE" --stage prices $ARGS | tee -a /tmp/out.txt
+
+      - name: ② 배당 데이터 확인
+        env:
+          CODE: ${{ inputs.code }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: python -m pipeline.update stock "$CODE" --stage dividends | tee -a /tmp/out.txt
+
+      - name: ③ 미국 10년물 데이터 확인
+        env:
+          CODE: ${{ inputs.code }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: python -m pipeline.update stock "$CODE" --stage us10y | tee -a /tmp/out.txt
+
+      - name: ④ 분석 계산
+        env:
+          CODE: ${{ inputs.code }}
+        run: |
           set -o pipefail
-          python -m pipeline.update stock "$CODE" $ARGS | tee /tmp/out.txt
+          python -m pipeline.update stock "$CODE" --stage compute | tee -a /tmp/out.txt
+
+      - name: Summary
+        if: always()
+        run: |
+          [ -f /tmp/out.txt ] || exit 0
           while IFS= read -r line; do echo "::notice::${line:0:900}"; done < /tmp/out.txt
 
       - name: Commit cache (다른 종목 작업과 겹쳐도 안전하게 재시도)

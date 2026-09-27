@@ -166,3 +166,104 @@ def test_index_lists_only_viewed(tmp_data):
                   fetch_dividends=FakeDart(), update_us=False)
     idx = read_json(C.CACHE_INDEX_JSON)
     assert [s["code"] for s in idx["stocks"]] == ["005930"]
+
+
+# ------------------------------------------------------------------ 단계별 실행 (Actions step ①~④)
+def test_staged_run_equals_single_run(tmp_data, monkeypatch):
+    from pipeline.cache import analyze_stock
+    kw = dict(master=MASTER, today=date(2026, 9, 25), update_us=False)
+    krx, dart = FakeKrx(date(2026, 9, 25)), FakeDart()
+    for st in ("prices", "dividends", "us10y"):
+        state = analyze_stock("005930", stage=st, fetch_prices=krx, fetch_dividends=dart, **kw)
+        assert not state["errors"]
+    staged = analyze_stock("005930", stage="compute", **kw)
+    assert staged["metadata"]["steps"]["prices"]["mode"] == "initial"
+    assert not (C.CACHE_DIR / "005930" / ".run.json").exists()
+    assert len(krx.calls) == 1
+
+    monkeypatch.setattr(C, "CACHE_DIR", tmp_data / "other")
+    single = analyze_stock("005930", fetch_prices=FakeKrx(date(2026, 9, 25)), fetch_dividends=FakeDart(), **kw)
+    assert staged["summary"] == single["summary"] and staged["series"] == single["series"]
+
+
+def test_staged_failure_is_carried_to_compute(tmp_data, monkeypatch):
+    from pipeline.cache import analyze_stock
+    monkeypatch.setattr(C, "REFRESH_COOLDOWN_SEC", 0)
+    kw = dict(master=MASTER, update_us=False)
+    analyze_stock("005930", fetch_prices=FakeKrx(date(2026, 9, 24)), fetch_dividends=FakeDart(),
+                  today=date(2026, 9, 25), **kw)
+
+    def broken(*a, **k):
+        raise RuntimeError("KRX down")
+    analyze_stock("005930", stage="prices", fetch_prices=broken, today=date(2026, 9, 27), **kw)
+    r = analyze_stock("005930", stage="compute", today=date(2026, 9, 27), **kw)
+    assert "prices" in r["metadata"]["last_error"]
+    assert r["summary"]["price"] == 50000.0                     # 기존 캐시로 계산
+
+
+def test_recompute_cached_is_offline_and_only_cached(tmp_data):
+    from pipeline.cache import analyze_stock, recompute_cached
+    analyze_stock("005930", master=MASTER, fetch_prices=FakeKrx(date(2026, 9, 25)),
+                  fetch_dividends=FakeDart(), today=date(2026, 9, 25), update_us=False)
+    before = (C.CACHE_DIR / "005930" / "analysis.json").read_text()
+    # 미국10Y가 바뀜 → 배수만 달라져야 한다 (수집 함수 없이)
+    days = pd.bdate_range("2016-01-01", "2026-09-25")
+    pd.DataFrame({"date": days.date.astype(str), "us10y": 4.0}).to_csv(C.US10Y_CSV, index=False)
+    r = recompute_cached(master=MASTER)
+    assert r == {"recomputed": 1, "failed": None}
+    import json
+    a0, a1 = json.loads(before), json.loads((C.CACHE_DIR / "005930" / "analysis.json").read_text())
+    assert a1["summary"]["multiple"] == pytest.approx(a0["summary"]["multiple"] * 3 / 4, rel=1e-3)
+    assert a1["metadata"]["last_attempt"] == a0["metadata"]["last_attempt"]   # 화면 폴링 기준은 그대로
+    assert sorted(p.name for p in C.CACHE_DIR.iterdir()) == ["005930"]
+
+
+# ------------------------------------------------------------------ 미국 10년물
+def test_fred_and_treasury_parsers():
+    from pipeline.fred import _clean, parse_fred_csv, parse_treasury_csv
+    f = _clean(parse_fred_csv("observation_date,DGS10\n2026-09-23,4.12\n2026-09-24,.\n2026-09-25,4.15\n"))
+    assert [(d.isoformat(), v) for d, v in zip(f["date"], f["us10y"])] == [("2026-09-23", 4.12), ("2026-09-25", 4.15)]
+    t = _clean(parse_treasury_csv('Date,"1 Mo","2 Yr","10 Yr","30 Yr"\n09/25/2026,4.3,3.9,4.15,4.7\n'
+                                  '09/24/2026,4.3,3.9,4.13,4.7\n'))
+    assert sorted((d.isoformat(), v) for d, v in zip(t["date"], t["us10y"])) == [("2026-09-24", 4.13),
+                                                                                ("2026-09-25", 4.15)]
+
+
+def test_us10y_falls_back_and_appends_only_new(tmp_data):
+    from pipeline.fred import load_us10y, update_us10y
+    from pipeline.store import read_json
+    n0 = len(load_us10y())
+    seen = []
+
+    def fred_down(start, timeout, attempts):
+        seen.append(("fred", start, attempts))
+        raise TimeoutError("read timed out")
+
+    def treasury(start, timeout, attempts):
+        seen.append(("treasury", start, attempts))
+        return pd.DataFrame({"date": ["2026-09-24", "2026-09-25", "2026-09-28"], "us10y": ["9.9", "9.9", "4.2"]})
+    r = update_us10y(quick=True, sources=[("fred_csv", fred_down), ("treasury", treasury)])
+    assert r["ok"] and r["source"] == "treasury" and r["added"] == 1       # 저장된 날짜는 덮어쓰지 않음
+    assert seen[0][1] == date(2026, 9, 18) and seen[0][2] == 1             # 마지막 저장일-7일부터, quick=1회
+    us = load_us10y()
+    assert len(us) == n0 + 1 and us["us10y"].iloc[-1] == 4.2
+    assert read_json(C.SOURCES_JSON)["us10y"]["data_through"] == "2026-09-28"
+
+    def down(*a):
+        raise ConnectionError("x")
+    r = update_us10y(sources=[("fred_csv", down), ("treasury", down)])
+    assert not r["ok"] and len(load_us10y()) == n0 + 1                     # 실패해도 기존 데이터 유지
+    assert read_json(C.SOURCES_JSON)["us10y"]["last_error"]
+
+
+def test_search_real_master_file():
+    """저장소의 실제 data/stocks/master.json (+aliases.json)으로 검색. 네트워크 없음."""
+    from pipeline.master import load_master
+    m = load_master()
+    if not m:
+        pytest.skip("master.json 없음")
+    assert search("삼성전자", m)[0]["code"] == "005930"
+    assert search("현대차", m)[0]["code"] == "005380"
+    assert search("005930", m)[0]["name"] == "삼성전자"
+    assert search("삼전", m)[0]["code"] == "005930"
+    assert search("존재하지않는종목", m) == []

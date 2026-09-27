@@ -14,9 +14,13 @@ Cloudflare Worker  /api/*   (web/worker.js)
   ├ GET  /api/index               조회한 종목 목록  ← 저장소 data/cache/index.json
   ├ GET  /api/stock/{code}        분석 결과 + stale 여부 ← data/cache/stocks/{code}/analysis.json
   ├ POST /api/stock/{code}/refresh GitHub Actions 'Analyze stock' 실행 (같은 종목 실행 중이면 생략)
-  └ GET  /api/stock/{code}/run    최근 실행 상태
+  └ GET  /api/stock/{code}/run    최근 실행 상태 + 진행 단계(①~④)
   ▼
 GitHub Actions  analyze-stock.yml  (Python: pykrx + OpenDART + FRED → pipeline/engine.py)
+  ├ ① 가격 데이터 확인   stock CODE --stage prices      (KRX, 그 종목만)
+  ├ ② 배당 데이터 확인   stock CODE --stage dividends   (DART, 그 기업만)
+  ├ ③ 미국 10년물 확인   stock CODE --stage us10y       (오늘 성공 기록 있으면 생략)
+  ├ ④ 분석 계산          stock CODE --stage compute     (engine.py, 수집 실패 시 기존 캐시)
   └ data/cache/stocks/{code}/ 커밋 → Worker가 다음 요청 때 읽음
 ```
 
@@ -29,7 +33,7 @@ DART·KRX 비밀값은 GitHub Secrets에만 있고 Worker·브라우저에는 �
 ## 데이터
 
 ```
-data/us10y/dgs10.csv             FRED DGS10 (공통)
+data/us10y/dgs10.csv             FRED DGS10 (공통). FRED API(키 있을 때) → FRED CSV → 미 재무부 10Y CMT CSV 순서로 시도
 data/stocks/master.json          검색용 종목 목록 (코드·이름·시장·DART 고유번호·별칭)
 data/stocks/aliases.json         직접 추가하는 별칭 {"삼전": "005930"}
 data/cache/index.json            조회한 종목 요약
@@ -40,6 +44,8 @@ data/cache/stocks/{code}/
   analysis.json   화면용 계산 결과
 data/corporate_actions_override.csv   분할 자동탐지 수동 보정
 ```
+
+Common data 워크플로가 미국 10Y를 갱신하면 이미 조회한 종목만 네트워크 없이 다시 계산한다(배수·백분위 반영).
 
 ## 계산 규칙 (pipeline/engine.py)
 
@@ -77,6 +83,7 @@ cp .env.example .env && pip install -r requirements.txt
 pytest -q                                   # 네트워크 없이 전부 실행
 python -m pipeline.update init              # 10Y + master
 python -m pipeline.update stock 005930      # 삼성전자만 수집·계산
+python -m pipeline.update recompute         # 캐시된 종목만 네트워크 없이 재계산
 python -m pipeline.update search 삼성
 ```
 

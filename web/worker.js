@@ -49,12 +49,15 @@ function lastCloseKst(now = new Date()) {
   return { day, cutoffIso: `${day}T16:00:00+09:00` };
 }
 
-function isStale(meta) {
+function isStale(meta, now = new Date()) {
   if (!meta || !meta.price_through) return true;
-  const { day, cutoffIso } = lastCloseKst();
+  const attempted = meta.last_attempt ? new Date(meta.last_attempt) : null;
+  // 미국10Y 없이 계산된 결과(배수 N/A)는 30분에 한 번까지 다시 시도
+  if (!meta.us10y_through && !(attempted && now - attempted < 30 * 60e3)) return true;
+  const { day, cutoffIso } = lastCloseKst(now);
   if (meta.price_through >= day) return false;
   // 공휴일 등으로 새 데이터가 없는 경우: 마감 이후에 이미 확인했다면 다시 돌리지 않는다
-  return !(meta.last_attempt && new Date(meta.last_attempt) >= new Date(cutoffIso));
+  return !(attempted && attempted >= new Date(cutoffIso));
 }
 
 async function activeRun(env, code) {
@@ -80,6 +83,16 @@ const runView = (w) => w && {
   created_at: w.created_at, updated_at: w.updated_at,
 };
 
+/** 실행 중인 job의 step 중 이름이 ①~④로 시작하는 것 (analyze-stock.yml의 단계) */
+async function runSteps(env, runId) {
+  const r = await gh(env, `/actions/runs/${runId}/jobs`);
+  if (!r.ok) return [];
+  const j = await r.json();
+  return ((j.jobs || [])[0]?.steps || [])
+    .filter((s) => /^[①②③④]/.test(s.name))
+    .map((s) => ({ name: s.name, status: s.status, conclusion: s.conclusion }));
+}
+
 async function api(url, req, env) {
   if (!env.GITHUB_TOKEN || !env.GITHUB_REPO) return json({ error: "Worker 설정 필요: GITHUB_TOKEN, GITHUB_REPO" }, 500);
   const p = url.pathname;
@@ -99,7 +112,9 @@ async function api(url, req, env) {
   }
 
   if (sub === "/run" && req.method === "GET") {
-    return json({ run: runView(await latestRun(env, code)) });
+    const run = runView(await latestRun(env, code));
+    if (run && run.status !== "completed") run.steps = await runSteps(env, run.id);
+    return json({ run });
   }
 
   if (sub === "/refresh" && req.method === "POST") {

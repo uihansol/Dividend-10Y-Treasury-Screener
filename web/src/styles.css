@@ -196,7 +196,11 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .list-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
 .list-head h2 { font-size: 1.05rem; margin: 0; }
 .preparing h2 { font-size: 1.15rem; }
-.steps { line-height: 2; padding-left: 1.4em; }
+.steps { line-height: 2; padding-left: 0; list-style: none; }
+.steps .step-todo { opacity: .55; }
+.steps .step-current { font-weight: 600; }
+.steps .step-done .step-tag { color: var(--good, #2a7d4f); }
+.steps .step-tag { font-size: .85em; }
 .banner { background: var(--accent-soft); border: 1px solid var(--accent-soft-strong); padding: 8px 12px; margin: 0; border-radius: var(--radius-s); }
 .banner.warn { background: transparent; border-color: var(--warn); color: var(--warn); }
 .err { color: var(--neg); }

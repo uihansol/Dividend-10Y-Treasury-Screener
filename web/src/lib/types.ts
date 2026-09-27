@@ -86,4 +86,8 @@ export interface CacheIndex {
   rules?: string[];
 }
 
-export interface RunInfo { id: number; status: string; conclusion: string | null; url: string; created_at: string; updated_at: string }
+export interface RunStep { name: string; status: string; conclusion: string | null }
+export interface RunInfo {
+  id: number; status: string; conclusion: string | null; url: string; created_at: string; updated_at: string;
+  steps?: RunStep[];   // 실행 중일 때만: analyze-stock.yml의 ①~④ 단계
+}

@@ -18,3 +18,4 @@ data/cache/**/.lock
 .wrangler/
 
 .DS_Store
+data/cache/**/.run.json
