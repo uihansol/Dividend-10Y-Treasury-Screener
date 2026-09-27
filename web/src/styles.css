@@ -206,13 +206,16 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 
 @media (max-width: 720px) {
   body { font-size: 15px; }
-  .top-search { gap: 5px; padding-top: 7px; padding-bottom: 7px; }
-  .top-search .back { font-size: 0.72rem; }
-  .detail-search .search-field input { min-height: 34px; padding: 6px 36px 6px 9px; font-size: 16px; line-height: 1.2; }
+  .top-search { gap: 3px; padding-top: 6px; padding-bottom: 6px; }
+  .top-search .back { width: 24px; min-width: 24px; }
+  .top-search .back-text { display: none; }
+  .top-search .back > span:first-child { font-size: 1.8rem; }
+  .detail-search { flex: 1 1 auto; }
+  .detail-search .search-field input { min-height: 32px; padding: 5px 34px 5px 8px; font-size: 16px; line-height: 1.15; }
   .detail-search .search-list { width: 100%; }
   .detail-search .search-list li { gap: 7px; padding: 8px 9px; }
   .detail-search .search-list .s-name { font-size: 0.9rem; }
-  .refresh-btn { min-height: 34px; padding: 5px 8px; font-size: 0.72rem; }
+  .refresh-btn { width: 32px; min-width: 32px; min-height: 32px; padding: 3px; }
   .detail-head { padding-bottom: 5px; gap: 5px; }
   .detail-head h1 { font-size: 1.12rem; }
   .detail-head .code { font-size: 0.72rem; }
@@ -264,16 +267,18 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .search-list .s-code { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .search-list .s-mkt { color: var(--ink-3); font-size: 0.82rem; min-width: 4.5em; text-align: right; }
 .search-list .search-empty { color: var(--ink-3); cursor: default; display: block; }
-.top-search { display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; padding-top: 10px; padding-bottom: 10px; }
-.top-search .back { flex: 0 0 auto; margin: 0; white-space: nowrap; font-size: 0.82rem; }
-.detail-search { flex: 1 1 auto; min-width: 0; }
+.top-search { display: flex; flex-wrap: nowrap; gap: 5px; align-items: center; padding-top: 8px; padding-bottom: 8px; }
+.top-search .back { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 2px; margin: 0; white-space: nowrap; font-size: 0.8rem; text-decoration: none; }
+.top-search .back > span:first-child { font-size: 1.65rem; line-height: 1; font-weight: 300; }
+.top-search .back-text { font-size: 0.72rem; }
+.detail-search { flex: 1 1 999px; min-width: 0; }
 .detail-search .search { max-width: none; }
 .detail-search .search-label { display: none; }
 .detail-search .search-field input { min-height: 38px; padding: 7px 38px 7px 10px; font-size: 0.92rem; }
-.refresh-btn { flex: 0 0 auto; margin-top: 0; min-height: 38px; padding: 6px 10px; font-size: 0.82rem; }
-.refresh-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.refresh-btn { flex: 0 0 auto; width: 36px; min-width: 36px; margin-top: 0; min-height: 36px; padding: 5px; font-size: 0.82rem; justify-content: center; }
+.refresh-btn { display: inline-flex; align-items: center; gap: 0; white-space: nowrap; }
 .refresh-btn:disabled { opacity: 0.6; cursor: default; }
-.refresh-icon { display: inline-block; font-size: 1.05em; line-height: 1; }
+.refresh-icon { display: inline-block; font-size: 1.25rem; line-height: 1; }
 .refresh-icon.spin { animation: refresh-spin 1s linear infinite; }
 @keyframes refresh-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .refresh-icon.spin { animation: none; } }
