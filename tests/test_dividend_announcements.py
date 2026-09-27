@@ -90,7 +90,9 @@ def test_fetch_dividend_announcements_only_fetches_dvd_decision_docs():
     assert [c[0] for c in client.calls] == ["list.json", "document.xml"]   # 배당결정 공시만 원문 조회
     assert new == [{"rcept_no": "20260806800319", "confirmed_date": "2026-08-06",
                     "basis_date": "2026-08-21", "amount": 2000.0}]
-    assert log["20260806800319"]["status"] == "ok"
+    # log 자체가 파싱 결과(금액 등)를 들고 있어야 한다 — cache._provisional_reports가
+    # 원문을 다시 열지 않고 div["announcements"](=이 log)에서 바로 읽는다.
+    assert log["20260806800319"] == {**new[0], "status": "ok", "fetched_at": log["20260806800319"]["fetched_at"]}
 
 
 def test_fetch_dividend_announcements_skips_already_logged():

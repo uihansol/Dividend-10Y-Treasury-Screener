@@ -208,7 +208,9 @@ def fetch_dividend_announcements(corp_code: str, year: int, log: dict, today: da
     이 수시공시가 이미 실제 금액을 공개하고 있다. cache.to_reports()에서 이 결과를
     '아직 정기보고서로 확정되지 않은 잠정값(PROV)'으로 합친다.
 
-    log: {"<rcept_no>": {"status": "ok|no_row", "fetched_at": ...}}
+    log: {"<rcept_no>": {"status": "ok|no_row", "fetched_at": ..., (status가 ok면) "confirmed_date",
+         "basis_date", "amount"}}  — 조회 기록과 파싱 결과를 함께 들고 있어야 cache._provisional_reports가
+         (원문을 다시 열지 않고) 그대로 쓸 수 있다.
     반환: (새로 받은 공시 목록[{"rcept_no","confirmed_date","basis_date","amount"}], 갱신된 log)
     """
     today = today or date.today()
@@ -235,9 +237,12 @@ def fetch_dividend_announcements(corp_code: str, year: int, log: dict, today: da
             parsed = parse_dvd_decision(html)
         except Exception:  # pragma: no cover - 원문 형식이 예상과 다른 극히 드문 경우
             parsed = None
-        log[rcept_no] = {"status": "ok" if parsed else "no_row", "fetched_at": now_kst()}
         if parsed:
-            new.append({"rcept_no": rcept_no,
-                       "confirmed_date": datetime.strptime(rcept_no[:8], "%Y%m%d").date().isoformat(),
-                       "basis_date": parsed["basis_date"], "amount": parsed["amount"]})
+            entry = {"rcept_no": rcept_no,
+                    "confirmed_date": datetime.strptime(rcept_no[:8], "%Y%m%d").date().isoformat(),
+                    "basis_date": parsed["basis_date"], "amount": parsed["amount"]}
+            log[rcept_no] = {"status": "ok", "fetched_at": now_kst(), **entry}
+            new.append(entry)
+        else:
+            log[rcept_no] = {"status": "no_row", "fetched_at": now_kst()}
     return new, log
