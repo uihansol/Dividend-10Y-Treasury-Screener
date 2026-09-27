@@ -35,7 +35,12 @@ function useZoom(length: number) {
     if (r.startIndex == null || r.endIndex == null || r.endIndex <= r.startIndex) return;
     setRange({ startIndex: r.startIndex, endIndex: r.endIndex });
   };
-  return { range, onChange, zoomed: range.startIndex > 0 || range.endIndex < full.endIndex, reset: () => setRange(full) };
+  const setRangeDirect = (startIndex: number, endIndex: number) => {
+    const start = Math.max(0, Math.min(startIndex, full.endIndex));
+    const end = Math.max(start, Math.min(endIndex, full.endIndex));
+    setRange({ startIndex: start, endIndex: end });
+  };
+  return { range, onChange, zoomed: range.startIndex > 0 || range.endIndex < full.endIndex, reset: () => setRange(full), setRange: setRangeDirect };
 }
 
 function BandTooltip({ active, payload, label }: any) {
@@ -173,16 +178,17 @@ export function DetailPage({ d }: { d: Detail }) {
   const zoomM = useZoom(series.length);
   type BandPeriod = 1 | 3 | 5 | 10 | "all";
   const [bandPeriod, setBandPeriod] = useState<BandPeriod>("all");
-  const bandPeriodStart = useMemo(() => {
-    if (bandPeriod === "all") return 0;
+  const getBandPeriodStart = (period: BandPeriod) => {
+    if (period === "all") return 0;
     const latest = series[series.length - 1]?.date;
     if (!latest) return 0;
     const end = new Date(latest + "T00:00:00");
-    end.setFullYear(end.getFullYear() - bandPeriod);
+    end.setFullYear(end.getFullYear() - period);
     const cutoff = end.toISOString().slice(0, 10);
     return Math.max(0, series.findIndex((row) => row.date >= cutoff));
-  }, [series, bandPeriod]);
-  const bandPeriodView = series.slice(bandPeriodStart);
+  };
+  const bandPeriodStart = useMemo(() => getBandPeriodStart(bandPeriod), [series, bandPeriod]);
+  const bandPeriodView = series.slice(zoomM.range.startIndex, zoomM.range.endIndex + 1);
   const bandStats = useMemo(() => {
     const values = bandPeriodView
       .map((row) => row.m)
@@ -358,7 +364,12 @@ export function DetailPage({ d }: { d: Detail }) {
             <div className="band-periods" role="group" aria-label="밴드 차트 기간 선택">
               {([[1, "1년"], [3, "3년"], [5, "5년"], [10, "10년"], ["all", "전체"]] as const).map(([value, label]) => (
                 <button key={String(value)} type="button" className={bandPeriod === value ? "on" : ""}
-                  onClick={() => setBandPeriod(value as BandPeriod)} aria-pressed={bandPeriod === value}>
+                  onClick={() => {
+                    const period = value as BandPeriod;
+                    const start = getBandPeriodStart(period);
+                    zoomM.setRange(start, series.length - 1);
+                    setBandPeriod(period);
+                  }} aria-pressed={bandPeriod === value}>
                   {label}
                 </button>
               ))}
