@@ -30,6 +30,7 @@ from .engine import (CorpAction, DividendReport, adjusted_prices, annual_breakdo
                      daily_series, detect_corp_actions, dividend_yield, expected_dps_asof, history_stats,
                      persistence, round_ratio, us10y_asof, us10y_multiple)
 from .store import KST, now_kst, read_json, write_json
+from .krx import PRICE_COLS
 
 
 class StockNotFound(KeyError):
