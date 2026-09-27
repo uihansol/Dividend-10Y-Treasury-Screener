@@ -98,7 +98,8 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .grid th { position: sticky; top: 0; background: var(--surface); text-align: left; font-weight: 500; font-size: 0.82rem;
   color: var(--ink-2); padding: 10px 10px; border-bottom: 1px solid var(--ink); white-space: nowrap; z-index: 2; }
 .grid td { padding: 9px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
-.grid tbody tr { cursor: pointer; -webkit-user-select: none; user-select: none; }\n.grid tbody tr .name { -webkit-touch-callout: none; }
+.grid tbody tr { cursor: pointer; -webkit-user-select: none; user-select: none; }
+.grid tbody tr .name { -webkit-touch-callout: none; }
 .grid tbody tr:hover td { background: var(--accent-soft); }
 .grid .num { text-align: right; }
 .grid th.num { text-align: right; }
@@ -207,7 +208,10 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
   body { font-size: 15px; }
   .top-search { gap: 5px; padding-top: 7px; padding-bottom: 7px; }
   .top-search .back { font-size: 0.72rem; }
-  .detail-search .search-field input { min-height: 34px; font-size: 0.82rem; }
+  .detail-search .search-field input { min-height: 34px; padding: 6px 36px 6px 9px; font-size: 16px; line-height: 1.2; }
+  .detail-search .search-list { width: 100%; }
+  .detail-search .search-list li { gap: 7px; padding: 8px 9px; }
+  .detail-search .search-list .s-name { font-size: 0.9rem; }
   .refresh-btn { min-height: 34px; padding: 5px 8px; font-size: 0.72rem; }
   .detail-head { padding-bottom: 5px; gap: 5px; }
   .detail-head h1 { font-size: 1.12rem; }
@@ -252,7 +256,10 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .search-list { position: absolute; z-index: 10; left: 0; right: 0; margin: 4px 0 0; padding: 4px 0; list-style: none;
   background: var(--surface); border: 1px solid var(--ink); border-radius: var(--radius-s); max-height: 360px; overflow-y: auto;
   box-shadow: 0 6px 18px rgba(0,0,0,.12); }
-.search-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 9px 12px; cursor: pointer; }
+.search-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; padding: 9px 12px; cursor: pointer; }
+.search-list .s-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.search-list .s-code { white-space: nowrap; }
+.search-list .s-mkt { white-space: nowrap; }
 .search-list li.on { background: var(--accent-soft); }
 .search-list .s-code { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .search-list .s-mkt { color: var(--ink-3); font-size: 0.82rem; min-width: 4.5em; text-align: right; }
