@@ -6,32 +6,11 @@
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T02:56:58+09:00",
- "updated_at": "2026-09-28T02:56:58+09:00",
- "last_attempt": "2026-09-28T02:56:58+09:00",
+ "updated_at": "2026-09-28T02:57:57+09:00",
+ "last_attempt": "2026-09-28T02:57:57+09:00",
  "last_error": null,
  "steps": {
-  "prices": {
-   "mode": "initial",
-   "added": 2879,
-   "from": "2015-01-01"
-  },
-  "dividends": {
-   "mode": "initial",
-   "added": 43
-  },
-  "announcements": {
-   "mode": "check",
-   "added": 6
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
-  }
+  "cache": "cooldown: 네트워크 조회 생략"
  },
  "summary": {
   "code": "122900",
