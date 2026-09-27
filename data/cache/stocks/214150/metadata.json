@@ -1,0 +1,56 @@
+{
+ "code": "214150",
+ "name": "클래시스",
+ "market": "KOSDAQ",
+ "price_through": "2026-09-23",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T02:57:32+09:00",
+ "updated_at": "2026-09-28T02:57:32+09:00",
+ "last_attempt": "2026-09-28T02:57:32+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2817,
+   "from": "2015-01-01"
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 36
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 1
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-09-25",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "summary": {
+  "code": "214150",
+  "name": "클래시스",
+  "market": "KOSDAQ",
+  "price": 30700.0,
+  "price_date": "2026-09-23",
+  "dps": 1000.0,
+  "yield": 3.2573,
+  "multiple": 0.6567,
+  "paid10": 9,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 98.8,
+  "p10": 0.0,
+  "p90": 0.4081,
+  "mcap": null,
+  "tv": 1945672700.0,
+  "has_div_data": true,
+  "flags": []
+ }
+}
