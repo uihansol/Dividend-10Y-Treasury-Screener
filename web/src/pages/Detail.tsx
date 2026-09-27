@@ -171,7 +171,7 @@ export function DetailPage({ d }: { d: Detail }) {
 
   // 배당/10Y 배수 + 주가 (같은 기간을 함께 보므로 확대·범위는 하나로 동기화한다)
   const zoomM = useZoom(series.length);
-  type BandPeriod = 3 | 5 | 10 | "all";
+  type BandPeriod = 1 | 3 | 5 | 10 | "all";
   const [bandPeriod, setBandPeriod] = useState<BandPeriod>("all");
   const bandPeriodStart = useMemo(() => {
     if (bandPeriod === "all") return 0;
@@ -183,7 +183,27 @@ export function DetailPage({ d }: { d: Detail }) {
     return Math.max(0, series.findIndex((row) => row.date >= cutoff));
   }, [series, bandPeriod]);
   const bandPeriodView = series.slice(bandPeriodStart);
-  const yMax = st ? Math.max(st.p90 * 1.8, st.current * 1.25) : undefined;
+  const bandStats = useMemo(() => {
+    const values = bandPeriodView
+      .map((row) => row.m)
+      .filter((v): v is number => v != null && Number.isFinite(v))
+      .sort((a, b) => a - b);
+    if (!values.length) return null;
+    const quantile = (q: number) => {
+      const pos = (values.length - 1) * q;
+      const lo = Math.floor(pos);
+      const hi = Math.ceil(pos);
+      if (lo === hi) return values[lo];
+      return values[lo] + (values[hi] - values[lo]) * (pos - lo);
+    };
+    const p10 = quantile(0.1);
+    const p90 = quantile(0.9);
+    const range = Math.max(p90 - p10, 0.5);
+    return { p10, p90, min: Math.max(0, p10 - range * 0.2), max: p90 + range * 0.2 };
+  }, [bandPeriodView]);
+  const bandYDomain: [number, number] = bandStats
+    ? [bandStats.min, bandStats.max]
+    : [0, yMax ?? 1];
   const lastM = bandPeriodView[bandPeriodView.length - 1];
   const togM = useToggle();
 
@@ -315,7 +335,7 @@ export function DetailPage({ d }: { d: Detail }) {
                 <LineChart data={bandPeriodView} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke={C.grid} vertical={false} />
                   <XAxis dataKey="date" tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
-                  <YAxis yAxisId="mult" domain={[0, yMax ?? "auto"]} allowDataOverflow width={44}
+                  <YAxis yAxisId="mult" domain={bandYDomain} allowDataOverflow width={44}
                     tick={{ fontSize: 12, fill: C.line }} tickFormatter={(v: number) => `${v.toFixed(1)}x`} />
                   <YAxis yAxisId="price" orientation="right" domain={["auto", "auto"]} width={0}
                     axisLine={false} tickLine={false} tick={false} />
@@ -323,8 +343,8 @@ export function DetailPage({ d }: { d: Detail }) {
                   <Legend wrapperStyle={{ fontSize: 12 }} onClick={togM.onLegendClick} formatter={togM.legendFormatter} />
                   {([["p90", "상단"], ["p10", "하단"]] as const).map(([k, lab]) => (
                     <ReferenceLine key={k} yAxisId="mult" y={st[k]} stroke={C.band} strokeDasharray="3 4"
-                      label={{ value: lab + " " + st[k].toFixed(2), position: k === "p90" ? "insideTopLeft" : "insideBottomLeft", fontSize: 11, fill: "var(--ink-2)" }} />
-                  ))}
+                      label={{ value: lab + " " + bandStats[k].toFixed(2), position: k === "p90" ? "insideTopLeft" : "insideBottomLeft", fontSize: 11, fill: "var(--ink-2)" }} />
+                  )) : null}
                   <Line yAxisId="mult" type="monotone" dataKey="m" name="배당/10Y" stroke={C.line} dot={false} strokeWidth={2.5}
                     isAnimationActive={false} connectNulls={false} hide={togM.isHidden("m")} />
                   <Line yAxisId="price" type="monotone" dataKey="px" name="주가" stroke={C.price} dot={false} strokeWidth={2}
@@ -336,7 +356,7 @@ export function DetailPage({ d }: { d: Detail }) {
               </ResponsiveContainer>
             </div>
             <div className="band-periods" role="group" aria-label="밴드 차트 기간 선택">
-              {([[3, "3년"], [5, "5년"], [10, "10년"], ["all", "전체"]] as const).map(([value, label]) => (
+              {([[1, "1년"], [3, "3년"], [5, "5년"], [10, "10년"], ["all", "전체"]] as const).map(([value, label]) => (
                 <button key={String(value)} type="button" className={bandPeriod === value ? "on" : ""}
                   onClick={() => setBandPeriod(value as BandPeriod)} aria-pressed={bandPeriod === value}>
                   {label}
@@ -363,7 +383,7 @@ export function DetailPage({ d }: { d: Detail }) {
             </table>
             <p className="note">
               일별 표본 {st.n.toLocaleString()}개(역사적 백분위는 최근 10년 기준). 차트는 사용 가능한 전체 기간을
-              확인할 수 있으며, 아래 버튼으로 3년·5년·10년·전체 기간을 빠르게 선택할 수 있습니다. 낮은 금리 시기의
+              확인할 수 있으며, 아래 버튼으로 1년·3년·5년·10년·전체 기간을 빠르게 선택할 수 있습니다. 낮은 금리 시기의
               배수 급등 구간은 표시 상한을 적용하지만 백분위 계산에는 모든 값을 사용합니다.
             </p>
           </>
