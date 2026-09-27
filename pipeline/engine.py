@@ -252,31 +252,24 @@ def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "annual
 
     # 분기배당 기업: 현재 확정 누계 + 전년도 미확정 기간의 동일 기간 배당.
     if O.is_quarterly():
-        current_periods = _period_amounts(O)
-        prior = years.get(F.year)
-        prior_periods = _period_amounts(prior) if prior else {}
-
         latest_period = current_rec[0]
-        confirmed_current = sum(v for p, v in current_periods.items()
-                                if PERIOD_ORDER[p] <= PERIOD_ORDER[latest_period])
+        quarter_periods = _quarter_amounts(O)
+        prior = years.get(F.year)
+        prior_quarters = _quarter_amounts(prior)
 
-        # 전년도 같은 사업연도에서 이미 확정된 기간을 제외하고,
-        # 현재 확정 시점 이후의 분기 배당을 전년도 값으로 보완한다.
-        remaining_periods = [p for p in ("Q1", "H1", "Q3")
-                             if PERIOD_ORDER[p] > PERIOD_ORDER[latest_period]]
-        # H1은 Q1+Q2 누계이므로 실제 Q2 금액을 사용한다.
-        # 전년도 Q3까지 자료가 있어야 Q2/Q3를 분리할 수 있다.
+        # 현재 확정분은 Q1/H1/Q3 보고서의 누계값 그대로 사용한다.
+        current_latest_value = current_rec[1]
+
+        # 현재 보고서 이후의 미확정 분기는 전년도 같은 분기의 실제 배당으로 보완한다.
+        latest_rank = {"Q1": 1, "H1": 2, "Q3": 3}.get(latest_period, 3)
+        remaining_quarters = [p for p, rank in (("Q2", 2), ("Q3", 3)) if rank > latest_rank]
         prior_fill = []
-        for p in remaining_periods:
-            if p == "H1":
-                # 내부적으로 H1 자체가 남는 경우는 없지만 방어적으로 처리.
-                amount = prior_periods.get("H1")
-            else:
-                amount = prior_periods.get(p)
-            if amount is None:
+        for p in remaining_quarters:
+            rec = prior_quarters.get(p)
+            if rec is None:
                 flags.append(f"prior_year_period_missing:{p}")
             else:
-                prior_fill.append((p, amount))
+                prior_fill.append((p, rec[0], rec[1]))
 
         # 전년도 기말배당은 항상 마지막에 보완한다.
         if prior is None or prior.fy_total is None or prior.fy_confirmed is None or prior.fy_confirmed > t:
@@ -289,30 +282,19 @@ def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "annual
             return ExpectedDps(value=None, components=[], latest_fy=F.year,
                                flags=sorted(set(flags)))
 
-        # 현재 확정분은 하나의 누계 구성요소로 표시하고,
-        # 전년도 보완분은 기간별로 표시해 사용자가 어떤 가정이 들어갔는지 확인할 수 있게 한다.
-        current_latest_value = current_rec[1]
+        # 현재 확정분과 전년도 보완분을 구성요소로 명시한다.
         comps.append(DpsComponent(
             f"{O.year}년 {latest_period}까지 확정", "interim", O.year,
             current_latest_value, current_rec[2], current_rec[3]))
 
-        for p, amount in prior_fill:
-            label = {"H1": "2분기", "Q3": "3분기", "Q1": "1분기"}.get(p, p)
-            rec = next((r for r in prior.interims if r[0] == p), None)
-            # H1 누계가 아니라 실제 Q2 금액을 쓰는 경우에는 H1/Q3 원천 확인일 중
-            # 가장 늦은 보고서의 확인일을 참조한다.
-            if p == "H1":
-                amount_rec = rec
-            else:
-                amount_rec = rec
+        for p, amount, amount_rec in prior_fill:
             comps.append(DpsComponent(
-                f"{F.year}년 {label} 보완", "interim", F.year, amount,
-                amount_rec[2] if amount_rec else F.fy_confirmed,
-                amount_rec[3] if amount_rec else F.fy_ref))
+                f"{F.year}년 {p} 보완", "interim", F.year, amount,
+                amount_rec[2], amount_rec[3]))
 
         comps.append(DpsComponent(f"{F.year}년 기말배당 보완", "final", F.year,
                                   prior_final, F.fy_confirmed, F.fy_ref))
-        value = current_latest_value + sum(v for _, v in prior_fill) + prior_final
+        value = current_latest_value + sum(v for _, v, _ in prior_fill) + prior_final
         flags.append("prior_year_unconfirmed_periods_filled")
 
     else:
