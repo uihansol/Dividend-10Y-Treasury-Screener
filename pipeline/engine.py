@@ -195,6 +195,33 @@ def _cum_at(fy: Optional[FiscalYear], period: str) -> float:
     return best
 
 
+_PERIOD_LABEL = {"Q1": "1분기", "H1": "반기", "Q3": "3분기"}
+
+
+def _interim_components(fy: FiscalYear, *, upto: Optional[str] = None, after: Optional[str] = None,
+                        suffix: str = "") -> list[DpsComponent]:
+    """fy에 신고된 1분기·반기·3분기 보고서를 각 기간 '증분'(그 분기에만 해당하는 배당)으로 쪼갠다.
+
+    사업연도 하나의 중간·분기배당을 한 줄로 뭉치지 않고, 실제로 확정된 보고서 종류(1분기/반기/3분기)
+    마다 자기 접수일·접수번호를 가진 줄로 나눠 보여준다. 증분이 0원인 기간(그 분기엔 새로 확정된
+    배당이 없었던 경우)은 표시하지 않는다.
+    upto: 이 기간까지만 포함(그 이후는 제외). after: 이 기간을 넘는(그 이후) 것만 포함.
+    """
+    out: list[DpsComponent] = []
+    prev = 0.0
+    for period, cum, confirmed, ref in sorted(fy.interims, key=lambda x: PERIOD_ORDER[x[0]]):
+        amt, prev = max(cum - prev, 0.0), cum
+        if upto is not None and PERIOD_ORDER[period] > PERIOD_ORDER[upto]:
+            continue
+        if after is not None and PERIOD_ORDER[period] <= PERIOD_ORDER[after]:
+            continue
+        if amt <= 0:
+            continue
+        out.append(DpsComponent(f"{fy.year}년 {_PERIOD_LABEL[period]} 배당{suffix}", "interim", fy.year,
+                                amt, confirmed, ref))
+    return out
+
+
 def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "substitute") -> Optional[ExpectedDps]:
     """날짜 t에 알 수 있었던 정보만으로 계산한 예상 연간 DPS (현재 기준).
 
@@ -202,8 +229,9 @@ def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "substi
     O = F + 1 (진행 중 사업연도 = '현재 연도')
     p = O에서 t까지 확정된 가장 늦은 보고 기간 (Q1 / H1 / Q3)
 
-    예상 DPS = O의 p까지 확정 누계
-             + F의 p 이후 중간·분기배당 (아직 확정 안 된 O의 같은 기간을 전년도 값으로 대체)
+    예상 DPS = O의 p까지 확정 누계 (1분기·반기·3분기 중 실제 확정된 보고서마다 한 줄씩)
+             + F의 p 이후 중간·분기배당 (아직 확정 안 된 O의 같은 기간을 전년도 값으로 대체,
+               역시 어떤 분기·반기 보고서에서 왔는지 각각 표시)
              + F의 기말배당
 
     예) 전년도 Q1·Q2·Q3·기말 = 300씩
@@ -229,21 +257,16 @@ def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "substi
     if rec is not None and cum_o > 0:
         p = rec[0]
         fill = max(F.interim_total() - _cum_at(F, p), 0.0)
-        label = {"Q1": "1분기", "H1": "반기", "Q3": "3분기"}[p]
-        comps.append(DpsComponent(f"{O.year}년 {label}까지 확정 배당", "interim", O.year, cum_o, rec[2], rec[3]))
+        comps.extend(_interim_components(O, upto=p))
         if fill > 0:
-            last = F.interims[-1]
-            comps.append(DpsComponent(f"{F.year}년 {label} 이후 중간·분기배당 (미확정분 대체)", "interim",
-                                      F.year, fill, last[2], last[3]))
+            comps.extend(_interim_components(F, after=p, suffix=" (미확정분 대체)"))
             flags.append("prior_year_unconfirmed_periods_filled")
         comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year, final, F.fy_confirmed, F.fy_ref))
         flags += list(O.flags)
         value = cum_o + fill + final
     else:
         if F.has_interim():
-            last = F.interims[-1]
-            comps.append(DpsComponent(f"{F.year}년 중간·분기배당", "interim", F.year,
-                                      F.interim_total(), last[2], last[3]))
+            comps.extend(_interim_components(F))
         comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year, final, F.fy_confirmed, F.fy_ref))
         value = F.fy_total or 0.0
     return ExpectedDps(value=value, components=comps, latest_fy=F.year, flags=sorted(set(flags)))

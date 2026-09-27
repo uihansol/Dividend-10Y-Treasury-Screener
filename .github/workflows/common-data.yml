@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: "init = 10Y + master (최초 구축) / us10y / master"
+        description: "init = 10Y + master (최초 구축) / us10y / master / recompute(캐시된 종목만 오프라인 재계산)"
         required: true
         default: init
         type: choice
-        options: [init, us10y, master]
+        options: [init, us10y, master, recompute]
 
 concurrency:
   group: common-data

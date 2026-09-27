@@ -241,3 +241,57 @@ EX = [
 def test_user_substitute_rule(t, expected):
     e = expected_dps_asof(t, build_fiscal_years(EX, []))
     assert e.value == pytest.approx(expected)
+
+
+# --- 요구사항: 1분기·반기·3분기·결산 확정분을 전부 개별 항목으로 보여준다 --------------------
+# (예상 DPS 구성이 "~까지 확정 배당" 한 줄로 뭉쳐 보이지 않고, 실제 확정된 보고서 종류마다
+#  자기 접수일·접수번호를 가진 별도 줄로 나오는지 확인한다)
+D_QTR = [
+    R(2025, "Q1", 100, D(2025, 3, 31), D(2025, 5, 15)),
+    R(2025, "H1", 250, D(2025, 6, 30), D(2025, 8, 14)),   # 2분기분 150
+    R(2025, "Q3", 400, D(2025, 9, 30), D(2025, 11, 14)),  # 3분기분 150
+    R(2025, "FY", 550, D(2025, 12, 31), D(2026, 3, 12)),  # 기말 150
+    R(2026, "Q1", 120, D(2026, 3, 31), D(2026, 5, 15)),
+    R(2026, "H1", 260, D(2026, 6, 30), D(2026, 8, 14)),   # 2분기분 140
+]
+
+
+def test_all_four_report_types_shown_separately():
+    yrs = build_fiscal_years(D_QTR, [])
+    e = expected_dps_asof(D(2026, 9, 1), yrs)   # 올해 반기까지 확정, 3분기는 아직
+    rows = [(c.fiscal_year, c.kind, round(c.dps, 2), c.confirmed_date) for c in e.components]
+    assert rows == [
+        (2026, "interim", 120.0, D(2026, 5, 15)),   # 올해 1분기
+        (2026, "interim", 140.0, D(2026, 8, 14)),   # 올해 반기(2분기분)
+        (2025, "interim", 150.0, D(2025, 11, 14)),  # 전년도 3분기(미확정분 대체)
+        (2025, "final", 150.0, D(2026, 3, 12)),     # 전년도 기말
+    ]
+    assert e.value == pytest.approx(120 + 140 + 150 + 150)
+    assert "prior_year_unconfirmed_periods_filled" in e.flags
+
+
+def test_only_q1_confirmed_still_breaks_down_prior_year_by_report():
+    yrs = build_fiscal_years(D_QTR, [])
+    e = expected_dps_asof(D(2026, 6, 1), yrs)   # 올해 1분기만 확정
+    rows = [(c.fiscal_year, c.kind, round(c.dps, 2)) for c in e.components]
+    # 올해 1분기 + (전년도 반기분 대체 + 전년도 3분기분 대체, 따로) + 전년도 기말: 1·2·3분기·결산이 모두 한 줄씩
+    assert rows == [
+        (2026, "interim", 120.0),
+        (2025, "interim", 150.0),  # 전년도 2분기분(반기 누계 250 - 1분기 누계 100)
+        (2025, "interim", 150.0),  # 전년도 3분기분(3분기 누계 400 - 반기 누계 250)
+        (2025, "final", 150.0),
+    ]
+    assert e.value == pytest.approx(120 + 150 + 150 + 150)
+
+
+def test_zero_increment_period_is_not_shown():
+    """분기 보고서가 있어도 그 분기에 새로 확정된 배당이 없으면(증분 0) 줄을 만들지 않는다."""
+    rows = [
+        R(2025, "H1", 300, D(2025, 6, 30), D(2025, 8, 14)),
+        R(2025, "Q3", 300, D(2025, 9, 30), D(2025, 11, 14)),   # 3분기분 0원
+        R(2025, "FY", 1000, D(2025, 12, 31), D(2026, 3, 16)),
+    ]
+    yrs = build_fiscal_years(rows, [])
+    e = expected_dps_asof(D(2026, 9, 1), yrs)
+    assert [c.kind for c in e.components] == ["interim", "final"]
+    assert e.components[0].dps == pytest.approx(300)
