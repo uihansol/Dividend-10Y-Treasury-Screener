@@ -4,6 +4,8 @@
  - 고유번호 : GET https://opendart.fss.or.kr/api/corpCode.xml   (master 생성 때만, zip 안의 CORPCODE.xml)
  - 배당에 관한 사항 : GET https://opendart.fss.or.kr/api/alotMatter.json
      요청: crtfc_key, corp_code, bsns_year(2015~), reprt_code(11013/11012/11014/11011)
+ - 공시 목록 : GET https://opendart.fss.or.kr/api/list.json (corp_code, bgn_de, end_de)
+ - 공시 원문 : GET https://opendart.fss.or.kr/api/document.xml (rcept_no) → ZIP 안에 HTML
 
 저장 규칙
  - '주당 현금배당금' 행 중 보통주의 당기(thstrm) 값
@@ -12,10 +14,22 @@
  - 값이 '-' 이면 0원, 행이 없거나 013(데이터 없음)이면 '알 수 없음'
 
 한 기업 최초 조회 ≈ 12년 × 4개 보고서 = 약 48회 호출. 이미 'ok'로 받은 보고서는 다시 요청하지 않는다.
+
+수시공시(현금·현물배당결정) 선반영
+ - 정기보고서(분기·반기·사업보고서)는 이사회 배당결정 후 45~90일 뒤에 나온다. 그 사이에는
+   '현금ㆍ현물배당결정' 수시공시가 이미 실제 배당금을 공개하고 있는데, 우리는 이걸 무시하고
+   있었다(look-ahead 방지를 정기보고서 접수일 기준으로만 걸었기 때문). 이제 이 수시공시도
+   읽어서, 아직 정기보고서에 반영 안 된 올해분을 '잠정(PROV)' 값으로 미리 쓴다.
+ - '현금·현물배당결정'은 금융위 표준 서식이라 항목 번호(1. 배당구분, 3. 1주당 배당금(원),
+   6. 배당기준일 등)가 회사마다 고정돼 있다. 그 항목 번호 뒤에 오는 첫 xforms_input 값을 읽는다.
+ - confirmed_date는 이 공시의 접수일(rcept_no 앞 8자리) — 정기보고서보다 이르지만 여전히
+   '실제로 공개된' 날짜이므로 look-ahead는 아니다. 정기보고서가 나중에 이 기간을 확정하면
+   그 값이 우선한다(같은 해에 더 늦은 확정일을 가진 정기보고서가 있으면 잠정값은 버린다).
 """
 from __future__ import annotations
 
 import io
+import re
 import time
 import zipfile
 from datetime import date, datetime, timedelta
@@ -148,4 +162,82 @@ def fetch_stock_dividends(corp_code: str, start_year: int, end_year: int, log: d
                         "fetched_at": now_kst()}
             if parsed:
                 new.append({"fiscal_year": y, "period": period, **parsed})
+    return new, log
+
+
+# ---------------------------------------------------------------- 수시공시(현금·현물배당결정)
+def _is_dvd_decision(report_nm: str) -> bool:
+    """'현금·현물배당결정'류 공시만 고른다. '...배당을위한주주명부폐쇄...결정'처럼
+    금액이 없는 관련 공시(기준일만 잡는 공시)는 제외한다."""
+    name = re.sub(r"\s+", "", report_nm or "")
+    return "배당결정" in name and ("현금" in name or "현물" in name) and "명부폐쇄" not in name
+
+
+def _field_after(html: str, label: str) -> str | None:
+    """'N. 항목명' 다음에 나오는 첫 xforms_input 칸의 값. 금융위 표준 서식이라 항목 번호가
+    회사마다 고정돼 있다."""
+    m = re.search(re.escape(label) + r'.*?xforms_input[^>]*>\s*([^<]*?)\s*<', html, re.S)
+    if not m:
+        return None
+    v = m.group(1).strip()
+    return v or None
+
+
+def parse_dvd_decision(html: str) -> dict | None:
+    """'현금·현물배당결정' 수시공시 원문(HTML)에서 보통주 1주당 배당금·배당기준일을 뽑는다.
+    현물배당이면(배당종류에 '현금'이 없으면) None. 금액이 없거나 0이어도 None."""
+    kind = _field_after(html, "2. 배당종류")
+    if kind is not None and "현금" not in kind:
+        return None
+    common = _field_after(html, "3. 1주당 배당금(원)") or _field_after(html, "2. 1주당 배당금(원)")
+    if common is None:
+        return None
+    v = _num(common)
+    if v is None or v <= 0:
+        return None
+    basis = _field_after(html, "6. 배당기준일") or _field_after(html, "5. 배당기준일")
+    basis_iso = basis if basis and re.match(r"^\d{4}-\d{2}-\d{2}$", basis) else None
+    return {"amount": v, "basis_date": basis_iso}
+
+
+def fetch_dividend_announcements(corp_code: str, year: int, log: dict, today: date | None = None,
+                                 client: DartClient | None = None) -> tuple[list[dict], dict]:
+    """올해 '현금·현물배당결정' 수시공시를 찾아 아직 안 받은 것만 원문을 읽는다.
+
+    정기보고서(분기·반기·사업보고서)는 배당 결정 후 45~90일 뒤에 나오는데, 그 사이에는
+    이 수시공시가 이미 실제 금액을 공개하고 있다. cache.to_reports()에서 이 결과를
+    '아직 정기보고서로 확정되지 않은 잠정값(PROV)'으로 합친다.
+
+    log: {"<rcept_no>": {"status": "ok|no_row", "fetched_at": ...}}
+    반환: (새로 받은 공시 목록[{"rcept_no","confirmed_date","basis_date","amount"}], 갱신된 log)
+    """
+    today = today or date.today()
+    client = client or DartClient()
+    log = dict(log)
+    j = client.get("list.json", corp_code=corp_code, bgn_de=f"{year}0101",
+                   end_de=today.strftime("%Y%m%d"), page_count=100).json()
+    st = j.get("status", "")
+    if st == "020":
+        raise DartError("OpenDART 요청 한도 초과(020)")
+    if st not in ("000", "013"):
+        raise DartError(f"DART {st}: {j.get('message')}")
+    new = []
+    for row in j.get("list", []) if st == "000" else []:
+        if not _is_dvd_decision(row.get("report_nm", "")):
+            continue
+        rcept_no = row.get("rcept_no", "")
+        if not rcept_no or log.get(rcept_no, {}).get("status") in ("ok", "no_row"):
+            continue
+        r = client.get("document.xml", rcept_no=rcept_no)
+        try:
+            zf = zipfile.ZipFile(io.BytesIO(r.content))
+            html = zf.read(zf.namelist()[0]).decode("utf-8", errors="replace")
+            parsed = parse_dvd_decision(html)
+        except Exception:  # pragma: no cover - 원문 형식이 예상과 다른 극히 드문 경우
+            parsed = None
+        log[rcept_no] = {"status": "ok" if parsed else "no_row", "fetched_at": now_kst()}
+        if parsed:
+            new.append({"rcept_no": rcept_no,
+                       "confirmed_date": datetime.strptime(rcept_no[:8], "%Y%m%d").date().isoformat(),
+                       "basis_date": parsed["basis_date"], "amount": parsed["amount"]})
     return new, log

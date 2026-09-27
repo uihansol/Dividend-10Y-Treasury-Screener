@@ -56,7 +56,7 @@ export interface Detail {
   summary: ScreenerRow;
   us10y: number | null;
   us10y_date: string | null;
-  components: { label: string; kind: "final" | "interim"; year: number; dps: number; confirmed: string; ref: string }[];
+  components: { label: string; kind: "final" | "interim" | "provisional"; year: number; dps: number; confirmed: string; ref: string }[];
   components_status: "annual_confirmed" | "in_progress" | null;
   annual: { year: number; interim: number; final: number; total: number; quarterly: boolean; confirmed: string; flags: string[] }[];
   persistence: {

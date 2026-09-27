@@ -114,8 +114,11 @@ export function DetailPage({ d }: { d: Detail }) {
         <table className="composition">
           <tbody>
             {d.components.map((c) => (
-              <tr key={c.label}>
-                <td>{c.label}</td>
+              <tr key={c.label} className={c.kind === "provisional" ? "provisional" : undefined}>
+                <td>
+                  {c.label}
+                  {c.kind === "provisional" && <span className="badge-prov" title="정기보고서 확정 전, 수시공시 기준">미확정</span>}
+                </td>
                 <td className="num">{won(c.dps)}원</td>
                 <td className="src">
                   {c.ref ? <a href={DART(c.ref)} target="_blank" rel="noreferrer">{c.confirmed} 공시</a> : c.confirmed}

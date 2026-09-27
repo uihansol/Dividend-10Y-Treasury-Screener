@@ -28,6 +28,8 @@ export function krwBig(v: number | null | undefined): string {
 
 export const FLAG_TEXT: Record<string, string> = {
   prior_year_interim_not_counted: "전년도 중간·분기배당은 올해 확정 전이라 제외됨",
+  prior_year_unconfirmed_periods_filled: "올해 아직 확정 안 된 분기는 전년도 같은 분기 배당으로 대체함",
+  provisional_dividend_used: "정기보고서 확정 전, 수시공시(현금·현물배당결정)로 미리 반영한 값이 있음",
   interim_values_treated_as_per_period: "분기 보고서 값을 누적이 아닌 기간분으로 해석함 (확인 필요)",
   interim_exceeds_annual: "중간배당 누계가 연간 DPS보다 큼 (데이터 확인 필요)",
 };

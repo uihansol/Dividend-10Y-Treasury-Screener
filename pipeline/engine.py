@@ -17,7 +17,9 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Iterable, Optional, Sequence
 
-PERIOD_ORDER = {"Q1": 1, "H1": 2, "Q3": 3, "FY": 4}
+PERIOD_ORDER = {"Q1": 1, "H1": 2, "Q3": 3, "FY": 4, "PROV": 5}
+# PROV: 정기보고서가 아직 안 나온, '현금·현물배당결정' 수시공시로 미리 안 잠정값.
+# Q1/H1/Q3보다 항상 늦게(=더 최근 정보로) 취급한다. fy.interims에만 들어가고 FY와는 섞이지 않는다.
 
 
 # ---------------------------------------------------------------------------
@@ -46,11 +48,13 @@ class CorpAction:
 @dataclass
 class DpsComponent:
     label: str                # 예: "2025년 기말배당"
-    kind: str                 # "final" | "interim" | "annual"
+    kind: str                 # "final" | "interim" | "provisional" | "annual"
     fiscal_year: int
     dps: float                # 현재 기준
     confirmed_date: date
     ref: str = ""
+    # kind="provisional": 정기보고서가 아직 안 나와 '현금·현물배당결정' 수시공시로만 확인된 값.
+    # 정기보고서가 나오면 그 값이 우선하며 이 줄은 사라진다.
 
 
 @dataclass
@@ -195,16 +199,18 @@ def _cum_at(fy: Optional[FiscalYear], period: str) -> float:
     return best
 
 
-_PERIOD_LABEL = {"Q1": "1분기", "H1": "반기", "Q3": "3분기"}
+_PERIOD_LABEL = {"Q1": "1분기", "H1": "반기", "Q3": "3분기", "PROV": "배당 결정"}
 
 
 def _interim_components(fy: FiscalYear, *, upto: Optional[str] = None, after: Optional[str] = None,
                         suffix: str = "") -> list[DpsComponent]:
-    """fy에 신고된 1분기·반기·3분기 보고서를 각 기간 '증분'(그 분기에만 해당하는 배당)으로 쪼갠다.
+    """fy에 신고된 1분기·반기·3분기 보고서(및 아직 정기보고서로 확정 안 된 PROV)를 각 기간
+    '증분'(그 기간에만 해당하는 배당)으로 쪼갠다.
 
     사업연도 하나의 중간·분기배당을 한 줄로 뭉치지 않고, 실제로 확정된 보고서 종류(1분기/반기/3분기)
     마다 자기 접수일·접수번호를 가진 줄로 나눠 보여준다. 증분이 0원인 기간(그 분기엔 새로 확정된
-    배당이 없었던 경우)은 표시하지 않는다.
+    배당이 없었던 경우)은 표시하지 않는다. PROV(수시공시로만 확인된 값)는 kind="provisional"로
+    표시해 정기보고서 확정분과 구분한다.
     upto: 이 기간까지만 포함(그 이후는 제외). after: 이 기간을 넘는(그 이후) 것만 포함.
     """
     out: list[DpsComponent] = []
@@ -217,7 +223,9 @@ def _interim_components(fy: FiscalYear, *, upto: Optional[str] = None, after: Op
             continue
         if amt <= 0:
             continue
-        out.append(DpsComponent(f"{fy.year}년 {_PERIOD_LABEL[period]} 배당{suffix}", "interim", fy.year,
+        kind = "provisional" if period == "PROV" else "interim"
+        prov_suffix = " (수시공시, 정기보고서 확정 전)" if period == "PROV" else suffix
+        out.append(DpsComponent(f"{fy.year}년 {_PERIOD_LABEL[period]}{prov_suffix}", kind, fy.year,
                                 amt, confirmed, ref))
     return out
 
@@ -263,6 +271,8 @@ def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "substi
             flags.append("prior_year_unconfirmed_periods_filled")
         comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year, final, F.fy_confirmed, F.fy_ref))
         flags += list(O.flags)
+        if p == "PROV":
+            flags.append("provisional_dividend_used")
         value = cum_o + fill + final
     else:
         if F.has_interim():

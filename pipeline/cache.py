@@ -3,7 +3,8 @@
 data/cache/stocks/{code}/
   metadata.json   코드·이름·시장, price_through, dividend_through, updated_at, 오류, 요약 지표
   prices.csv      date, close(원주가), change_pct(KRX 기준가 대비 %), trading_value
-  dividends.json  {"log": {"2025-FY": {status, fetched_at}}, "reports": [...]}
+  dividends.json  {"log": {정기보고서 조회기록}, "reports": [...],
+                  "announcements": {수시공시(현금·현물배당결정) 조회기록}}
   analysis.json   화면용 계산 결과 (기존 상세 페이지 JSON과 같은 형식)
 data/cache/index.json   조회한 종목 요약 목록
 
@@ -97,7 +98,7 @@ def update_stock_price_cache(code: str, today: date | None = None,
 
 # ---------------------------------------------------------------- 배당 캐시
 def load_dividends(code: str) -> dict:
-    return read_json(stock_dir(code) / "dividends.json", {"log": {}, "reports": []})
+    return read_json(stock_dir(code) / "dividends.json", {"log": {}, "reports": [], "announcements": {}})
 
 
 def update_stock_dividend_cache(code: str, corp_code: str, today: date | None = None,
@@ -110,9 +111,25 @@ def update_stock_dividend_cache(code: str, corp_code: str, today: date | None = 
     reps = {f'{r["fiscal_year"]}-{r["period"]}': r for r in cur["reports"]}
     for r in new:
         reps[f'{r["fiscal_year"]}-{r["period"]}'] = r
-    out = {"log": log, "reports": sorted(reps.values(), key=lambda r: (r["fiscal_year"], C.PERIOD_ORDER[r["period"]]))}
+    out = {**cur, "log": log,
+          "reports": sorted(reps.values(), key=lambda r: (r["fiscal_year"], C.PERIOD_ORDER[r["period"]]))}
     write_json(stock_dir(code) / "dividends.json", out)
     return out, {"mode": "initial" if not cur["log"] else "incremental", "added": len(new)}
+
+
+def update_stock_announcement_cache(code: str, corp_code: str, today: date | None = None,
+                                    fetch: Callable | None = None) -> tuple[dict, dict]:
+    """올해 '현금·현물배당결정' 수시공시를 확인해 아직 정기보고서로 확정 안 된 값을 잠정치로 채운다.
+    정기보고서(update_stock_dividend_cache)보다 훨씬 가벼운 호출(공시목록 1회 + 새 공시만 원문 조회)."""
+    if fetch is None:
+        from .dart import fetch_dividend_announcements as fetch
+    today = today or datetime.now(KST).date()
+    cur = load_dividends(code)
+    ann_log = dict(cur.get("announcements", {}))
+    new, ann_log = fetch(corp_code, today.year, ann_log, today=today)
+    out = {**cur, "announcements": ann_log}
+    write_json(stock_dir(code) / "dividends.json", out)
+    return out, {"mode": "check", "added": len(new)}
 
 
 def to_reports(div: dict) -> list[DividendReport]:
@@ -124,6 +141,41 @@ def to_reports(div: dict) -> list[DividendReport]:
         basis = date.fromisoformat(r["basis_date"][:10]) if r.get("basis_date") else date(int(r["fiscal_year"]), m, d)
         out.append(DividendReport(int(r["fiscal_year"]), r["period"], float(r["cum_dps"]), basis,
                                   date.fromisoformat(r["confirmed_date"]), str(r.get("rcept_no", ""))))
+    out.extend(_provisional_reports(div))
+    return out
+
+
+_PERIOD_END = {"Q1": (3, 31), "H1": (6, 30), "Q3": (9, 30), "FY": (12, 31)}
+
+
+def _period_end_date(r: dict) -> date:
+    if r.get("basis_date"):
+        return date.fromisoformat(str(r["basis_date"])[:10])
+    m, d = _PERIOD_END[r["period"]]
+    return date(int(r["fiscal_year"]), m, d)
+
+
+def _provisional_reports(div: dict) -> list[DividendReport]:
+    """'현금·현물배당결정' 수시공시 중 같은 해 정기보고서로 아직 안 덮인 것만 PROV 보고서로 만든다.
+    누계(cum_dps) = 그 공시 접수일까지 정기보고서로 이미 확정된 같은 해 누계 + 공시 금액.
+
+    '이미 반영됐다'는 접수일 순서가 아니라 보고기간으로 판단한다: 정기보고서의 결산기준일이
+    이 공시의 배당기준일 이후면(그 분기·반기가 이 배당까지 포함하는 기간이면) 그 정기보고서를
+    신뢰하고 잠정치는 버린다. KT&G처럼 반기보고서(결산기준일 6/30)가 8월 분기배당 공시(배당기준일
+    8/21)보다 늦게 '접수'돼도 그 배당을 반영하지 않는 경우가 있어, 접수일만으로는 판단할 수 없다."""
+    periodic = [r for r in div["reports"] if r.get("confirmed_date")]
+    out = []
+    for a in div.get("announcements", {}).values():
+        if a.get("status") != "ok" or not a.get("confirmed_date") or not a.get("amount"):
+            continue
+        year = int(a["confirmed_date"][:4])
+        ann_basis = date.fromisoformat(a["basis_date"]) if a.get("basis_date") else date.fromisoformat(a["confirmed_date"])
+        same_year = [r for r in periodic if int(r["fiscal_year"]) == year]
+        if any(_period_end_date(r) >= ann_basis for r in same_year):
+            continue  # 결산기준일이 배당기준일을 지난 정기보고서가 있으면 이미 반영된 것으로 본다
+        prior_cum = max([0.0] + [float(r["cum_dps"]) for r in same_year if r["confirmed_date"] <= a["confirmed_date"]])
+        out.append(DividendReport(year, "PROV", prior_cum + float(a["amount"]), ann_basis,
+                                  date.fromisoformat(a["confirmed_date"]), str(a.get("rcept_no", ""))))
     return out
 
 
@@ -233,7 +285,7 @@ def _run_file(code: str):
 
 
 def _run_stage(code: str, stage: str, state: dict, info: dict, today, fetch_prices, fetch_dividends,
-               update_us: bool) -> None:
+               update_us: bool, fetch_announcements=None) -> None:
     steps, errors = state["steps"], state["errors"]
     if state["skip"]:
         steps["cache"] = "cooldown: 네트워크 조회 생략"
@@ -243,6 +295,12 @@ def _run_stage(code: str, stage: str, state: dict, info: dict, today, fetch_pric
             steps["prices"] = update_stock_price_cache(code, today, fetch_prices)[1]
         elif stage == "dividends":
             steps["dividends"] = update_stock_dividend_cache(code, info["corp_code"], today, fetch_dividends)[1]
+            # 정기보고서보다 먼저 나오는 '현금·현물배당결정' 수시공시 확인 (실패해도 정기보고서 결과는 유지)
+            try:
+                steps["announcements"] = update_stock_announcement_cache(
+                    code, info["corp_code"], today, fetch_announcements)[1]
+            except Exception as e:
+                errors["announcements"] = repr(e)[:300]
         elif stage == "us10y" and update_us:
             from .fred import update_us10y
             src = read_json(C.SOURCES_JSON, {}).get("us10y", {})
@@ -258,6 +316,7 @@ def _run_stage(code: str, stage: str, state: dict, info: dict, today, fetch_pric
 
 def analyze_stock(code: str, *, force: bool = False, master: dict | None = None, today: date | None = None,
                   fetch_prices: Callable | None = None, fetch_dividends: Callable | None = None,
+                  fetch_announcements: Callable | None = None,
                   update_us: bool = True, stage: str | None = None) -> dict:
     """종목 1개: 캐시 확인 → (필요하면) 가격·배당·미국10Y 업데이트 → engine 계산 → 캐시 저장.
 
@@ -280,7 +339,7 @@ def analyze_stock(code: str, *, force: bool = False, master: dict | None = None,
         else:
             state = read_json(_run_file(code)) or {"skip": True, "steps": {}, "errors": {}}
         for s in (STAGES if stage is None else [x for x in STAGES if x == stage]):
-            _run_stage(code, s, state, info, today, fetch_prices, fetch_dividends, update_us)
+            _run_stage(code, s, state, info, today, fetch_prices, fetch_dividends, update_us, fetch_announcements)
         if stage in STAGES:
             write_json(_run_file(code), state)
             return state

@@ -41,19 +41,6 @@ def test_search_none():
 
 
 # ------------------------------------------------------------------ 캐시
-@pytest.fixture
-def tmp_data(tmp_path, monkeypatch):
-    monkeypatch.setattr(C, "CACHE_DIR", tmp_path / "cache" / "stocks")
-    monkeypatch.setattr(C, "CACHE_INDEX_JSON", tmp_path / "cache" / "index.json")
-    monkeypatch.setattr(C, "SOURCES_JSON", tmp_path / "sources.json")
-    monkeypatch.setattr(C, "US10Y_CSV", tmp_path / "us10y" / "dgs10.csv")
-    monkeypatch.setattr(C, "CORP_ACTIONS_OVERRIDE_CSV", tmp_path / "none.csv")
-    (tmp_path / "us10y").mkdir()
-    days = pd.bdate_range("2016-01-01", "2026-09-25")
-    pd.DataFrame({"date": days.date.astype(str), "us10y": 3.0}).to_csv(C.US10Y_CSV, index=False)
-    return tmp_path
-
-
 class FakeKrx:
     """요청된 기간만 돌려주는 가짜 KRX. 호출 기록을 남긴다."""
     def __init__(self, last_day: date):
