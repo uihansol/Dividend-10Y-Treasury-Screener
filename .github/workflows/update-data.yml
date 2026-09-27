@@ -43,7 +43,6 @@ jobs:
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
-          EXPECTED_DPS_MODE: ${{ vars.EXPECTED_DPS_MODE }}
         run: |
           ARGS=""
           if [ -n "${{ github.event.inputs.start }}" ]; then ARGS="$ARGS --start ${{ github.event.inputs.start }}"; fi
