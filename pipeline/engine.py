@@ -173,54 +173,146 @@ def build_fiscal_years(reports: Iterable[DividendReport],
 # ---------------------------------------------------------------------------
 # 예상 연간 DPS (현재·역사 공통)
 # ---------------------------------------------------------------------------
-def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "annual") -> Optional[ExpectedDps]:
-    """날짜 t에 알 수 있었던 정보만으로 계산한 예상 연간 DPS (현재 기준).
+def _period_amounts(fy: FiscalYear) -> dict[str, float]:
+    """사업연도 내 중간·분기 누적값을 실제 기간별 배당으로 변환한다."""
+    recs = sorted(fy.interims, key=lambda x: PERIOD_ORDER[x[0]])
+    out: dict[str, float] = {}
+    prev = 0.0
+    for period, cumulative, _, _ in recs:
+        out[period] = max(cumulative - prev, 0.0)
+        prev = cumulative
+    return out
 
-    F = t까지 연간 DPS(사업보고서)가 확정된 가장 최근 사업연도
-    O = F + 1 (아직 연간 DPS가 확정되지 않은 진행 중 사업연도)
-    예상 DPS = F의 기말배당 + O에서 t까지 확정된 중간·분기배당 누계
-      · O의 중간배당이 없으면           → F의 기말배당 (규칙 ①)
-      · O의 중간배당이 확정됐으면        → F 기말 + O 중간 (규칙 ②)
-      · O의 사업보고서까지 확정되면 F가 O로 바뀌어 → O의 중간+기말 = O의 연간 DPS (규칙 ③)
+
+def _confirmed_interim_asof(fy: FiscalYear, t: date) -> Optional[tuple[str, float, date, str]]:
+    """t까지 확정된 가장 최근 중간·분기 보고서를 반환한다."""
+    return fy.interim_cum_asof(t)[1]
+
+
+def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "annual") -> Optional[ExpectedDps]:
+    """기준일 t에 공개적으로 확정된 정보만으로 예상 연간 DPS를 계산한다.
+
+    핵심 규칙
+    - 일반(기말배당) 기업: 가장 최근 확정 연간 DPS의 기말배당을 사용한다.
+    - 중간/분기배당 기업: 현재 연도에 확정된 배당은 그대로 사용하고,
+      아직 확정되지 않은 뒤의 배당은 전년도 같은 기간의 배당으로 보완한다.
+      예) 올해 Q1만 확정 → 올해 Q1 + 전년도 Q2 + 전년도 Q3 + 전년도 기말.
+      올해 Q2까지 확정 → 올해 Q1~Q2 + 전년도 Q3 + 전년도 기말.
+      올해 Q3까지 확정 → 올해 Q1~Q3 + 전년도 기말.
+    - 현재 연도의 배당이 아직 하나도 확정되지 않았다면 직전 연도의 확정 연간 DPS를 사용한다.
+    - 분기/중간배당 기업이라도 필요한 전년도 기간별 자료가 없으면 임의로 0을 넣지 않고
+      확인 가능한 부분만으로 계산하지 않는다. 다만 전년도 기말배당은 연간 보고서로 확인한다.
+    - mode는 기존 호환성을 위해 인자로 유지하지만, 이제 위 규칙이 단일 계산 규칙이다.
     """
     confirmed = [fy for fy in years.values()
                  if fy.fy_total is not None and fy.fy_confirmed is not None and fy.fy_confirmed <= t]
     if not confirmed:
         return None
+
     F = max(confirmed, key=lambda fy: fy.year)
     flags: list[str] = list(F.flags)
-    final = F.final_dps or 0.0
+    final_f = F.final_dps or 0.0
     comps: list[DpsComponent] = []
 
     O = years.get(F.year + 1)
-    cum_o, rec = (O.interim_cum_asof(t) if O else (0.0, None))
+    current_rec = _confirmed_interim_asof(O, t) if O else None
 
-    if cum_o > 0 and rec is not None:
-        # 규칙 ②: 전년도 기말 + 현재 연도 확정 중간·분기 누계
-        if final > 0:
-            comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year, final, F.fy_confirmed, F.fy_ref))
-        interim_label = "분기배당 누계" if O and any(p in ("Q1", "Q3") for p, v, _, _ in O.interims if v > 0) else "중간배당"
-        comps.append(DpsComponent(f"{O.year}년 {interim_label}", "interim", O.year, cum_o, rec[2], rec[3]))
-        flags += list(O.flags)
-        value = final + cum_o
-    else:
-        # O 연도에 확정된 중간·분기배당이 아직 없음.
-        # 규칙 ③(요구사항 1·17): F 연도 기말까지 확정 → F 연도 중간 + 기말 = F 연간 DPS
-        # 규칙 ①을 글자 그대로 적용하면 같은 시점에 'F 기말배당만'이 된다.
-        # 중간배당 기업에서 두 규칙이 충돌하므로 mode로 선택한다(기본 "annual" = 규칙 ③).
-        if F.has_interim() and mode == "annual":
+    # 현재 연도에 중간/분기배당이 아직 하나도 확정되지 않은 경우.
+    if O is None or current_rec is None:
+        if F.has_interim():
+            # 직전 연도의 연간 DPS가 이미 확정된 직후에는 그 연간 DPS 자체를 사용한다.
             last = F.interims[-1]
             comps.append(DpsComponent(f"{F.year}년 중간·분기배당", "interim", F.year,
                                       F.interim_total(), last[2], last[3]))
-            comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year, final, F.fy_confirmed, F.fy_ref))
+            comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year,
+                                      final_f, F.fy_confirmed, F.fy_ref))
             value = F.fy_total or 0.0
         else:
-            comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year, final, F.fy_confirmed, F.fy_ref))
-            value = final
-            if F.has_interim():
-                flags.append("prior_year_interim_not_counted")
-    return ExpectedDps(value=value, components=comps, latest_fy=F.year, flags=sorted(set(flags)))
+            comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year,
+                                      final_f, F.fy_confirmed, F.fy_ref))
+            value = final_f
+        return ExpectedDps(value=value, components=comps, latest_fy=F.year,
+                           flags=sorted(set(flags)))
 
+    # 현재 연도에 확정된 중간/분기배당이 있는 경우.
+    flags += list(O.flags)
+
+    # 분기배당 기업: 현재 확정 누계 + 전년도 미확정 기간의 동일 기간 배당.
+    if O.is_quarterly():
+        current_periods = _period_amounts(O)
+        prior = years.get(F.year)
+        prior_periods = _period_amounts(prior) if prior else {}
+
+        latest_period = current_rec[0]
+        confirmed_current = sum(v for p, v in current_periods.items()
+                                if PERIOD_ORDER[p] <= PERIOD_ORDER[latest_period])
+
+        # 전년도 같은 사업연도에서 이미 확정된 기간을 제외하고,
+        # 현재 확정 시점 이후의 분기 배당을 전년도 값으로 보완한다.
+        remaining_periods = [p for p in ("Q1", "H1", "Q3")
+                             if PERIOD_ORDER[p] > PERIOD_ORDER[latest_period]]
+        # H1은 Q1+Q2 누계이므로 실제 Q2 금액을 사용한다.
+        # 전년도 Q3까지 자료가 있어야 Q2/Q3를 분리할 수 있다.
+        prior_fill = []
+        for p in remaining_periods:
+            if p == "H1":
+                # 내부적으로 H1 자체가 남는 경우는 없지만 방어적으로 처리.
+                amount = prior_periods.get("H1")
+            else:
+                amount = prior_periods.get(p)
+            if amount is None:
+                flags.append(f"prior_year_period_missing:{p}")
+            else:
+                prior_fill.append((p, amount))
+
+        # 전년도 기말배당은 항상 마지막에 보완한다.
+        if prior is None or prior.fy_total is None or prior.fy_confirmed is None or prior.fy_confirmed > t:
+            flags.append("prior_year_final_missing")
+            prior_final = None
+        else:
+            prior_final = prior.final_dps or 0.0
+
+        if len(prior_fill) != len(remaining_periods) or prior_final is None:
+            return ExpectedDps(value=None, components=[], latest_fy=F.year,
+                               flags=sorted(set(flags)))
+
+        # 현재 확정분은 하나의 누계 구성요소로 표시하고,
+        # 전년도 보완분은 기간별로 표시해 사용자가 어떤 가정이 들어갔는지 확인할 수 있게 한다.
+        current_latest_value = current_rec[1]
+        comps.append(DpsComponent(
+            f"{O.year}년 {latest_period}까지 확정", "interim", O.year,
+            current_latest_value, current_rec[2], current_rec[3]))
+
+        for p, amount in prior_fill:
+            label = {"H1": "2분기", "Q3": "3분기", "Q1": "1분기"}.get(p, p)
+            rec = next((r for r in prior.interims if r[0] == p), None)
+            # H1 누계가 아니라 실제 Q2 금액을 쓰는 경우에는 H1/Q3 원천 확인일 중
+            # 가장 늦은 보고서의 확인일을 참조한다.
+            if p == "H1":
+                amount_rec = rec
+            else:
+                amount_rec = rec
+            comps.append(DpsComponent(
+                f"{F.year}년 {label} 보완", "interim", F.year, amount,
+                amount_rec[2] if amount_rec else F.fy_confirmed,
+                amount_rec[3] if amount_rec else F.fy_ref))
+
+        comps.append(DpsComponent(f"{F.year}년 기말배당 보완", "final", F.year,
+                                  prior_final, F.fy_confirmed, F.fy_ref))
+        value = current_latest_value + sum(v for _, v in prior_fill) + prior_final
+        flags.append("prior_year_unconfirmed_periods_filled")
+
+    else:
+        # 반기/중간배당 기업: 올해 확정 중간배당 + 전년도 기말배당.
+        current_cum = current_rec[1]
+        comps.append(DpsComponent(f"{O.year}년 중간배당", "interim", O.year,
+                                  current_cum, current_rec[2], current_rec[3]))
+        comps.append(DpsComponent(f"{F.year}년 기말배당 보완", "final", F.year,
+                                  final_f, F.fy_confirmed, F.fy_ref))
+        value = current_cum + final_f
+
+    return ExpectedDps(value=value, components=comps, latest_fy=F.year,
+                       flags=sorted(set(flags)))
 
 # ---------------------------------------------------------------------------
 # 수익률·배수
