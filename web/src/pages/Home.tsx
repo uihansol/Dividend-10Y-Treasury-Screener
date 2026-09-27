@@ -79,7 +79,8 @@ export function Home({ master, index, indexError, onPick }: {
   };
 
   const rows = useMemo(() => {
-    const r = [...(index?.stocks ?? [])];
+    const recentCodes = new Set(recent.map((item) => item.code));
+    const r = (index?.stocks ?? []).filter((stock) => recentCodes.has(stock.code));
     const value = (row: typeof r[number], key: MetricKey): number => {
       if (key === "yield") return row.yield ?? -Infinity;
       if (key === "multiple") return row.multiple ?? -Infinity;
