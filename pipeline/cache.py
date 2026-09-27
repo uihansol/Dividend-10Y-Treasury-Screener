@@ -248,7 +248,8 @@ def analyze_stock(code: str, *, force: bool = False, master: dict | None = None,
             if update_us:
                 from .fred import update_us10y
                 src = read_json(C.SOURCES_JSON, {}).get("us10y", {})
-                if str(src.get("last_attempt", ""))[:10] != now_kst()[:10]:
+                # 오늘 이미 성공했으면 생략. 실패만 했으면 다시 시도한다.
+                if str(src.get("last_success", ""))[:10] != now_kst()[:10]:
                     r = update_us10y()
                     steps["us10y"] = r
                     if not r.get("ok"):
