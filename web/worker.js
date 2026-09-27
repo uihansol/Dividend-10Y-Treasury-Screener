@@ -94,7 +94,9 @@ async function runSteps(env, runId) {
 }
 
 async function api(url, req, env) {
-  if (!env.GITHUB_TOKEN || !env.GITHUB_REPO) return json({ error: "Worker 설정 필요: GITHUB_TOKEN, GITHUB_REPO" }, 500);
+  if (!env.GITHUB_TOKEN) return json({ error: "GitHub 저장소 접근용 토큰이 없습니다. "
+    + "저장소 Settings → Secrets and variables → Actions에 WORKER_GITHUB_TOKEN을 등록한 뒤 Deploy를 다시 실행하세요." }, 500);
+  if (!env.GITHUB_REPO) return json({ error: "Worker 설정 필요: GITHUB_REPO (wrangler.toml vars)" }, 500);
   const p = url.pathname;
 
   if (p === "/api/index" && req.method === "GET") {

@@ -2,7 +2,11 @@ import type { CacheIndex, Detail, MasterStock, RunInfo } from "./types";
 
 async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", ...init });
-  if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
+  if (!res.ok) {
+    // Worker가 {"error": "..."} 형태로 원인을 돌려주면 그 메시지를 보여준다 (없으면 상태 코드만)
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error ? `${path}: ${body.error}` : `${path}: HTTP ${res.status}`);
+  }
   return res.json() as Promise<T>;
 }
 
