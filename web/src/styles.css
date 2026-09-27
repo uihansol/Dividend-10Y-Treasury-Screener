@@ -120,9 +120,9 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .detail-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; border-bottom: 2px solid var(--ink); padding-bottom: 10px; }
 .detail-head h1 { margin: 0; font-size: clamp(1.5rem, 3.5vw, 2.1rem); letter-spacing: -0.02em; }
 .detail-head .code { color: var(--ink-2); }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1px; background: var(--rule);
-  border: 1px solid var(--rule); margin: 16px 0; }
-.card { background: var(--surface); padding: 12px 14px; }
+/* flex + wrap: 마지막 줄에 카드가 하나만 남아도 grid처럼 빈 칸이 보이지 않고 그 카드가 남은 폭을 채운다 */
+.cards { display: flex; flex-wrap: wrap; gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin: 16px 0; }
+.card { background: var(--surface); padding: 12px 14px; flex: 1 1 148px; }
 .card-label { font-size: 0.8rem; color: var(--ink-2); }
 .card-value { font-size: 1.4rem; font-weight: 600; }
 .card-sub { font-size: 0.76rem; color: var(--ink-3); }
@@ -130,10 +130,35 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .card.strong .card-label { color: var(--accent-soft-strong); }
 .panel { background: var(--surface); border: 1px solid var(--rule); padding: 16px; margin-bottom: 16px; }
 .panel h2 { font-size: 1.05rem; margin: 0 0 12px; }
+.panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.panel-head h2 { margin: 0 0 12px; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .chart { height: 260px; }
 .chart.tall { height: 340px; }
 .chart.compare { height: 96px; }
+.chart.price { height: 160px; margin-top: 4px; }
+.chart.brush-nav { height: 48px; margin-top: 2px; }
+
+/* 차트 항목 선택/해제 (범례가 있는 recharts 차트) */
+.recharts-legend-item { cursor: pointer; padding: 3px 6px; border-radius: var(--radius-s); }
+.recharts-legend-item:hover { background: var(--accent-soft); }
+.legend-off { opacity: 0.4; text-decoration: line-through; }
+
+/* 단일 계열 차트용 이름 토글 칩 */
+.chip-legend { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0 0 10px; padding: 0; }
+.chip { display: inline-flex; align-items: center; gap: 7px; background: var(--paper); border: 1px solid var(--rule);
+  border-radius: 999px; padding: 7px 13px; font: inherit; font-size: 0.88rem; color: var(--ink); cursor: pointer;
+  min-height: 36px; }
+.chip-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.chip.off { opacity: 0.45; text-decoration: line-through; background: transparent; }
+
+/* 확대(zoom) 안내·초기화 */
+.zoom-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; margin: 6px 0 2px; }
+.zoom-hint { font-size: 0.8rem; color: var(--ink-3); }
+.zoom-reset { background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 999px;
+  padding: 5px 12px; font: inherit; font-size: 0.82rem; cursor: pointer; min-height: 32px; }
+.recharts-brush-texts { font-size: 11px; fill: var(--ink-2); }
+.recharts-brush-slide { cursor: grab; }
 .composition { border-collapse: collapse; min-width: min(420px, 100%); }
 .composition td { padding: 6px 12px 6px 0; }
 .composition .num { text-align: right; font-weight: 500; }
@@ -162,6 +187,14 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .rules summary { cursor: pointer; }
 .rules ol { max-width: 80ch; color: var(--ink-2); }
 
+/* 태블릿(아이패드 세로 등): 카드·2단 레이아웃을 조금 일찍 접는다 */
+@media (max-width: 900px) {
+  .card { flex-basis: 132px; }
+  .two-col { grid-template-columns: 1fr; }
+  .chart.tall { height: 300px; }
+  .chart.price { height: 150px; }
+}
+
 @media (max-width: 720px) {
   body { font-size: 15px; }
   .page { padding: 14px 10px; }
@@ -171,9 +204,19 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
   .grid td, .grid th { padding: 9px 7px; }
   .grid .rank { display: none; }
   .gauge-track { width: 56px; }
-  .two-col { grid-template-columns: 1fr; }
   .status-table { display: block; overflow-x: auto; }
-  .chart.tall { height: 300px; }
+  .chart.tall { height: 280px; }
+  .chart.price { height: 140px; }
+  .chart.brush-nav { height: 44px; }
+  .panel { padding: 14px 12px; }
+  .chip { padding: 8px 12px; }
+  .zoom-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+
+/* 터치 화면에서는 hover로만 보이던 상태를 늘 보이게: 범례·칩이 항상 눌러볼 수 있는 것처럼 보이게 */
+@media (hover: none) {
+  .chip { border-color: var(--ink-3); }
+  .recharts-legend-item { text-decoration: underline dotted; text-underline-offset: 3px; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
 

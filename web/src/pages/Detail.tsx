@@ -1,13 +1,16 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, ReferenceDot, ReferenceLine,
+  Bar, BarChart, Brush, CartesianGrid, Cell, Legend, Line, LineChart, ReferenceDot, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import type { Detail } from "../lib/types";
 import { flagText, mult, pct, signedPct, won, NA } from "../lib/format";
 
 const DART = (rcp: string) => `https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${rcp}`;
-const C = { line: "var(--ink)", accent: "var(--accent)", band: "var(--ink-3)", grid: "var(--rule)", interim: "var(--accent-soft-strong)" };
+const C = {
+  line: "var(--ink)", accent: "var(--accent)", band: "var(--ink-3)", grid: "var(--rule)",
+  interim: "var(--accent-soft-strong)", price: "var(--accent)",
+};
 
 function Card({ label, value, sub, strong }: { label: string; value: string; sub?: string; strong?: boolean }) {
   return (
@@ -16,6 +19,61 @@ function Card({ label, value, sub, strong }: { label: string; value: string; sub
       <div className="card-value">{value}</div>
       {sub && <div className="card-sub">{sub}</div>}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------- 확대(zoom)
+type Range = { startIndex: number; endIndex: number };
+
+/** 시계열 차트의 확대 범위. Brush를 드래그하면 startIndex/endIndex가 바뀌고,
+ * 같은 범위를 여러 차트가 함께 쓰면(합쳐보기) 확대가 그대로 동기화된다. */
+function useZoom(length: number) {
+  const full = { startIndex: 0, endIndex: Math.max(length - 1, 0) };
+  const [range, setRange] = useState<Range>(full);
+  useEffect(() => setRange(full), [length]); // eslint-disable-line react-hooks/exhaustive-deps
+  const onChange = (r: { startIndex?: number; endIndex?: number }) => {
+    if (r.startIndex == null || r.endIndex == null || r.endIndex <= r.startIndex) return;
+    setRange({ startIndex: r.startIndex, endIndex: r.endIndex });
+  };
+  return { range, onChange, zoomed: range.startIndex > 0 || range.endIndex < full.endIndex, reset: () => setRange(full) };
+}
+
+function ZoomBar({ zoomed, onReset }: { zoomed: boolean; onReset: () => void }) {
+  return (
+    <div className="zoom-row">
+      <span className="zoom-hint">아래 눈금을 드래그하면 특정 기간을 확대해서 볼 수 있습니다.</span>
+      {zoomed && <button type="button" className="zoom-reset" onClick={onReset}>전체 기간으로</button>}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- 항목 선택/해제
+/** 범례(항목 이름)를 누르면 그 항목만 숨긴다. 차트마다 독립적으로 쓴다. */
+function useToggle() {
+  const [hidden, setHidden] = useState<Record<string, boolean>>({});
+  const toggle = (key: string) => setHidden((h) => ({ ...h, [key]: !h[key] }));
+  const isHidden = (key: string) => !!hidden[key];
+  // recharts의 Legend onClick/formatter 타입은 넓어서(Payload) any로 받고 dataKey만 꺼내 쓴다.
+  const onLegendClick = (e: any) => { if (e?.dataKey != null) toggle(String(e.dataKey)); };
+  const legendFormatter = (value: string, entry: any) => (
+    <span className={isHidden(String(entry?.dataKey)) ? "legend-off" : undefined}>{value}</span>
+  );
+  return { isHidden, toggle, onLegendClick, legendFormatter };
+}
+
+/** 단일 계열 차트(범례가 없는 차트)를 위한 이름 토글 칩. 이름을 누르면 그 패널을 접었다 편다. */
+function ChipToggle({ items }: { items: { key: string; label: string; color: string; hidden: boolean; onClick: () => void }[] }) {
+  return (
+    <ul className="chip-legend" role="group" aria-label="표시할 항목 선택">
+      {items.map((it) => (
+        <li key={it.key}>
+          <button type="button" className={`chip${it.hidden ? " off" : ""}`} aria-pressed={!it.hidden} onClick={it.onClick}>
+            <span className="chip-dot" style={{ background: it.color }} />
+            {it.label}
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -31,10 +89,23 @@ export function DetailPage({ d }: { d: Detail }) {
     { name: "배당수익률", v: s.yield ?? 0, fill: C.accent },
     { name: "미국 10년물", v: d.us10y ?? 0, fill: C.band },
   ], [s.yield, d.us10y]);
-  const yMax = st ? Math.max(st.p90 * 1.8, st.current * 1.25) : undefined;
-  const last = series[series.length - 1];
   const total = d.components.reduce((a, c) => a + c.dps, 0);
-  const ticks = series.filter((_, i) => i === 0 || series[i - 1].date.slice(0, 4) !== series[i].date.slice(0, 4)).map((x) => x.date);
+  const yearTicks = (data: { date: string }[]) =>
+    data.filter((_, i) => i === 0 || data[i - 1].date.slice(0, 4) !== data[i].date.slice(0, 4)).map((x) => x.date);
+
+  // 배당/10Y 배수 + 주가 (같은 기간을 함께 보므로 확대·범위는 하나로 동기화한다)
+  const zoomM = useZoom(series.length);
+  const viewM = series.slice(zoomM.range.startIndex, zoomM.range.endIndex + 1);
+  const ticksM = yearTicks(viewM);
+  const yMax = st ? Math.max(st.p90 * 1.8, st.current * 1.25) : undefined;
+  const lastM = viewM[viewM.length - 1];
+  const togM = useToggle();
+
+  // 배당수익률 vs 미국 10년물
+  const zoomY = useZoom(series.length);
+  const viewY = series.slice(zoomY.range.startIndex, zoomY.range.endIndex + 1);
+  const ticksY = yearTicks(viewY);
+  const togY = useToggle();
 
   return (
     <main className="page detail">
@@ -103,44 +174,92 @@ export function DetailPage({ d }: { d: Detail }) {
       </section>
 
       <section className="panel">
-        <h2>배당수익률 vs 미국 10년물, 최근 10년</h2>
+        <div className="panel-head">
+          <h2>배당수익률 vs 미국 10년물, 최근 10년</h2>
+        </div>
         <div className="chart">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <LineChart data={viewY} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={C.grid} vertical={false} />
-              <XAxis dataKey="date" ticks={ticks} tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
+              <XAxis dataKey="date" ticks={ticksY} tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
               <YAxis width={44} tick={{ fontSize: 12 }} tickFormatter={(v: number) => `${v.toFixed(1)}%`} />
               <Tooltip formatter={(v: number, n: string) => [pct(v), n]} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Line dataKey="y" name="배당수익률" stroke={C.accent} dot={false} strokeWidth={1.3} isAnimationActive={false} />
-              <Line dataKey="u" name="미국 10년물" stroke={C.band} dot={false} strokeWidth={1} isAnimationActive={false} />
+              <Legend wrapperStyle={{ fontSize: 12 }} onClick={togY.onLegendClick} formatter={togY.legendFormatter} />
+              <Line dataKey="y" name="배당수익률" stroke={C.accent} dot={false} strokeWidth={1.3}
+                isAnimationActive={false} hide={togY.isHidden("y")} />
+              <Line dataKey="u" name="미국 10년물" stroke={C.band} dot={false} strokeWidth={1}
+                isAnimationActive={false} hide={togY.isHidden("u")} />
             </LineChart>
           </ResponsiveContainer>
         </div>
+        <div className="chart brush-nav">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={series} margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
+              <Line dataKey="y" stroke={C.accent} dot={false} strokeWidth={1} isAnimationActive={false} />
+              <Brush dataKey="date" height={28} travellerWidth={10} stroke={C.accent}
+                startIndex={zoomY.range.startIndex} endIndex={zoomY.range.endIndex} onChange={zoomY.onChange}
+                tickFormatter={(v: string) => v.slice(0, 4)} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <ZoomBar zoomed={zoomY.zoomed} onReset={zoomY.reset} />
       </section>
 
       <section className="panel">
-        <h2>배당/10Y 배수, 최근 10년</h2>
+        <div className="panel-head">
+          <h2>배당/10Y 배수 &amp; 주가, 최근 10년</h2>
+        </div>
         {st ? (
           <>
-            <div className="chart tall">
+            <ChipToggle items={[
+              { key: "m", label: "배당/10Y 배수", color: C.line, hidden: togM.isHidden("m"), onClick: () => togM.toggle("m") },
+              { key: "px", label: "주가", color: C.price, hidden: togM.isHidden("px"), onClick: () => togM.toggle("px") },
+            ]} />
+            {!togM.isHidden("m") && (
+              <div className="chart tall">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={viewM} margin={{ top: 8, right: 56, left: 0, bottom: 0 }}>
+                    <CartesianGrid stroke={C.grid} vertical={false} />
+                    <XAxis dataKey="date" ticks={ticksM} tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
+                    <YAxis domain={[0, yMax ?? "auto"]} allowDataOverflow width={44} tick={{ fontSize: 12 }}
+                      tickFormatter={(v: number) => `${v.toFixed(1)}x`} />
+                    <Tooltip formatter={(v: number) => mult(v)} labelFormatter={(l: string) => l} />
+                    {([["p90", "90%"], ["p75", "75%"], ["p50", "50%"], ["p25", "25%"], ["p10", "10%"]] as const).map(([k, lab]) => (
+                      <ReferenceLine key={k} y={st[k]} stroke={C.band} strokeDasharray={k === "p50" ? undefined : "3 4"}
+                        label={{ value: `${lab} ${st[k].toFixed(2)}`, position: "right", fontSize: 11, fill: "var(--ink-2)" }} />
+                    ))}
+                    <Line type="monotone" dataKey="m" name="배당/10Y" stroke={C.line} dot={false} strokeWidth={1.3}
+                      isAnimationActive={false} connectNulls={false} />
+                    {lastM?.m != null && <ReferenceDot x={lastM.date} y={lastM.m} r={5} fill={C.accent} stroke="var(--surface)" />}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+            {!togM.isHidden("px") && (
+              <div className="chart price">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={viewM} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                    <CartesianGrid stroke={C.grid} vertical={false} />
+                    <XAxis dataKey="date" ticks={ticksM} tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
+                    <YAxis width={56} tick={{ fontSize: 12 }} tickFormatter={(v: number) => won(v)} domain={["auto", "auto"]} />
+                    <Tooltip formatter={(v: number) => `${won(v)}원`} labelFormatter={(l: string) => l} />
+                    <Line type="monotone" dataKey="px" name="주가" stroke={C.price} dot={false} strokeWidth={1.3}
+                      isAnimationActive={false} connectNulls={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+            <div className="chart brush-nav">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={series} margin={{ top: 8, right: 56, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke={C.grid} vertical={false} />
-                  <XAxis dataKey="date" ticks={ticks} tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
-                  <YAxis domain={[0, yMax ?? "auto"]} allowDataOverflow width={44} tick={{ fontSize: 12 }}
-                    tickFormatter={(v: number) => `${v.toFixed(1)}x`} />
-                  <Tooltip formatter={(v: number) => mult(v)} labelFormatter={(l: string) => l} />
-                  {([["p90", "90%"], ["p75", "75%"], ["p50", "50%"], ["p25", "25%"], ["p10", "10%"]] as const).map(([k, lab]) => (
-                    <ReferenceLine key={k} y={st[k]} stroke={C.band} strokeDasharray={k === "p50" ? undefined : "3 4"}
-                      label={{ value: `${lab} ${st[k].toFixed(2)}`, position: "right", fontSize: 11, fill: "var(--ink-2)" }} />
-                  ))}
-                  <Line type="monotone" dataKey="m" name="배당/10Y" stroke={C.line} dot={false} strokeWidth={1.3}
-                    isAnimationActive={false} connectNulls={false} />
-                  {last?.m != null && <ReferenceDot x={last.date} y={last.m} r={5} fill={C.accent} stroke="var(--surface)" />}
+                <LineChart data={series} margin={{ top: 0, right: 56, left: 0, bottom: 0 }}>
+                  <Line dataKey="m" stroke={C.line} dot={false} strokeWidth={1} isAnimationActive={false} />
+                  <Brush dataKey="date" height={28} travellerWidth={10} stroke={C.accent}
+                    startIndex={zoomM.range.startIndex} endIndex={zoomM.range.endIndex} onChange={zoomM.onChange}
+                    tickFormatter={(v: string) => v.slice(0, 4)} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
+            <ZoomBar zoomed={zoomM.zoomed} onReset={zoomM.reset} />
             <table className="quantiles">
               <thead><tr><th>10%</th><th>25%</th><th>50%</th><th>75%</th><th>90%</th><th className="now">현재</th></tr></thead>
               <tbody><tr>
@@ -149,8 +268,9 @@ export function DetailPage({ d }: { d: Detail }) {
               </tr></tbody>
             </table>
             <p className="note">
-              일별 표본 {st.n.toLocaleString()}개. 그래프 세로축은 금리가 매우 낮았던 시기의 급등 구간을 자르고 표시합니다
-              (최댓값 {mult(st.max)}). 백분위 계산에는 모든 값을 씁니다.
+              일별 표본 {st.n.toLocaleString()}개. 배당/10Y 배수 세로축은 금리가 매우 낮았던 시기의 급등 구간을 자르고 표시합니다
+              (최댓값 {mult(st.max)}). 백분위 계산에는 모든 값을 씁니다. 주가는 단위가 달라 배수와 같은 축에 겹치지 않고
+              바로 아래에 같은 기간으로 나란히 표시합니다.
             </p>
           </>
         ) : <p className="empty-msg">배수를 계산할 수 있는 날이 20일 미만입니다.</p>}
@@ -159,19 +279,7 @@ export function DetailPage({ d }: { d: Detail }) {
       <section className="panel">
         <h2>연도별 실제 DPS (현재 주식 수 기준)</h2>
         {d.annual.length ? (
-          <div className="chart">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={d.annual} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke={C.grid} vertical={false} />
-                <XAxis dataKey="year" tick={{ fontSize: 12 }} />
-                <YAxis width={56} tick={{ fontSize: 12 }} tickFormatter={(v: number) => won(v)} />
-                <Tooltip formatter={(v: number) => `${won(v)}원`} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="interim" stackId="a" name="중간·분기" fill={C.interim} isAnimationActive={false} />
-                <Bar dataKey="final" stackId="a" name="기말" fill={C.accent} isAnimationActive={false} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <AnnualDpsChart annual={d.annual} accent={C.accent} interim={C.interim} grid={C.grid} />
         ) : <p className="empty-msg">확정된 연간 DPS가 없습니다.</p>}
         <p className="note">사업연도 귀속 기준. 분할·무상증자 등이 있으면 과거 DPS를 현재 1주 기준으로 환산했습니다.</p>
       </section>
@@ -208,5 +316,27 @@ export function DetailPage({ d }: { d: Detail }) {
         </ul>
       </section>
     </main>
+  );
+}
+
+/** 연도별 중간·분기/기말 DPS 막대. 범례 이름을 누르면 그 항목을 숨긴다. */
+function AnnualDpsChart({ annual, accent, interim, grid }: {
+  annual: Detail["annual"]; accent: string; interim: string; grid: string;
+}) {
+  const tog = useToggle();
+  return (
+    <div className="chart">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={annual} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <CartesianGrid stroke={grid} vertical={false} />
+          <XAxis dataKey="year" tick={{ fontSize: 12 }} />
+          <YAxis width={56} tick={{ fontSize: 12 }} tickFormatter={(v: number) => won(v)} />
+          <Tooltip formatter={(v: number) => `${won(v)}원`} />
+          <Legend wrapperStyle={{ fontSize: 12 }} onClick={tog.onLegendClick} formatter={tog.legendFormatter} />
+          <Bar dataKey="interim" stackId="a" name="중간·분기" fill={interim} isAnimationActive={false} hide={tog.isHidden("interim")} />
+          <Bar dataKey="final" stackId="a" name="기말" fill={accent} isAnimationActive={false} hide={tog.isHidden("final")} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
