@@ -4,20 +4,26 @@
  "market": "KOSDAQ",
  "price_through": "2026-09-23",
  "dividend_through": "2026-09-27",
- "us10y_through": "2026-09-25",
+ "us10y_through": null,
  "created_at": "2026-09-27T17:31:10+09:00",
- "updated_at": "2026-09-27T17:51:29+09:00",
- "last_attempt": "2026-09-27T17:51:29+09:00",
- "last_error": null,
+ "updated_at": "2026-09-27T17:31:10+09:00",
+ "last_attempt": "2026-09-27T17:31:10+09:00",
+ "last_error": {
+  "us10y": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=45)\"))"
+ },
  "steps": {
   "prices": {
-   "mode": "incremental",
-   "added": 0,
-   "from": "2026-09-24"
+   "mode": "initial",
+   "added": 2631,
+   "from": "2016-01-01"
   },
   "dividends": {
-   "mode": "incremental",
-   "added": 0
+   "mode": "initial",
+   "added": 39
+  },
+  "us10y": {
+   "ok": false,
+   "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=45)\"))"
   }
  },
  "summary": {
@@ -28,13 +34,13 @@
   "price_date": "2026-09-23",
   "dps": 700.0,
   "yield": 3.0303,
-  "multiple": 0.6109,
+  "multiple": null,
   "paid10": 9,
   "known10": 9,
   "paid5": 4,
-  "pct": 33.4,
-  "p10": 0.4985,
-  "p90": 1.588,
+  "pct": null,
+  "p10": null,
+  "p90": null,
   "mcap": null,
   "tv": 414990200.0,
   "has_div_data": true,
