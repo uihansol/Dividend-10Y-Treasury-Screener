@@ -1,0 +1,58 @@
+{
+ "code": "064960",
+ "name": "SNT모티브",
+ "market": "KOSPI",
+ "price_through": "2026-09-23",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T02:57:04+09:00",
+ "updated_at": "2026-09-28T02:57:04+09:00",
+ "last_attempt": "2026-09-28T02:57:04+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2879,
+   "from": "2015-01-01"
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 43
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 3
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-09-25",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "summary": {
+  "code": "064960",
+  "name": "SNT모티브",
+  "market": "KOSPI",
+  "price": 25500.0,
+  "price_date": "2026-09-23",
+  "dps": 1600.0,
+  "yield": 6.2745,
+  "multiple": 1.265,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 61.3,
+  "p10": 0.8154,
+  "p90": 2.91,
+  "mcap": null,
+  "tv": 593327025.0,
+  "has_div_data": true,
+  "flags": [
+   "prior_year_unconfirmed_periods_filled"
+  ]
+ }
+}
