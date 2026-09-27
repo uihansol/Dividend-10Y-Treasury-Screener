@@ -184,10 +184,23 @@ def _period_amounts(fy: FiscalYear) -> dict[str, float]:
     return out
 
 
-def _confirmed_interim_asof(fy: FiscalYear, t: date) -> Optional[tuple[str, float, date, str]]:
-    """t까지 확정된 가장 최근 중간·분기 보고서를 반환한다."""
-    return fy.interim_cum_asof(t)[1]
-
+def _quarter_amounts(fy: Optional[FiscalYear]) -> dict[str, tuple[float, tuple[str, float, date, str]]]:
+    """Q1/H1/Q3 누계 보고서에서 실제 Q1·Q2·Q3 배당을 복원한다."""
+    if fy is None:
+        return {}
+    recs = {r[0]: r for r in fy.interims}
+    out = {}
+    if "Q1" in recs:
+        out["Q1"] = (recs["Q1"][1], recs["Q1"])
+    if "H1" in recs:
+        h1 = recs["H1"][1]
+        q1 = recs["Q1"][1] if "Q1" in recs else 0.0
+        out["Q2"] = (max(h1 - q1, 0.0), recs["H1"])
+    if "Q3" in recs:
+        q3_cum = recs["Q3"][1]
+        h1 = recs["H1"][1] if "H1" in recs else 0.0
+        out["Q3"] = (max(q3_cum - h1, 0.0), recs["Q3"])
+    return out
 
 def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "annual") -> Optional[ExpectedDps]:
     """기준일 t에 공개적으로 확정된 정보만으로 예상 연간 DPS를 계산한다.
