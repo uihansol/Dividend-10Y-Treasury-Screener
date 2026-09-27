@@ -38,6 +38,22 @@ function useZoom(length: number) {
   return { range, onChange, zoomed: range.startIndex > 0 || range.endIndex < full.endIndex, reset: () => setRange(full) };
 }
 
+function BandTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  const row = payload[0]?.payload;
+  if (!row) return null;
+  const fmt = (v: number | null | undefined, suffix = "") =>
+    v == null || !Number.isFinite(v) ? NA : `${v.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}${suffix}`;
+  return (
+    <div className="chart-tooltip-detail">
+      <div className="chart-tooltip-date">{label}</div>
+      <div><span>배당/10Y</span><strong>{fmt(row.m, "x")}</strong></div>
+      <div><span>시가배당률</span><strong>{fmt(row.y, "%")}</strong></div>
+      <div><span>미국 10년물</span><strong>{fmt(row.u, "%")}</strong></div>
+      <div><span>주가</span><strong>{won(row.px)}원</strong></div>
+    </div>
+  );
+}
 function ZoomBar({ zoomed, onReset }: { zoomed: boolean; onReset: () => void }) {
   return (
     <div className="zoom-row">
@@ -294,8 +310,7 @@ export function DetailPage({ d }: { d: Detail }) {
                     tick={{ fontSize: 12, fill: C.line }} tickFormatter={(v: number) => `${v.toFixed(1)}x`} />
                   <YAxis yAxisId="price" orientation="right" domain={["auto", "auto"]} width={64}
                     tick={{ fontSize: 12, fill: C.price }} tickFormatter={(v: number) => won(v)} />
-                  <Tooltip formatter={(v: number, n: string) => [n === "주가" ? `${won(v)}원` : mult(v), n]}
-                    labelFormatter={(l: string) => l} />
+                  <Tooltip content={<BandTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} onClick={togM.onLegendClick} formatter={togM.legendFormatter} />
                   {([["p90", "상단"], ["p10", "하단"]] as const).map(([k, lab]) => (
                     <ReferenceLine key={k} yAxisId="mult" y={st[k]} stroke={C.band} strokeDasharray="3 4"
