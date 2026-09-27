@@ -114,7 +114,6 @@ export function StockPage({ code, master, onPick }: {
             title="이 종목의 최신 가격·배당 데이터를 다시 불러옵니다"
             aria-label={refreshing ? "새로고침 중" : "최신 데이터 새로고침"}>
             <span className={`refresh-icon${refreshing ? " spin" : ""}`} aria-hidden>⟳</span>
-            <span className="refresh-text">{refreshing ? "새로고침 중…" : "새로고침"}</span>
           </button>
         )}
       </div>
