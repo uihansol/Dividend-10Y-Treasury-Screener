@@ -55,15 +55,15 @@ git push -u origin main
 `data/` 아래 원천 데이터(csv·parquet)는 커밋 대상이다 — 이게 있어야 Actions가 매일 "새 데이터만"
 받을 수 있다. `web/public/data`(계산 결과 JSON)는 커밋하지 않는다. 배포할 때마다 새로 만든다.
 
-## 3. GitHub Actions + Cloudflare Pages 배포 설정
+## 3. GitHub Actions + Cloudflare 배포 설정
 
-1. **Cloudflare Pages 프로젝트 만들기**
-   - Cloudflare 대시보드 → Workers & Pages → Create → Pages → "Upload assets"로 빈 프로젝트를 하나
-     만들거나, `npx wrangler pages project create <프로젝트명>`으로 만든다. (Git 연동 배포는 쓰지
-     않는다 — GitHub Actions가 매번 최신 계산 결과로 빌드해 올린다.)
+1. **Cloudflare 토큰·계정 ID 준비** (2026년부터 Pages 대신 "Workers + 정적 자산"으로 배포하므로
+   프로젝트를 미리 만드는 단계 자체가 없다 — 첫 배포 시 Worker가 자동으로 생성된다.)
    - Cloudflare 대시보드 → 오른쪽 위 프로필 → "My Profile" → "API Tokens" → "Create Token" →
-     "Edit Cloudflare Workers" 템플릿(또는 "Cloudflare Pages — Edit" 권한)으로 토큰 발급.
-   - 대시보드 URL의 계정 ID(Account ID)를 확인한다 (Workers & Pages 페이지 오른쪽에 표시됨).
+     "Edit Cloudflare Workers" 템플릿으로 토큰 발급.
+   - 대시보드 오른쪽 사이드바 또는 URL에서 계정 ID(Account ID)를 확인한다.
+   - Worker 이름을 직접 정하고 싶으면 3단계의 `CLOUDFLARE_WORKER_NAME` 변수에 적는다(선택,
+     비워두면 저장소 이름으로 자동 설정됨).
 
 2. **GitHub 저장소 → Settings → Secrets and variables → Actions**
    - **Secrets** 탭에 추가:
@@ -78,7 +78,7 @@ git push -u origin main
    - **Variables** 탭에 추가:
      | 이름 | 값 |
      |---|---|
-     | `CLOUDFLARE_PROJECT_NAME` | 위에서 만든 Pages 프로젝트 이름 |
+     | `CLOUDFLARE_WORKER_NAME` | (선택) Worker 이름. 생략하면 저장소 이름으로 자동 설정 |
      | `EXPECTED_DPS_MODE` | `annual` (또는 `final_only`) — 생략하면 `annual` |
 
 3. **워크플로 켜기**
@@ -144,7 +144,7 @@ python -m pipeline.update build     # 계산만 다시 (매번 안전하게 다�
 3. 흔한 원인
    - KRX 비밀번호 90일 만료 → `KRX_PW` Secret 갱신 (본문 4번 참고)
    - DART 하루 호출 한도 초과 → 다음날 자동으로 이어받음 (정상, 로그에 "예산 사용" 표시)
-   - Cloudflare 배포 실패 → `CLOUDFLARE_API_TOKEN` 권한 또는 `CLOUDFLARE_PROJECT_NAME` 오타 확인
+   - Cloudflare 배포 실패 → `CLOUDFLARE_API_TOKEN` 권한(Workers 편집 권한 필요) 또는 `CLOUDFLARE_ACCOUNT_ID` 확인
 4. 어떤 원인이든 **기존에 저장된 데이터로 사이트 자체는 계속 정상 작동한다** — 새 데이터를
    못 받았을 뿐 사이트가 멈추지는 않는다.
 

@@ -1,0 +1,9 @@
+# Cloudflare Workers 정적 자산 배포 설정.
+# name의 __WORKER_NAME__은 배포 워크플로(.github/workflows/deploy.yml)가 실행 시점에
+# CLOUDFLARE_WORKER_NAME 저장소 변수 값으로 바꿔치기한다 (기본값: 저장소 이름 기반).
+name = "__WORKER_NAME__"
+compatibility_date = "2025-01-01"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"

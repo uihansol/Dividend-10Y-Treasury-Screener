@@ -1,6 +1,9 @@
 name: Deploy
 
 # 코드가 바뀌면(웹 소스) 실행되고, update-data 워크플로가 데이터를 갱신한 뒤에도 재사용되어 실행된다.
+#
+# Cloudflare가 2026년부터 새 정적 사이트에는 Pages 대신 "Workers + 정적 자산"을 권장하므로
+# 이 워크플로는 Pages 프로젝트를 따로 만들 필요 없이 wrangler로 Workers에 직접 배포한다.
 on:
   push:
     branches: [main]
@@ -39,11 +42,17 @@ jobs:
       - run: npm run build
         working-directory: web
 
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+      - name: Worker 이름 설정
+        working-directory: web
+        run: |
+          NAME="${{ vars.CLOUDFLARE_WORKER_NAME }}"
+          if [ -z "$NAME" ]; then NAME="$(echo '${{ github.repository }}' | sed 's#.*/##' | tr '[:upper:]_' '[:lower:]-')"; fi
+          sed -i "s/__WORKER_NAME__/$NAME/" wrangler.toml
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
-          directory: web/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          workingDirectory: web
+          command: deploy
