@@ -9,6 +9,7 @@
   python -m pipeline.update recompute         # 캐시된 종목만 네트워크 없이 다시 계산
   python -m pipeline.update search 삼성        # 로컬 master 검색 (네트워크 없음)
   python -m pipeline.update index             # data/cache/index.json 재생성
+  python -m pipeline.update rawdiv 00244455 2026 Q1   # DART alotMatter 원본 확인 (파싱 디버그용)
 """
 from __future__ import annotations
 
@@ -25,8 +26,9 @@ except ImportError:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("step", choices=["init", "us10y", "master", "stock", "search", "index", "recompute"])
+    ap.add_argument("step", choices=["init", "us10y", "master", "stock", "search", "index", "recompute", "rawdiv"])
     ap.add_argument("arg", nargs="?")
+    ap.add_argument("extra", nargs="*")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--stage", choices=["prices", "dividends", "us10y", "compute"])
     a = ap.parse_args(argv)
@@ -56,6 +58,14 @@ def main(argv=None) -> int:
         out("index", {"stocks": len(rebuild_index()["stocks"])})
     if a.step == "search":
         out("search", [(s["code"], s["name"], s["market"]) for s in search(a.arg or "")])
+    if a.step == "rawdiv":
+        from . import config as C
+        from .dart import DartClient
+        corp_code = a.arg
+        year, period = a.extra[0], a.extra[1]
+        j = DartClient().get("alotMatter.json", corp_code=corp_code, bsns_year=year,
+                             reprt_code=C.REPRT_CODES[period]).json()
+        out("rawdiv", j)
     if a.step == "stock":
         if not a.arg:
             ap.error("종목코드가 필요합니다")
