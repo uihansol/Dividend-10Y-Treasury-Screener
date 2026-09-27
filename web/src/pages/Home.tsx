@@ -93,7 +93,7 @@ export function Home({ master, index, indexError, onPick }: {
       return a.name.localeCompare(b.name, "ko");
     });
     return r;
-  }, [index, sort]);
+  }, [index, sort, recent]);
 
   const deleteRecent = (code: string) => {
     if (!window.confirm("최근 조회 목록에서 삭제할까요?")) return;
@@ -121,11 +121,7 @@ export function Home({ master, index, indexError, onPick }: {
   return (
     <main className="page">
       <header className="masthead">
-        <h1>배당수익률 ÷ 미국 10년물</h1>
-        <dl className="headline-figures">
-          <div><dt>미국 10년물 데이터</dt><dd>{us?.data_through ?? NA}</dd></div>
-          <div><dt>조회한 종목</dt><dd>{index ? `${index.stocks.length}개` : NA}</dd></div>
-        </dl>
+        <div className="masthead-title"><h1>배당수익률 ÷ 미국 10년물</h1></div>
       </header>
 
       <section className="search-wrap">
@@ -231,6 +227,13 @@ export function Home({ master, index, indexError, onPick }: {
           <ol>{index.rules.map((r, i) => <li key={i}>{r}</li>)}</ol>
         </details>
       )}
+
+      <footer className="home-footer-figures">
+        <dl className="headline-figures">
+          <div><dt>미국 10년물 데이터</dt><dd>{us?.data_through ?? NA}</dd></div>
+          <div><dt>조회한 종목</dt><dd>{recent.length}개</dd></div>
+        </dl>
+      </footer>
     </main>
   );
 }
