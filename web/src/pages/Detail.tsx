@@ -174,10 +174,16 @@ export function DetailPage({ d }: { d: Detail }) {
   const yearTicks = (data: { date: string }[]) =>
     data.filter((_, i) => i === 0 || data[i - 1].date.slice(0, 4) !== data[i].date.slice(0, 4)).map((x) => x.date);
 
-  // 배당/10Y 배수 + 주가 (같은 기간을 함께 보므로 확대·범위는 하나로 동기화한다)
-  const zoomM = useZoom(series.length);
+  // 배당/10Y 배수 + 주가: 차트와 아래 Brush 슬라이더가 항상 같은 range 상태를 공유한다.
   type BandPeriod = 1 | 3 | 5 | 10 | "all";
+  const fullBandRange: Range = { startIndex: 0, endIndex: Math.max(series.length - 1, 0) };
+  const [bandRange, setBandRange] = useState<Range>(fullBandRange);
   const [bandPeriod, setBandPeriod] = useState<BandPeriod>("all");
+  useEffect(() => {
+    setBandRange(fullBandRange);
+    setBandPeriod("all");
+  }, [series.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const getBandPeriodStart = (period: BandPeriod) => {
     if (period === "all") return 0;
     const latest = series[series.length - 1]?.date;
@@ -185,10 +191,40 @@ export function DetailPage({ d }: { d: Detail }) {
     const end = new Date(latest + "T00:00:00");
     end.setFullYear(end.getFullYear() - period);
     const cutoff = end.toISOString().slice(0, 10);
-    return Math.max(0, series.findIndex((row) => row.date >= cutoff));
+    const index = series.findIndex((row) => row.date >= cutoff);
+    return index < 0 ? 0 : index;
   };
-  const bandPeriodStart = useMemo(() => getBandPeriodStart(bandPeriod), [series, bandPeriod]);
-  const bandPeriodView = series.slice(zoomM.range.startIndex, zoomM.range.endIndex + 1);
+
+  const setBandRangeDirect = (startIndex: number, endIndex: number) => {
+    const start = Math.max(0, Math.min(startIndex, fullBandRange.endIndex));
+    const end = Math.max(start, Math.min(endIndex, fullBandRange.endIndex));
+    setBandRange({ startIndex: start, endIndex: end });
+  };
+
+  const getPeriodForRange = (range: Range): BandPeriod => {
+    if (range.startIndex <= 0) return "all";
+    const latest = series[series.length - 1]?.date;
+    if (!latest || !series[range.startIndex]?.date) return "all";
+    const years = Math.max(
+      0,
+      (new Date(latest + "T00:00:00").getTime() - new Date(series[range.startIndex].date + "T00:00:00").getTime())
+        / (365.25 * 24 * 60 * 60 * 1000)
+    );
+    if (Math.abs(years - 1) < 0.15) return 1;
+    if (Math.abs(years - 3) < 0.15) return 3;
+    if (Math.abs(years - 5) < 0.15) return 5;
+    if (Math.abs(years - 10) < 0.2) return 10;
+    return "all";
+  };
+
+  const onBandBrushChange = (r: { startIndex?: number; endIndex?: number }) => {
+    if (r.startIndex == null || r.endIndex == null || r.endIndex <= r.startIndex) return;
+    const next = { startIndex: r.startIndex, endIndex: r.endIndex };
+    setBandRange(next);
+    setBandPeriod(getPeriodForRange(next));
+  };
+
+  const bandPeriodView = series.slice(bandRange.startIndex, bandRange.endIndex + 1);
   const bandStats = useMemo(() => {
     const values = bandPeriodView
       .map((row) => row.m)
@@ -379,12 +415,18 @@ export function DetailPage({ d }: { d: Detail }) {
                 <LineChart data={series} margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
                   <Line dataKey="m" stroke={C.line} dot={false} strokeWidth={1} isAnimationActive={false} />
                   <Brush dataKey="date" height={28} travellerWidth={10} stroke={C.accent}
-                    startIndex={zoomM.range.startIndex} endIndex={zoomM.range.endIndex} onChange={zoomM.onChange}
+                    startIndex={bandRange.startIndex} endIndex={bandRange.endIndex} onChange={onBandBrushChange}
                     tickFormatter={(v: string) => v.slice(0, 4)} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <ZoomBar zoomed={zoomM.zoomed} onReset={zoomM.reset} />
+            <ZoomBar
+              zoomed={bandRange.startIndex > 0 || bandRange.endIndex < fullBandRange.endIndex}
+              onReset={() => {
+                setBandRangeDirect(0, fullBandRange.endIndex);
+                setBandPeriod("all");
+              }}
+            />
             <table className="quantiles">
               <thead><tr><th>10%</th><th>25%</th><th>50%</th><th>75%</th><th>90%</th><th className="now">현재</th></tr></thead>
               <tbody><tr>
