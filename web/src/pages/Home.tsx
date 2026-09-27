@@ -13,6 +13,7 @@ type ColumnOrder = MetricKey[];
 const DEFAULT_COLUMNS: ColumnOrder = ["yield", "multiple", "paid10", "pct"];
 const COLUMN_ORDER_KEY = "dividend-10y-home-column-order-v1";
 const SORT_KEY = "dividend-10y-home-sort-v1";
+const NAME_SORT_KEY = "dividend-10y-home-name-sort-v1";
 
 const COLUMN_LABELS: Record<MetricKey, string> = {
   yield: "배당률",
@@ -44,13 +45,21 @@ function loadSort(): SortState {
   return { key: "multiple", direction: "desc" };
 }
 
+function loadNameSort(): SortDirection | null {
+  try {
+    const raw = localStorage.getItem(NAME_SORT_KEY);
+    if (raw === "asc" || raw === "desc") return raw;
+  } catch {}
+  return null;
+}
+
 export function Home({ master, index, indexError, onPick }: {
   master: MasterStock[] | null; index: CacheIndex | null; indexError: string | null; onPick: (s: MasterStock) => void;
 }) {
   const [columns, setColumns] = useState<ColumnOrder>(() => loadColumnOrder());
   const [editingColumns, setEditingColumns] = useState(false);
   const [sort, setSort] = useState<SortState>(() => loadSort());
-  const [nameSortDirection, setNameSortDirection] = useState<SortDirection | null>(null);
+  const [nameSortDirection, setNameSortDirection] = useState<SortDirection | null>(() => loadNameSort());
   const [recent, setRecent] = useState<RecentEntry[]>(() => loadRecent());
   const [editingRecent, setEditingRecent] = useState(false);
   const [selectedRecent, setSelectedRecent] = useState<Set<string>>(() => new Set());
@@ -73,14 +82,22 @@ export function Home({ master, index, indexError, onPick }: {
 
   const resetColumns = () => saveColumns(DEFAULT_COLUMNS);
 
-  const toggleNameSort = () => setNameSortDirection((v) => v === "asc" ? "desc" : "asc");
+  const toggleNameSort = () => {
+    setNameSortDirection((v) => {
+      const next = v === "asc" ? "desc" : "asc";
+      localStorage.setItem(NAME_SORT_KEY, next);
+      return next;
+    });
+  };
 
   const toggleSort = (key: MetricKey) => {
     const next: SortState = sort.key === key
       ? { key, direction: sort.direction === "asc" ? "desc" : "asc" }
       : { key, direction: "desc" };
     setSort(next);
+    setNameSortDirection(null);
     localStorage.setItem(SORT_KEY, JSON.stringify(next));
+    localStorage.removeItem(NAME_SORT_KEY);
   };
 
   const rows = useMemo(() => {
