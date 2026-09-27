@@ -8,8 +8,8 @@ import { flagText, mult, pct, signedPct, won, NA } from "../lib/format";
 
 const DART = (rcp: string) => `https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${rcp}`;
 const C = {
-  line: "var(--ink)", accent: "var(--accent)", band: "var(--ink-3)", grid: "var(--rule)",
-  interim: "var(--accent-soft-strong)", price: "var(--accent)",
+  line: "var(--accent)", accent: "var(--accent)", band: "var(--ink-3)", grid: "var(--chart-grid)",
+  interim: "var(--chart-green)", price: "var(--chart-yellow)",
 };
 
 function Card({ label, value, sub, strong }: { label: string; value: string; sub?: string; strong?: boolean }) {
@@ -168,9 +168,9 @@ export function DetailPage({ d }: { d: Detail }) {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={rateCompare} layout="vertical" margin={{ top: 4, right: 44, left: 0, bottom: 4 }}>
                   <XAxis type="number" hide domain={[0, (dataMax: number) => dataMax * 1.15]} />
-                  <YAxis type="category" dataKey="name" width={104} tickLine={false} axisLine={false} tick={{ fontSize: 13 }} />
+                  <YAxis type="category" dataKey="name" width={104} tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "var(--ink-2)" }} />
                   <Bar dataKey="v" barSize={22} radius={[0, 4, 4, 0]} isAnimationActive={false}
-                    label={{ position: "right", formatter: (v: number) => pct(v), fontSize: 13, fill: "var(--ink-2)" }}>
+                    label={{ position: "right", formatter: (v: number) => pct(v), fontSize: 12, fontWeight: 600, fill: "var(--ink)" }}>
                     {rateCompare.map((r) => <Cell key={r.name} fill={r.fill} />)}
                   </Bar>
                 </BarChart>
@@ -197,11 +197,11 @@ export function DetailPage({ d }: { d: Detail }) {
               <CartesianGrid stroke={C.grid} vertical={false} />
               <XAxis dataKey="date" ticks={ticksY} tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
               <YAxis width={44} tick={{ fontSize: 12 }} tickFormatter={(v: number) => `${v.toFixed(1)}%`} />
-              <Tooltip formatter={(v: number, n: string) => [pct(v), n]} />
+              <Tooltip contentStyle={{ border: "1px solid var(--rule)", borderRadius: 6, background: "var(--surface)", boxShadow: "0 4px 14px rgba(25,30,40,.08)", fontSize: 12 }} formatter={(v: number, n: string) => [pct(v), n]} />
               <Legend wrapperStyle={{ fontSize: 12 }} onClick={togY.onLegendClick} formatter={togY.legendFormatter} />
-              <Line dataKey="y" name="배당수익률" stroke={C.accent} dot={false} strokeWidth={1.3}
+              <Line dataKey="y" name="배당수익률" stroke={C.accent} dot={false} strokeWidth={2}
                 isAnimationActive={false} hide={togY.isHidden("y")} />
-              <Line dataKey="u" name="미국 10년물" stroke={C.band} dot={false} strokeWidth={1}
+              <Line dataKey="u" name="미국 10년물" stroke={C.band} dot={false} strokeWidth={1.5}
                 isAnimationActive={false} hide={togY.isHidden("u")} />
             </LineChart>
           </ResponsiveContainer>
@@ -244,9 +244,9 @@ export function DetailPage({ d }: { d: Detail }) {
                     <ReferenceLine key={k} yAxisId="mult" y={st[k]} stroke={C.band} strokeDasharray={k === "p50" ? undefined : "3 4"}
                       label={{ value: `${lab} ${st[k].toFixed(2)}`, position: "insideTopLeft", fontSize: 11, fill: "var(--ink-2)" }} />
                   ))}
-                  <Line yAxisId="mult" type="monotone" dataKey="m" name="배당/10Y" stroke={C.line} dot={false} strokeWidth={1.3}
+                  <Line yAxisId="mult" type="monotone" dataKey="m" name="배당/10Y" stroke={C.line} dot={false} strokeWidth={2}
                     isAnimationActive={false} connectNulls={false} hide={togM.isHidden("m")} />
-                  <Line yAxisId="price" type="monotone" dataKey="px" name="주가" stroke={C.price} dot={false} strokeWidth={1.3}
+                  <Line yAxisId="price" type="monotone" dataKey="px" name="주가" stroke={C.price} dot={false} strokeWidth={2}
                     isAnimationActive={false} connectNulls={false} hide={togM.isHidden("px")} />
                   {lastM?.m != null && !togM.isHidden("m") && (
                     <ReferenceDot yAxisId="mult" x={lastM.date} y={lastM.m} r={5} fill={C.line} stroke="var(--surface)" />
@@ -341,8 +341,8 @@ function AnnualDpsChart({ annual, accent, interim, grid }: {
           <YAxis width={56} tick={{ fontSize: 12 }} tickFormatter={(v: number) => won(v)} />
           <Tooltip formatter={(v: number) => `${won(v)}원`} />
           <Legend wrapperStyle={{ fontSize: 12 }} onClick={tog.onLegendClick} formatter={tog.legendFormatter} />
-          <Bar dataKey="interim" stackId="a" name="중간·분기" fill={interim} isAnimationActive={false} hide={tog.isHidden("interim")} />
-          <Bar dataKey="final" stackId="a" name="기말" fill={accent} isAnimationActive={false} hide={tog.isHidden("final")} />
+          <Bar dataKey="interim" stackId="a" name="중간·분기" fill={interim} radius={[3, 3, 0, 0]} isAnimationActive={false} hide={tog.isHidden("interim")} />
+          <Bar dataKey="final" stackId="a" name="기말" fill={accent} radius={[3, 3, 0, 0]} isAnimationActive={false} hide={tog.isHidden("final")} />
         </BarChart>
       </ResponsiveContainer>
     </div>
