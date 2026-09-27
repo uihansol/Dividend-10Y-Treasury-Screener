@@ -195,7 +195,7 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 
 @media (max-width: 720px) {
   body { font-size: 15px; }
-  .page { padding: 14px 10px; }
+  .page { padding: 14px 6px; }
   .hide-sm { display: none; }
   .show-sm { display: inline; }
   .grid { font-size: 0.93rem; }
@@ -205,7 +205,8 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
   .status-table { display: block; overflow-x: auto; }
   .chart.tall { height: 280px; }
   .chart.brush-nav { height: 44px; }
-  .panel { padding: 14px 12px; }
+  .panel { padding: 14px 6px; }
+  .chart { width: calc(100% + 4px); margin-left: -2px; }
   .zoom-row { flex-direction: column; align-items: flex-start; gap: 6px; }
 }
 
