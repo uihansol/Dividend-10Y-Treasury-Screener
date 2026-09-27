@@ -1,0 +1,58 @@
+{
+ "code": "069960",
+ "name": "현대백화점",
+ "market": "KOSPI",
+ "price_through": "2026-09-23",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T01:05:54+09:00",
+ "updated_at": "2026-09-28T01:05:54+09:00",
+ "last_attempt": "2026-09-28T01:05:54+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2879,
+   "from": "2015-01-01"
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 36
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 3
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-09-25",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "summary": {
+  "code": "069960",
+  "name": "현대백화점",
+  "market": "KOSPI",
+  "price": 96400.0,
+  "price_date": "2026-09-23",
+  "dps": 2150.0,
+  "yield": 2.2303,
+  "multiple": 0.4497,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 35.2,
+  "p10": 0.2793,
+  "p90": 1.0128,
+  "mcap": null,
+  "tv": 10688636350.0,
+  "has_div_data": true,
+  "flags": [
+   "provisional_dividend_used"
+  ]
+ }
+}
