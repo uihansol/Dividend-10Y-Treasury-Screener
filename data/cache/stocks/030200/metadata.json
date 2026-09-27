@@ -1,0 +1,50 @@
+{
+ "code": "030200",
+ "name": "KT",
+ "market": "KOSPI",
+ "price_through": "2026-09-23",
+ "dividend_through": null,
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T00:36:14+09:00",
+ "updated_at": "2026-09-28T00:36:14+09:00",
+ "last_attempt": "2026-09-28T00:36:14+09:00",
+ "last_error": {
+  "dividends": "ConnectTimeout(MaxRetryError(\"HTTPSConnectionPool(host='opendart.fss.or.kr', port=443): Max retries exceeded with url: /api/alotMatter.json?crtfc_key=ec6c957ff8f9b45d3b178a078f1a48264aa8a565&corp_code=00190321&bsns_year=2026&reprt_code=11012 (Caused by ConnectTimeoutError(<HTTPSConnection(host='open"
+ },
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2879,
+   "from": "2015-01-01"
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-09-25",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "summary": {
+  "code": "030200",
+  "name": "KT",
+  "market": "KOSPI",
+  "price": 52700.0,
+  "price_date": "2026-09-23",
+  "dps": null,
+  "yield": null,
+  "multiple": null,
+  "paid10": null,
+  "known10": null,
+  "paid5": null,
+  "pct": null,
+  "p10": null,
+  "p90": null,
+  "mcap": null,
+  "tv": 9472487350.0,
+  "has_div_data": false,
+  "flags": []
+ }
+}
