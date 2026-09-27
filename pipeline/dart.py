@@ -228,7 +228,10 @@ def fetch_dividend_announcements(corp_code: str, year: int, log: dict, today: da
         if not _is_dvd_decision(row.get("report_nm", "")):
             continue
         rcept_no = row.get("rcept_no", "")
-        if not rcept_no or log.get(rcept_no, {}).get("status") in ("ok", "no_row"):
+        rec = log.get(rcept_no, {})
+        # status가 "ok"인데 amount가 없으면(예전 버전에서 파싱 결과를 안 남기던 시절의 기록) 다시 읽는다.
+        already = rec.get("status") == "no_row" or (rec.get("status") == "ok" and "amount" in rec)
+        if not rcept_no or already:
             continue
         r = client.get("document.xml", rcept_no=rcept_no)
         try:

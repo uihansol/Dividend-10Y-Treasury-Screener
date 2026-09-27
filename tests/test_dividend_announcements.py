@@ -98,10 +98,23 @@ def test_fetch_dividend_announcements_only_fetches_dvd_decision_docs():
 def test_fetch_dividend_announcements_skips_already_logged():
     rows = [{"rcept_no": "20260806800319", "rcept_dt": "20260806", "report_nm": "현금ㆍ현물배당결정"}]
     client = FakeDartClient(rows, {"20260806800319": _dvd_html()})
-    log = {"20260806800319": {"status": "ok", "fetched_at": "2026-08-07T00:00:00+09:00"}}
+    log = {"20260806800319": {"status": "ok", "fetched_at": "2026-08-07T00:00:00+09:00",
+                              "confirmed_date": "2026-08-06", "basis_date": "2026-08-21",
+                              "amount": 2000.0, "rcept_no": "20260806800319"}}
     new, log2 = fetch_dividend_announcements("00244455", 2026, log, today=D(2026, 9, 27), client=client)
     assert new == [] and [c[0] for c in client.calls] == ["list.json"]   # 원문 재조회 없음
     assert log2 == log
+
+
+def test_fetch_dividend_announcements_refetches_legacy_incomplete_log_entry():
+    """status="ok"인데 금액이 없는 예전 기록(마이그레이션 이전 버전이 남긴 것)은 다시 읽는다."""
+    rows = [{"rcept_no": "20260806800319", "rcept_dt": "20260806", "report_nm": "현금ㆍ현물배당결정"}]
+    client = FakeDartClient(rows, {"20260806800319": _dvd_html()})
+    legacy_log = {"20260806800319": {"status": "ok", "fetched_at": "2026-08-07T00:00:00+09:00"}}
+    new, log2 = fetch_dividend_announcements("00244455", 2026, legacy_log, today=D(2026, 9, 27), client=client)
+    assert new == [{"rcept_no": "20260806800319", "confirmed_date": "2026-08-06",
+                    "basis_date": "2026-08-21", "amount": 2000.0}]
+    assert log2["20260806800319"]["amount"] == 2000.0
 
 
 # ------------------------------------------------------------------ 캐시 병합(_provisional_reports)
