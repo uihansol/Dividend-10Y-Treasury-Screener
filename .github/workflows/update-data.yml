@@ -36,13 +36,13 @@ jobs:
 
       - name: Run pipeline
         env:
-          DART_API_KEY: \${{ secrets.DART_API_KEY }}
-          KRX_ID: \${{ secrets.KRX_ID }}
-          KRX_PW: \${{ secrets.KRX_PW }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
         run: |
           ARGS=""
-          if [ -n "\${{ github.event.inputs.start }}" ]; then ARGS="$ARGS --start \${{ github.event.inputs.start }}"; fi
-          if [ -n "\${{ github.event.inputs.max_days }}" ]; then ARGS="$ARGS --max-days \${{ github.event.inputs.max_days }}"; fi
+          if [ -n "${{ github.event.inputs.start }}" ]; then ARGS="$ARGS --start ${{ github.event.inputs.start }}"; fi
+          if [ -n "${{ github.event.inputs.max_days }}" ]; then ARGS="$ARGS --max-days ${{ github.event.inputs.max_days }}"; fi
           python -m pipeline.update all $ARGS
 
       - name: Commit updated source data
