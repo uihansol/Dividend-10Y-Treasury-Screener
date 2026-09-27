@@ -1,0 +1,43 @@
+{
+ "code": "008490",
+ "name": "서흥",
+ "market": "KOSPI",
+ "price_through": "2026-09-23",
+ "dividend_through": "2026-09-27",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-27T19:16:36+09:00",
+ "updated_at": "2026-09-27T19:16:36+09:00",
+ "last_attempt": "2026-09-27T19:16:36+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2631,
+   "from": "2016-01-01"
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 34
+  }
+ },
+ "summary": {
+  "code": "008490",
+  "name": "서흥",
+  "market": "KOSPI",
+  "price": 19830.0,
+  "price_date": "2026-09-23",
+  "dps": 500.0,
+  "yield": 2.5214,
+  "multiple": 0.5084,
+  "paid10": 9,
+  "known10": 9,
+  "paid5": 5,
+  "pct": 63.5,
+  "p10": 0.1725,
+  "p90": 0.73,
+  "mcap": null,
+  "tv": 378136145.0,
+  "has_div_data": true,
+  "flags": []
+ }
+}
