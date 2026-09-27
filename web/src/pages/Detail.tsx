@@ -184,9 +184,8 @@ export function DetailPage({ d }: { d: Detail }) {
     return Math.max(0, series.findIndex((row) => row.date >= cutoff));
   }, [series, bandPeriod]);
   const bandPeriodView = series.slice(bandPeriodStart);
-  const ticksM = yearTicks(viewM);
   const yMax = st ? Math.max(st.p90 * 1.8, st.current * 1.25) : undefined;
-  const lastM = viewM[viewM.length - 1];
+  const lastM = bandPeriodView[bandPeriodView.length - 1];
   const togM = useToggle();
 
   // 배당수익률 vs 미국 10년물
