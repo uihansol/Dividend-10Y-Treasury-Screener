@@ -1,7 +1,7 @@
 {
  "us10y": {
-  "last_attempt": "2026-09-27T16:24:50+09:00",
-  "last_error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)\"))"
+  "last_attempt": "2026-09-27T16:41:17+09:00",
+  "last_error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=120)\"))"
  },
  "master": {
   "last_attempt": "2026-09-27T16:28:47+09:00",
