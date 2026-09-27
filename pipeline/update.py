@@ -26,7 +26,8 @@ except ImportError:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("step", choices=["init", "us10y", "master", "stock", "search", "index", "recompute", "rawdiv"])
+    ap.add_argument("step", choices=["init", "us10y", "master", "stock", "search", "index", "recompute",
+                                     "rawdiv", "disclist"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("extra", nargs="*")
     ap.add_argument("--force", action="store_true")
