@@ -3,40 +3,45 @@
  "name": "롯데웰푸드",
  "market": "KOSPI",
  "price_through": "2026-09-23",
- "dividend_through": null,
+ "dividend_through": "2026-09-27",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T19:26:16+09:00",
- "updated_at": "2026-09-27T19:26:15+09:00",
- "last_attempt": "2026-09-27T19:26:15+09:00",
- "last_error": {
-  "dividends": "ConnectTimeout(MaxRetryError(\"HTTPSConnectionPool(host='opendart.fss.or.kr', port=443): Max retries exceeded with url: /api/alotMatter.json?crtfc_key=ec6c957ff8f9b45d3b178a078f1a48264aa8a565&corp_code=01258507&bsns_year=2026&reprt_code=11012 (Caused by ConnectTimeoutError(<HTTPSConnection(host='open"
- },
+ "updated_at": "2026-09-27T23:15:25+09:00",
+ "last_attempt": "2026-09-27T23:15:25+09:00",
+ "last_error": null,
  "steps": {
   "prices": {
+   "mode": "incremental",
+   "added": 0,
+   "from": "2026-09-24"
+  },
+  "dividends": {
    "mode": "initial",
-   "added": 2185,
-   "from": "2016-01-01"
+   "added": 35
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 1
   }
  },
- "recomputed_at": "2026-09-27T19:43:26+09:00",
  "summary": {
   "code": "280360",
   "name": "롯데웰푸드",
   "market": "KOSPI",
   "price": 124300.0,
   "price_date": "2026-09-23",
-  "dps": null,
-  "yield": null,
-  "multiple": null,
-  "paid10": null,
-  "known10": null,
-  "paid5": null,
-  "pct": null,
-  "p10": null,
-  "p90": null,
+  "dps": 3300.0,
+  "yield": 2.6549,
+  "multiple": 0.5353,
+  "paid10": 9,
+  "known10": 9,
+  "paid5": 5,
+  "pct": 44.4,
+  "p10": 0.124,
+  "p90": 1.1145,
   "mcap": null,
   "tv": 1661063100.0,
-  "has_div_data": false,
+  "has_div_data": true,
   "flags": []
  }
 }
