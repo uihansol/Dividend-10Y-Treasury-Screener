@@ -81,7 +81,7 @@ def main(argv=None) -> int:
         zf = zipfile.ZipFile(io.BytesIO(r.content))
         for name in zf.namelist():
             text = zf.read(name).decode("utf-8", errors="replace")
-            out("rawdoc", {"name": name, "len": len(text), "head": text[:4000]})
+            out("rawdoc", {"name": name, "len": len(text), "head": text[:12000]})
     if a.step == "stock":
         if not a.arg:
             ap.error("종목코드가 필요합니다")

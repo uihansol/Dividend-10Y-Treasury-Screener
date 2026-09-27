@@ -19,4 +19,4 @@ jobs:
         run: |
           set -o pipefail
           python -m pipeline.update rawdoc 20260806800319 | tee /tmp/doc.txt
-          echo "::notice::$(cat /tmp/doc.txt | cut -c1-6000)"
+          echo "::notice::$(cat /tmp/doc.txt | cut -c4000-8500)"
