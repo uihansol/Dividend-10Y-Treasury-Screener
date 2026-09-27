@@ -41,6 +41,8 @@ from . import config as C
 from .store import now_kst
 
 BASE = "https://opendart.fss.or.kr/api"
+# 배당 parser 규칙이 바뀌면 기존 no_row 캐시도 다시 읽도록 버전을 올린다.
+DIVIDEND_PARSER_VERSION = 2
 PERIOD_END = {"Q1": (3, 31), "H1": (6, 30), "Q3": (9, 30), "FY": (12, 31)}
 
 
@@ -90,13 +92,42 @@ def _num(s) -> float | None:
         return None
 
 
+def _norm_text(v) -> str:
+    """DART 표 안의 일반/비표준 공백을 제거한다."""
+    return re.sub(r"\\s+", "", str(v or "")).replace("\\u00a0", "")
+
+
 def parse_alot(rows: list[dict]) -> dict | None:
-    """alotMatter 응답에서 보통주 주당 현금배당금(당기) 1건을 고른다."""
-    cands = [r for r in rows if "주당" in (r.get("se") or "") and "현금배당금" in (r.get("se") or "").replace(" ", "")]
+    """alotMatter 응답에서 보통주 주당 현금배당금(당기) 1건을 고른다.
+
+    회사에 따라 stock_knd가 '보통주', '보통주식'처럼 달라지거나 비어 있는 경우가
+    있다. 기존 코드는 후보가 2개 이상이고 stock_knd로 보통주를 특정하지 못하면
+    None을 반환했는데, KCC처럼 이 형식 차이가 있는 회사에서 전체 배당 이력이
+    누락될 수 있다.
+    """
+    cands = []
+    for r in rows:
+        se = _norm_text(r.get("se"))
+        if "주당" in se and "현금배당금" in se:
+            cands.append(r)
+    if not cands:
+        cands = [r for r in rows if "현금배당" in _norm_text(r.get("se")) and "주당" in _norm_text(r.get("se"))]
     if not cands:
         return None
-    common = [r for r in cands if "보통" in (r.get("stock_knd") or "")]
-    pick = common[0] if common else (cands[0] if len(cands) == 1 else None)
+
+    def is_common(r: dict) -> bool:
+        return "보통" in _norm_text(r.get("stock_knd"))
+
+    common = [r for r in cands if is_common(r)]
+    if common:
+        pick = common[0]
+    elif len(cands) == 1:
+        pick = cands[0]
+    else:
+        # stock_knd가 비어 있는 응답에서는 첫 번째 유효한 주당배당금 행을 사용한다.
+        # DART allotMatter의 표준 순서는 보통주 → 종류주식이다.
+        valid = [r for r in cands if _num(r.get("thstrm")) is not None]
+        pick = valid[0] if valid else None
     if pick is None:
         return None
     v = _num(pick.get("thstrm"))
@@ -126,6 +157,8 @@ def needs_fetch(key: str, log: dict, today: date) -> bool:
         return False
     rec = log.get(key)
     if rec is None:
+        return True
+    if rec.get("parser_version") != DIVIDEND_PARSER_VERSION:
         return True
     if rec["status"] == "ok":
         return False
@@ -159,7 +192,7 @@ def fetch_stock_dividends(corp_code: str, start_year: int, end_year: int, log: d
                 raise DartError(f"DART {st}: {j.get('message')}")
             parsed = parse_alot(j.get("list", [])) if st == "000" else None
             log[key] = {"status": "ok" if parsed else ("no_data" if st == "013" else "no_row"),
-                        "fetched_at": now_kst()}
+                        "fetched_at": now_kst(), "parser_version": DIVIDEND_PARSER_VERSION}
             if parsed:
                 new.append({"fiscal_year": y, "period": period, **parsed})
     return new, log
