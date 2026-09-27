@@ -1,0 +1,9 @@
+{
+ "code": "051390",
+ "name": "YW",
+ "market": "KOSDAQ",
+ "last_error": {
+  "prices": "KrxUnavailable(\"pykrx import/KRX 로그인 실패: JSONDecodeError('Expecting value: line 1 column 1 (char 0)'). KRX_ID/KRX_PW와 비밀번호 만료 여부를 확인하세요.\")"
+ },
+ "last_attempt": "2026-09-27T23:17:43+09:00"
+}
