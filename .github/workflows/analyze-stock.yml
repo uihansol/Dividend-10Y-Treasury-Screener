@@ -31,7 +31,8 @@ jobs:
       - name: Validate code
         env:
           CODE: ${{ inputs.code }}
-        run: echo "$CODE" | grep -Eq '^[0-9]{6}$' || { echo "잘못된 종목코드: $CODE"; exit 1; }
+        run: |
+          echo "$CODE" | grep -Eq '^[0-9]{6}$' || { echo "잘못된 종목코드 $CODE"; exit 1; }
 
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

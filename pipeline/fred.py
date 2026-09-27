@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import io
+import time
 from datetime import date, timedelta
 
 import pandas as pd
@@ -42,13 +43,22 @@ def _fetch_api(start: date) -> pd.DataFrame:
 
 
 def _fetch_csv() -> pd.DataFrame:
-    r = requests.get(FRED_CSV_URL, timeout=60, headers={"User-Agent": "kr-div-us10y/1.0"})
-    r.raise_for_status()
-    df = pd.read_csv(io.StringIO(r.text))
-    # 첫 열이 날짜(열 이름이 DATE 또는 observation_date로 바뀐 적이 있어 위치로 읽음)
-    df = df.iloc[:, :2]
-    df.columns = ["date", "us10y"]
-    return df
+    """키 없이 쓰는 FRED 그래프 CSV. 응답이 느린 경우가 있어 3번까지 재시도한다."""
+    last_err = None
+    for attempt in range(3):
+        try:
+            r = requests.get(FRED_CSV_URL, timeout=(10, 120),
+                             headers={"User-Agent": "Mozilla/5.0 (dividend-10y personal screener)"})
+            r.raise_for_status()
+            df = pd.read_csv(io.StringIO(r.text))
+            # 첫 열이 날짜(열 이름이 DATE 또는 observation_date로 바뀐 적이 있어 위치로 읽음)
+            df = df.iloc[:, :2]
+            df.columns = ["date", "us10y"]
+            return df
+        except Exception as e:  # pragma: no cover - 네트워크 의존
+            last_err = e
+            time.sleep(5 * (attempt + 1))
+    raise last_err
 
 
 def update_us10y() -> dict:
