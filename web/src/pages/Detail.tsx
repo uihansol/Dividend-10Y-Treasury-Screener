@@ -341,10 +341,10 @@ export function DetailPage({ d }: { d: Detail }) {
                     axisLine={false} tickLine={false} tick={false} />
                   <Tooltip content={<BandTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} onClick={togM.onLegendClick} formatter={togM.legendFormatter} />
-                  {([["p90", "상단"], ["p10", "하단"]] as const).map(([k, lab]) => (
-                    <ReferenceLine key={k} yAxisId="mult" y={st[k]} stroke={C.band} strokeDasharray="3 4"
+                  {bandStats && ([["p90", "상단"], ["p10", "하단"]] as const).map(([k, lab]) => (
+                    <ReferenceLine key={k} yAxisId="mult" y={bandStats[k]} stroke={C.band} strokeDasharray="3 4"
                       label={{ value: lab + " " + bandStats[k].toFixed(2), position: k === "p90" ? "insideTopLeft" : "insideBottomLeft", fontSize: 11, fill: "var(--ink-2)" }} />
-                  )) : null}
+                  ))}
                   <Line yAxisId="mult" type="monotone" dataKey="m" name="배당/10Y" stroke={C.line} dot={false} strokeWidth={2.5}
                     isAnimationActive={false} connectNulls={false} hide={togM.isHidden("m")} />
                   <Line yAxisId="price" type="monotone" dataKey="px" name="주가" stroke={C.price} dot={false} strokeWidth={2}
