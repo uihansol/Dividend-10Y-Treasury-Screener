@@ -62,6 +62,8 @@ a { color: var(--accent); }
 .headline-figures dt { font-size: 0.8rem; color: var(--ink-2); }
 .headline-figures dd { margin: 0; font-size: 1.35rem; font-weight: 600; }
 .headline-figures small { font-size: 0.75rem; color: var(--ink-3); font-weight: 400; margin-left: 4px; }
+.home-notice { margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--rule); }
+.home-notice .note { margin: 0; }
 .home-footer-figures { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--rule); }
 .home-footer-figures .headline-figures { justify-content: flex-end; }
 
@@ -348,7 +350,7 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .recent-delete-btn { border-color: var(--neg); color: var(--neg); }
 .recent-delete-btn:hover { background: color-mix(in srgb, var(--neg) 8%, transparent); }
 .recent-hint, .recent-swipe-hint { margin: 5px 0 7px; color: var(--ink-3); font-size: 0.76rem; }
-.recent-list { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.recent-list { display: flex; flex-wrap: wrap; gap: 6px 8px; max-height: 70px; overflow: hidden; }
 .recent-swipe-row { position: relative; display: inline-flex; overflow: hidden; border-radius: 999px; }
 .recent-swipe-content { display: inline-flex; align-items: center; gap: 5px; position: relative; z-index: 1; transition: transform .18s ease; }
 .recent-swipe-row.swiped .recent-swipe-content { transform: translateX(-58px); }
