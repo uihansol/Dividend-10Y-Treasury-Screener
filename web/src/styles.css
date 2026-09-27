@@ -142,7 +142,8 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .panel-head h2 { margin: 0 0 12px; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .chart { height: 280px; }
-.chart.tall { height: 350px; }
+.chart.tall { height: 400px; }
+.band-main-chart { min-height: 400px; }
 .chart.compare { height: 108px; }
 .chart.brush-nav { height: 48px; margin-top: 2px; }
 
@@ -152,6 +153,10 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .legend-off { opacity: 0.4; text-decoration: line-through; }
 
 /* 확대(zoom) 안내·초기화 */
+.band-periods { display: flex; justify-content: center; gap: 4px; margin: 8px 0 2px; }
+.band-periods button { min-width: 52px; min-height: 34px; padding: 5px 10px; border: 1px solid var(--rule); border-radius: 999px; background: var(--surface); color: var(--ink-2); font: inherit; font-size: 0.82rem; cursor: pointer; }
+.band-periods button:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.band-periods button.on { border-color: var(--accent); background: var(--accent); color: #fff; }
 .zoom-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; margin: 6px 0 2px; }
 .zoom-hint { font-size: 0.8rem; color: var(--ink-3); }
 .zoom-reset { background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 999px;
@@ -192,6 +197,7 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 /* 태블릿(아이패드 세로 등): 카드·2단 레이아웃을 조금 일찍 접는다 */
 @media (max-width: 900px) {
   .card { flex-basis: 132px; }
+  .chart.tall, .band-main-chart { height: 340px; min-height: 340px; }
   .two-col { grid-template-columns: 1fr; }
   .chart.tall { height: 300px; }
 }
@@ -218,7 +224,9 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
   .grid .rank { display: none; }
   .gauge-track { width: 56px; }
   .status-table { display: block; overflow-x: auto; }
-  .chart.tall { height: 280px; }
+  .chart.tall, .band-main-chart { height: 310px; min-height: 310px; }
+  .band-periods { width: 100%; justify-content: stretch; }
+  .band-periods button { flex: 1 1 0; min-width: 0; }
   .chart.brush-nav { height: 44px; }
   .panel { padding: 14px 6px; }
   .chart { width: calc(100% + 4px); margin-left: -2px; }
