@@ -107,13 +107,14 @@ export function StockPage({ code, master, onPick }: {
   return (
     <>
       <div className="page top-search">
-        <a href="#/" className="back">← 조회한 종목</a>
+        <a href="#/" className="back" aria-label="조회한 종목으로 돌아가기" title="조회한 종목으로 돌아가기"><span aria-hidden="true">‹</span><span className="back-text">조회한 종목</span></a>
         <div className="detail-search"><SearchBox master={master} onPick={onPick} /></div>
         {phase.kind === "ready" && (
           <button type="button" className="btn refresh-btn" disabled={refreshing} onClick={() => run(true)}
-            title="이 종목의 최신 가격·배당 데이터를 다시 불러옵니다">
+            title="이 종목의 최신 가격·배당 데이터를 다시 불러옵니다"
+            aria-label={refreshing ? "새로고침 중" : "최신 데이터 새로고침"}>
             <span className={`refresh-icon${refreshing ? " spin" : ""}`} aria-hidden>⟳</span>
-            {refreshing ? "새로고침 중…" : "새로고침"}
+            <span className="refresh-text">{refreshing ? "새로고침 중…" : "새로고침"}</span>
           </button>
         )}
       </div>
