@@ -61,6 +61,25 @@ function useToggle() {
   return { isHidden, toggle, onLegendClick, legendFormatter };
 }
 
+// ---------------------------------------------------------------- 탭
+const TABS = ["종합", "배당", "10년물 비교", "밴드"] as const;
+type Tab = (typeof TABS)[number];
+
+/** 탭을 눌러도 페이지를 다시 그리거나 데이터를 다시 받지 않는다 — 이미 받은 analysis.json 안에서
+ * 보여줄 섹션만 바꾼다(display:none으로 숨겨 차트 mount/unmount 비용도 없앤다). */
+function Tabs({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
+  return (
+    <div className="tabs" role="tablist" aria-label="종목 상세 탭">
+      {TABS.map((t) => (
+        <button key={t} type="button" role="tab" aria-selected={t === active}
+          className={`tab${t === active ? " on" : ""}`} onClick={() => onChange(t)}>
+          {t}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /** 종목 상세 (analysis.json 한 개를 그대로 그린다). 데이터 조회·갱신은 StockPage가 담당 */
 export function DetailPage({ d }: { d: Detail }) {
   const series = useMemo(() => {
@@ -91,6 +110,9 @@ export function DetailPage({ d }: { d: Detail }) {
   const ticksY = yearTicks(viewY);
   const togY = useToggle();
 
+  const [tab, setTab] = useState<Tab>("종합");
+  const show = (t: Tab) => (t === tab ? undefined : { display: "none" as const });
+
   return (
     <main className="page detail">
       <header className="detail-head">
@@ -109,6 +131,9 @@ export function DetailPage({ d }: { d: Detail }) {
           sub={p.known10 != null && p.known10 < 10 ? `데이터 있는 해 ${p.known10}년` : undefined} />
       </section>
 
+      <Tabs active={tab} onChange={setTab} />
+
+      <div style={show("종합")}>
       <section className="panel">
         <h2>예상 DPS 구성</h2>
         <table className="composition">
@@ -159,7 +184,9 @@ export function DetailPage({ d }: { d: Detail }) {
           </>
         ) : <p className="empty-msg">미국 10년물 데이터가 없어 비교할 수 없습니다.</p>}
       </section>
+      </div>
 
+      <div style={show("10년물 비교")}>
       <section className="panel">
         <div className="panel-head">
           <h2>배당수익률 vs 미국 10년물, 최근 10년</h2>
@@ -191,7 +218,9 @@ export function DetailPage({ d }: { d: Detail }) {
         </div>
         <ZoomBar zoomed={zoomY.zoomed} onReset={zoomY.reset} />
       </section>
+      </div>
 
+      <div style={show("밴드")}>
       <section className="panel">
         <div className="panel-head">
           <h2>배당/10Y 배수 &amp; 주가, 최근 10년</h2>
@@ -251,7 +280,9 @@ export function DetailPage({ d }: { d: Detail }) {
           </>
         ) : <p className="empty-msg">배수를 계산할 수 있는 날이 20일 미만입니다.</p>}
       </section>
+      </div>
 
+      <div style={show("배당")}>
       <section className="panel">
         <h2>연도별 실제 DPS (현재 주식 수 기준)</h2>
         {d.annual.length ? (
@@ -280,6 +311,7 @@ export function DetailPage({ d }: { d: Detail }) {
           </dl>
         </div>
       </section>
+      </div>
 
       <section className="panel">
         <h2>사용한 데이터</h2>

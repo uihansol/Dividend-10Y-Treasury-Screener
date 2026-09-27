@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { CacheIndex, MasterStock } from "../lib/types";
 import { mult, pct, won, NA } from "../lib/format";
+import { loadRecent } from "../lib/recent";
 import { BandGauge } from "../components/BandGauge";
 import { SearchBox } from "../components/SearchBox";
 
@@ -21,6 +22,7 @@ export function Home({ master, index, indexError, onPick }: {
     return r;
   }, [index, sort]);
   const us = index?.sources?.us10y;
+  const recent = useMemo(() => loadRecent(), []);   // 이 브라우저에서만 남는 방문 기록(서버 저장 아님)
 
   return (
     <main className="page">
@@ -37,6 +39,16 @@ export function Home({ master, index, indexError, onPick }: {
         <p className="note">
           처음 조회하는 종목은 2016년부터 가격·배당을 모으느라 1~3분 걸립니다. 한 번 조회한 종목은 저장해 두고 다음부터는 새 데이터만 확인합니다.
         </p>
+        {recent.length > 0 && (
+          <div className="recent">
+            <span className="recent-label">최근 조회</span>
+            {recent.map((r) => (
+              <a key={r.code} href={`#/stock/${r.code}`} className="recent-chip">
+                {r.name} <span className="code">{r.code}</span>
+              </a>
+            ))}
+          </div>
+        )}
       </section>
 
       <section>

@@ -18,6 +18,21 @@ const json = (obj, status = 200, extra = {}) =>
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...extra },
   });
 
+/** Cloudflare 엣지 캐시(Cache API). GitHub Contents API 호출을 줄인다.
+ * 캐시 키는 요청 URL 그대로라, 화면이 새로고침 폴링 중 붙이는 ?fresh=... 는 매번 다른 키가 되어
+ * 자동으로 캐시를 건너뛴다(폴링은 항상 최신 데이터를 봐야 하므로). ctx.waitUntil로 응답 후 기록해
+ * 캐시 쓰기가 응답 시간에 영향을 주지 않는다. */
+async function cachedJson(req, ctx, ttlSeconds, compute) {
+  const cache = caches.default;
+  const cacheKey = new Request(req.url, { method: "GET" });
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+  const data = await compute();
+  const res = json(data, 200, { "cache-control": `public, max-age=${ttlSeconds}` });
+  ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 function gh(env, path, init = {}) {
   return fetch(`${GH}/repos/${env.GITHUB_REPO}${path}`, {
     ...init,
@@ -93,14 +108,15 @@ async function runSteps(env, runId) {
     .map((s) => ({ name: s.name, status: s.status, conclusion: s.conclusion }));
 }
 
-async function api(url, req, env) {
+async function api(url, req, env, ctx) {
   if (!env.GITHUB_TOKEN) return json({ error: "GitHub 저장소 접근용 토큰이 없습니다. "
     + "저장소 Settings → Secrets and variables → Actions에 WORKER_GITHUB_TOKEN을 등록한 뒤 Deploy를 다시 실행하세요." }, 500);
   if (!env.GITHUB_REPO) return json({ error: "Worker 설정 필요: GITHUB_REPO (wrangler.toml vars)" }, 500);
   const p = url.pathname;
 
+  // 조회한 종목 목록: 새 종목이 생기거나 값이 바뀌어도 30초 정도는 늦게 보여도 무방하다.
   if (p === "/api/index" && req.method === "GET") {
-    return json((await readRepoFile(env, "data/cache/index.json")) || { stocks: [] });
+    return cachedJson(req, ctx, 30, async () => (await readRepoFile(env, "data/cache/index.json")) || { stocks: [] });
   }
 
   const m = p.match(/^\/api\/stock\/(\d{6})(\/refresh|\/run)?$/);
@@ -108,9 +124,11 @@ async function api(url, req, env) {
   const [, code, sub] = m;
 
   if (!sub && req.method === "GET") {
-    const analysis = await readRepoFile(env, `data/cache/stocks/${code}/analysis.json`);
-    if (!analysis) return json({ status: "missing", code });
-    return json({ status: "ready", code, stale: isStale(analysis.metadata), analysis });
+    return cachedJson(req, ctx, 20, async () => {
+      const analysis = await readRepoFile(env, `data/cache/stocks/${code}/analysis.json`);
+      if (!analysis) return { status: "missing", code };
+      return { status: "ready", code, stale: isStale(analysis.metadata), analysis };
+    });
   }
 
   if (sub === "/run" && req.method === "GET") {
@@ -135,11 +153,11 @@ async function api(url, req, env) {
 }
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const url = new URL(req.url);
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(req);
     try {
-      return await api(url, req, env);
+      return await api(url, req, env, ctx);
     } catch (e) {
       return json({ error: String(e) }, 500);
     }

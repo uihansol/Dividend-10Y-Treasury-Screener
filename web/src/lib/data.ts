@@ -10,10 +10,19 @@ async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-/** 검색용 종목 목록. 정적 파일이며 검색 중에는 서버를 호출하지 않는다. */
-export async function loadMaster(): Promise<MasterStock[]> {
-  const j = await getJson<{ stocks: Record<string, MasterStock> }>("data/master.json");
-  return Object.values(j.stocks);
+let masterCache: Promise<MasterStock[]> | null = null;
+
+/** 검색용 종목 목록. 정적 파일이며 검색 중에는 서버를 호출하지 않는다.
+ * 주 1회 정도만 바뀌므로 no-cache를 강제하지 않아 브라우저 HTTP 캐시를 그대로 쓰고(재방문 시
+ * 네트워크 왕복 자체를 건너뜀), 같은 세션 안에서는 메모리에도 담아 재요청하지 않는다. */
+export function loadMaster(): Promise<MasterStock[]> {
+  if (!masterCache) {
+    masterCache = fetch("data/master.json")
+      .then((res) => { if (!res.ok) throw new Error(`data/master.json: HTTP ${res.status}`); return res.json(); })
+      .then((j: { stocks: Record<string, MasterStock> }) => Object.values(j.stocks))
+      .catch((e) => { masterCache = null; throw e; });
+  }
+  return masterCache;
 }
 
 export const loadIndex = () => getJson<CacheIndex>("api/index");
@@ -22,7 +31,22 @@ export type StockResponse =
   | { status: "missing"; code: string }
   | { status: "ready"; code: string; stale: boolean; analysis: Detail };
 
-export const getStock = (code: string) => getJson<StockResponse>(`api/stock/${code}`);
+// 같은 세션에서 방금 본 종목은 메모리에 잠깐 담아 둔다(탭 전환·뒤로가기 등에서 네트워크 왕복 자체를
+// 건너뜀). Worker의 엣지 캐시(20초)보다 앞단이라 히트하면 요청이 아예 안 나간다.
+const STOCK_MEM_TTL = 60_000;
+const stockMemCache = new Map<string, { at: number; data: StockResponse }>();
+
+/** fresh=true: 메모리·엣지 캐시를 모두 건너뛰고 항상 최신을 받는다 (새로고침 진행 중 폴링에 쓴다).
+ * 일반 조회는 fresh 없이 호출해 반복 방문·여러 사용자가 같은 종목을 볼 때 캐시 이득을 본다. */
+export async function getStock(code: string, fresh = false): Promise<StockResponse> {
+  if (!fresh) {
+    const hit = stockMemCache.get(code);
+    if (hit && Date.now() - hit.at < STOCK_MEM_TTL) return hit.data;
+  }
+  const data = await getJson<StockResponse>(`api/stock/${code}${fresh ? `?fresh=${Date.now()}` : ""}`);
+  stockMemCache.set(code, { at: Date.now(), data });
+  return data;
+}
 /** force=true: 최신 여부와 상관없이(캐시 쿨다운 무시) 다시 수집·계산한다. 사용자가 "새로고침"을 눌렀을 때 쓴다. */
 export const requestRefresh = (code: string, force = false) =>
   getJson<{ status: "queued" | "running" | "error"; run?: RunInfo; error?: string }>(`api/stock/${code}/refresh`, {

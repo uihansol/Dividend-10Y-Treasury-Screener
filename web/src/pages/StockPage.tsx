@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { getRun, getStock, requestRefresh } from "../lib/data";
 import type { Detail, MasterStock, RunInfo } from "../lib/types";
+import { pushRecent } from "../lib/recent";
 import { SearchBox } from "../components/SearchBox";
 
 const DetailPage = lazy(() => import("./Detail").then((m) => ({ default: m.DetailPage })));
@@ -56,7 +57,9 @@ export function StockPage({ code, master, onPick }: {
       while (alive.current && Date.now() - started < TIMEOUT_MS) {
         await new Promise((res) => setTimeout(res, POLL_MS));
         if (!alive.current) return;
-        const [s, runInfo] = await Promise.all([getStock(code), getRun(code).catch(() => ({ run: null }))]);
+        // fresh=true: 캐시(메모리·엣지)를 건너뛰고 항상 최신을 본다 — 그렇지 않으면 새로고침이
+        // 끝나도 캐시된 옛 응답만 반복해서 받아 완료를 영영 감지하지 못한다.
+        const [s, runInfo] = await Promise.all([getStock(code, true), getRun(code).catch(() => ({ run: null }))]);
         if (s.status === "ready" && s.analysis.metadata?.last_attempt !== before) {
           const errs = s.analysis.metadata?.last_error;
           setPhase({ kind: "ready", data: s.analysis, refreshing: false,
@@ -93,6 +96,12 @@ export function StockPage({ code, master, onPick }: {
     return () => { alive.current = false; clearInterval(t); };
   }, [code, run]);
 
+  // 방문 기록(브라우저 로컬)에 남긴다. 화면에 데이터가 뜬 시점(=code가 유효했던 시점)에만 남긴다.
+  useEffect(() => {
+    if (phase.kind === "ready") pushRecent({ code: phase.data.code, name: phase.data.name, market: phase.data.market });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase.kind === "ready" ? phase.data.code : null]);
+
   const refreshing = phase.kind === "ready" && phase.refreshing;
 
   return (
@@ -108,7 +117,7 @@ export function StockPage({ code, master, onPick }: {
           </button>
         )}
       </div>
-      {phase.kind === "loading" && <main className="page"><p className="loading">{name} 불러오는 중…</p></main>}
+      {phase.kind === "loading" && <main className="page"><StockSkeleton /></main>}
       {phase.kind === "error" && <main className="page"><p className="err big">{phase.message}</p></main>}
       {phase.kind === "preparing" && (
         <main className="page">
@@ -139,11 +148,28 @@ export function StockPage({ code, master, onPick }: {
               {phase.refreshing ? `${name} 최신 데이터 확인 중…` : phase.note}
             </p></div>
           )}
-          <Suspense fallback={<main className="page"><p className="loading">불러오는 중…</p></main>}>
+          <Suspense fallback={<main className="page"><StockSkeleton chartOnly /></main>}>
             <DetailPage d={phase.data} />
           </Suspense>
         </>
       )}
     </>
+  );
+}
+
+/** 실제 종목 페이지 뼈대(헤더 수치·차트 자리)를 흉내 낸 자리표시자. "불러오는 중…" 문구 대신 쓴다. */
+function StockSkeleton({ chartOnly = false }: { chartOnly?: boolean }) {
+  return (
+    <div className="skeleton" aria-hidden aria-busy="true">
+      {!chartOnly && (
+        <>
+          <div className="sk-line sk-title" />
+          <div className="sk-cards">
+            {Array.from({ length: 5 }, (_, i) => <div key={i} className="sk-card" />)}
+          </div>
+        </>
+      )}
+      <div className="sk-block" />
+    </div>
   );
 }

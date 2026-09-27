@@ -245,3 +245,31 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .banner.warn { background: transparent; border-color: var(--warn); color: var(--warn); }
 .err { color: var(--neg); }
 .err.big { font-size: 1.05rem; }
+
+/* ---------- 스켈레톤 로딩 ---------- */
+.skeleton { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+.sk-line, .sk-card, .sk-block {
+  background: linear-gradient(90deg, var(--rule) 25%, var(--paper) 37%, var(--rule) 63%);
+  background-size: 400% 100%; animation: sk-shimmer 1.4s ease infinite; border-radius: var(--radius-s);
+}
+.sk-title { height: 30px; width: min(240px, 60%); }
+.sk-cards { display: flex; flex-wrap: wrap; gap: 1px; }
+.sk-card { height: 64px; flex: 1 1 148px; border-radius: 0; }
+.sk-block { height: 260px; }
+@keyframes sk-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .sk-line, .sk-card, .sk-block { animation: none; } }
+
+/* ---------- 탭 (Butler 스타일: 얇은 밑줄, 장식 최소화) ---------- */
+.tabs { display: flex; gap: 2px; margin: 14px 0 -1px; border-bottom: 1px solid var(--rule); overflow-x: auto; }
+.tab { flex: none; background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 9px 14px;
+  font: inherit; font-size: 0.92rem; color: var(--ink-2); cursor: pointer; white-space: nowrap; min-height: 40px; }
+.tab:hover { color: var(--ink); }
+.tab.on { color: var(--ink); font-weight: 600; border-bottom-color: var(--accent); }
+
+/* ---------- 최근 조회 ---------- */
+.recent { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; }
+.recent-label { font-size: 0.8rem; color: var(--ink-3); margin-right: 2px; }
+.recent-chip { display: inline-flex; align-items: baseline; gap: 5px; padding: 5px 11px; border: 1px solid var(--rule);
+  border-radius: 999px; font-size: 0.85rem; color: var(--ink); text-decoration: none; min-height: 32px; align-items: center; }
+.recent-chip:hover { border-color: var(--accent); }
+.recent-chip .code { color: var(--ink-3); font-size: 0.78rem; }
