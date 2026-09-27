@@ -64,18 +64,75 @@ function useToggle() {
 // ---------------------------------------------------------------- 탭
 const TABS = ["종합", "배당", "10년물 비교", "밴드"] as const;
 type Tab = (typeof TABS)[number];
+const TAB_ORDER_KEY = "dividend-10y-tab-order-v1";
 
-/** 탭을 눌러도 페이지를 다시 그리거나 데이터를 다시 받지 않는다 — 이미 받은 analysis.json 안에서
- * 보여줄 섹션만 바꾼다(display:none으로 숨겨 차트 mount/unmount 비용도 없앤다). */
+function loadTabOrder(): Tab[] {
+  try {
+    const raw = localStorage.getItem(TAB_ORDER_KEY);
+    if (!raw) return [...TABS];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length !== TABS.length || parsed.some((x) => !TABS.includes(x))) return [...TABS];
+    return parsed as Tab[];
+  } catch {
+    return [...TABS];
+  }
+}
+
+/** 탭 순서만 편집한다. 실제 섹션/데이터는 기존대로 유지한다. */
 function Tabs({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
+  const [order, setOrder] = useState<Tab[]>(loadTabOrder);
+  const [editing, setEditing] = useState(false);
+
+  const save = (next: Tab[]) => {
+    setOrder(next);
+    try { localStorage.setItem(TAB_ORDER_KEY, JSON.stringify(next)); } catch { /* 저장 불가 환경에서도 사용 가능 */ }
+  };
+
+  const move = (index: number, delta: -1 | 1) => {
+    const next = [...order];
+    const target = index + delta;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    save(next);
+  };
+
+  const reset = () => save([...TABS]);
+
   return (
-    <div className="tabs" role="tablist" aria-label="종목 상세 탭">
-      {TABS.map((t) => (
-        <button key={t} type="button" role="tab" aria-selected={t === active}
-          className={`tab${t === active ? " on" : ""}`} onClick={() => onChange(t)}>
-          {t}
+    <div className="tabs-wrap">
+      <div className="tabs" role="tablist" aria-label="종목 상세 탭">
+        {order.map((t) => (
+          <button key={t} type="button" role="tab" aria-selected={t === active}
+            className={`tab${t === active ? " on" : ""}`} onClick={() => onChange(t)}>
+            {t}
+          </button>
+        ))}
+        <button type="button" className={`tab-edit${editing ? " on" : ""}`}
+          aria-label="탭 순서 편집" aria-expanded={editing} onClick={() => setEditing((v) => !v)}>
+          편집
         </button>
-      ))}
+      </div>
+
+      {editing && (
+        <div className="tab-editor" role="dialog" aria-label="탭 순서 편집">
+          <div className="tab-editor-head">
+            <strong>탭 순서</strong>
+            <button type="button" className="tab-reset" onClick={reset}>기본 순서로</button>
+          </div>
+          <p>▲ ▼ 버튼으로 원하는 순서로 배치하세요. 이 설정은 이 브라우저에 저장됩니다.</p>
+          <ol>
+            {order.map((t, i) => (
+              <li key={t}>
+                <span>{t}</span>
+                <span className="tab-move">
+                  <button type="button" disabled={i === 0} aria-label={`${t} 위로`} onClick={() => move(i, -1)}>▲</button>
+                  <button type="button" disabled={i === order.length - 1} aria-label={`${t} 아래로`} onClick={() => move(i, 1)}>▼</button>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
     </div>
   );
 }
@@ -110,7 +167,7 @@ export function DetailPage({ d }: { d: Detail }) {
   const ticksY = yearTicks(viewY);
   const togY = useToggle();
 
-  const [tab, setTab] = useState<Tab>("종합");
+  const [tab, setTab] = useState<Tab>(() => loadTabOrder()[0]);
   const show = (t: Tab) => (t === tab ? undefined : { display: "none" as const });
 
   return (
