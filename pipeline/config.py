@@ -9,17 +9,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
-PRICES_DIR = DATA / "prices"            # 완료된 연도: {YYYY}.parquet
-PRICES_DAILY_DIR = PRICES_DIR / "daily" # 진행 중인 연도: {YYYY}/{YYYYMMDD}.csv
-DIV_DIR = DATA / "dividends"
-STOCKS_CSV = DATA / "stocks.csv"
-US10Y_CSV = DATA / "us10y.csv"
-CORP_ACTIONS_CSV = DATA / "corporate_actions.csv"
-DART_REPORTS_CSV = DIV_DIR / "dart_reports.csv"
-DART_FETCH_LOG_CSV = DIV_DIR / "dart_fetch_log.csv"
-SOURCES_JSON = DATA / "sources.json"
 
-OUT = ROOT / "web" / "public" / "data"  # 사이트가 읽는 계산 결과(JSON). git에는 올리지 않는다.
+# 공통 데이터
+US10Y_CSV = DATA / "us10y" / "dgs10.csv"          # FRED DGS10 (모든 종목 공통)
+MASTER_JSON = DATA / "stocks" / "master.json"     # 검색용 종목 목록 (가격 아님)
+ALIASES_JSON = DATA / "stocks" / "aliases.json"   # 사람이 관리하는 별칭 (예: 삼전 → 005930)
+CORP_ACTIONS_OVERRIDE_CSV = DATA / "corporate_actions_override.csv"
+SOURCES_JSON = DATA / "sources.json"               # 공통 데이터(10Y, master) 업데이트 상태
+
+# 종목별 캐시: 사용자가 조회한 종목만 생긴다
+CACHE_DIR = DATA / "cache" / "stocks"             # {code}/metadata.json, prices.csv, dividends.json, analysis.json
+CACHE_INDEX_JSON = DATA / "cache" / "index.json"  # 조회한 종목 요약 목록 (화면의 '조회한 종목' 표)
+
+# 같은 종목을 짧은 시간 안에 다시 요청하면 네트워크 조회 없이 캐시를 그대로 쓴다(초)
+REFRESH_COOLDOWN_SEC = int(os.environ.get("REFRESH_COOLDOWN_SEC", "600"))
 
 PRICE_START = "2016-01-01"   # 주가 수집 시작일
 DART_FIRST_YEAR = 2015       # OpenDART 정기보고서 주요정보는 2015 사업연도부터 제공
@@ -37,11 +40,10 @@ CORP_ACTION_THRESHOLD = 0.02
 MIN_US10Y_FOR_MULTIPLE = 0.0
 
 # 데이터가 이 달력일수 이상 갱신되지 않으면 화면에 '오래됨'으로 표시
-STALE_DAYS = {"prices": 4, "us10y": 5, "dividends": 10, "stocks": 10}
+STALE_DAYS = {"prices": 4, "us10y": 5, "dividends": 10, "master": 10}
 
 DART_API_KEY = os.environ.get("DART_API_KEY", "")
 FRED_API_KEY = os.environ.get("FRED_API_KEY", "")  # 선택. 없으면 FRED CSV 다운로드 사용
-DART_DAILY_BUDGET = int(os.environ.get("DART_DAILY_BUDGET", "18000"))  # 공식 한도 20,000건/일보다 여유 있게
 
 DATA_RULES = [
     "현재 예상 DPS: 기준일까지 공시가 확인된 배당만 사용한다. 미래 배당을 예측하지 않는다.",

@@ -88,7 +88,6 @@ def test_interim_lookahead():
     yrs = build_fiscal_years(B, [])
     # 2026 중간배당(8/14 접수) 직전에는 반영되지 않아야 한다
     assert expected_dps_asof(D(2026, 8, 13), yrs).value == 1000   # annual 모드: 2025 연간
-    assert expected_dps_asof(D(2026, 8, 13), yrs, mode="final_only").value == 700
 
 
 # --- 가상 기업 C: 분기배당 (④) --------------------------------------------------------
@@ -216,3 +215,29 @@ def test_daily_series_no_lookahead_and_percentile():
     assert st["p50"] == pytest.approx(50.5)
     assert st["percentile"] == pytest.approx(81.5)
     assert history_stats(vals[:5], 3.0) is None      # 표본 부족
+
+
+# --- 사용자 규칙 예시 그대로: 전년도 Q1·Q2·Q3·기말 300씩 -------------------------------
+EX = [
+    R(2025, "Q1", 300, D(2025, 3, 31), D(2025, 5, 15)),
+    R(2025, "H1", 600, D(2025, 6, 30), D(2025, 8, 14)),
+    R(2025, "Q3", 900, D(2025, 9, 30), D(2025, 11, 14)),
+    R(2025, "FY", 1200, D(2025, 12, 31), D(2026, 3, 11)),
+    R(2026, "Q1", 400, D(2026, 3, 31), D(2026, 5, 15)),
+    R(2026, "H1", 800, D(2026, 6, 30), D(2026, 8, 14)),
+    R(2026, "Q3", 1200, D(2026, 9, 30), D(2026, 11, 13)),
+    R(2026, "FY", 1600, D(2026, 12, 31), D(2027, 3, 10)),
+]
+
+
+@pytest.mark.parametrize("t,expected", [
+    (D(2026, 4, 1), 1200),    # 올해 확정분 없음 → 전년도 연간
+    (D(2026, 5, 15), 1300),   # Q1만 확정: 400 + 300 + 300 + 300
+    (D(2026, 8, 14), 1400),   # H1까지: 800 + 300 + 300
+    (D(2026, 11, 13), 1500),  # Q3까지: 1200 + 300
+    (D(2027, 3, 10), 1600),   # 사업보고서: 실제 연간 DPS
+    (D(2026, 11, 12), 1400),  # look-ahead: Q3 보고서 접수 전날
+])
+def test_user_substitute_rule(t, expected):
+    e = expected_dps_asof(t, build_fiscal_years(EX, []))
+    assert e.value == pytest.approx(expected)

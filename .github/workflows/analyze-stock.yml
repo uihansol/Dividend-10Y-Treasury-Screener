@@ -1,0 +1,77 @@
+name: Analyze stock
+# 종목 1개만 수집·계산한다 (Cloudflare Worker가 사용자가 고른 종목코드로 실행).
+#  캐시 없음 → 2016년부터 가격, 2015년부터 배당 최초 수집
+#  캐시 있음 → 마지막 날짜 이후 가격, 아직 안 받은 보고서만
+run-name: analyze ${{ inputs.code }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "종목코드 6자리 (예: 005930)"
+        required: true
+      force:
+        description: "cooldown 무시"
+        required: false
+        default: "false"
+
+# 같은 종목은 동시에 한 번만 (중복 요청 방지). 다른 종목은 병렬 실행
+concurrency:
+  group: analyze-${{ inputs.code }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Validate code
+        env:
+          CODE: ${{ inputs.code }}
+        run: echo "$CODE" | grep -Eq '^[0-9]{6}$' || { echo "잘못된 종목코드: $CODE"; exit 1; }
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Analyze (가격 → 배당 → 미국10Y → 계산)
+        env:
+          CODE: ${{ inputs.code }}
+          FORCE: ${{ inputs.force }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          ARGS=""; [ "$FORCE" = "true" ] && ARGS="--force"
+          python -m pipeline.update stock "$CODE" $ARGS
+
+      - name: Commit cache (다른 종목 작업과 겹쳐도 안전하게 재시도)
+        if: always()
+        env:
+          CODE: ${{ inputs.code }}
+        run: |
+          [ -d "data/cache/stocks/$CODE" ] || { echo "저장할 캐시 없음"; exit 0; }
+          git config user.name "dividend-bot"
+          git config user.email "actions@users.noreply.github.com"
+          mkdir -p /tmp/keep && cp -r "data/cache/stocks/$CODE" /tmp/keep/
+          cp data/us10y/dgs10.csv /tmp/keep/dgs10.csv 2>/dev/null || true
+          for i in 1 2 3 4 5 6; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            rm -rf "data/cache/stocks/$CODE" && mkdir -p data/cache/stocks && cp -r "/tmp/keep/$CODE" data/cache/stocks/
+            if [ -f /tmp/keep/dgs10.csv ] && [ "$(wc -l < /tmp/keep/dgs10.csv)" -gt "$(wc -l < data/us10y/dgs10.csv 2>/dev/null || echo 0)" ]; then
+              mkdir -p data/us10y && cp /tmp/keep/dgs10.csv data/us10y/dgs10.csv; fi
+            python -m pipeline.update index
+            git add data/cache data/us10y
+            git diff --cached --quiet && { echo "변경 없음"; exit 0; }
+            git commit -q -m "cache: $CODE $(date -u +%FT%H:%M)"
+            git push -q origin HEAD:main && exit 0
+            sleep $((RANDOM % 6 + 3))
+          done
+          exit 1

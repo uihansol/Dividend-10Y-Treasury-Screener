@@ -1,30 +1,20 @@
-"""KRX 일별 주가·종목 목록 수집 (pykrx 사용).
+"""KRX 데이터 (pykrx). 종목 1개 단위 조회만 한다.
 
-KRX는 전종목 일별 조회 API를 제공하므로 하루마다 KOSPI/KOSDAQ을 조회한다.
-최초 구축과 증분 업데이트 모두 이미 저장된 날짜는 건너뛴다.
+- fetch_stock_prices(code, start, end): 한 종목의 일별 원주가(비수정)·등락률
+- fetch_market_listing(): 종목 master용 KOSPI/KOSDAQ 종목코드·이름 (주 1회 정도, 검색 때는 호출하지 않음)
 
-최초 구축은 수천 회의 요청이 필요하므로 KOSPI와 KOSDAQ 요청을 병렬화해
-전체 소요 시간을 줄인다. 서버 차단을 피하기 위해 각 요청 사이에 SLEEP을 둔다.
+⚠ KRX 정보데이터시스템은 2025-12-27부터 회원제이며 2026-09부터 비로그인 요청을 거절한다.
+  pykrx는 import 시 KRX_ID / KRX_PW 환경변수로 로그인한다. 비밀번호는 90일마다 만료된다.
+
+전체 종목을 날짜별로 순회하는 수집 코드는 더 이상 없다.
 """
 from __future__ import annotations
 
-import time
-from concurrent.futures import ThreadPoolExecutor
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
 import pandas as pd
 
-from . import config as C
-from .store import (
-    add_non_trading_day,
-    daily_price_path,
-    load_non_trading_days,
-    mark_source,
-    saved_price_days,
-)
-
-SLEEP = 0.35
-MARKETS = ("KOSPI", "KOSDAQ")
+PRICE_COLS = ["date", "close", "change_pct", "trading_value"]
 
 
 class KrxUnavailable(RuntimeError):
@@ -32,206 +22,49 @@ class KrxUnavailable(RuntimeError):
 
 
 def _stock():
-    """pykrx import/KRX 로그인 실패를 명확한 오류로 변환한다."""
     try:
-        from pykrx import stock  # noqa: WPS433
+        from pykrx import stock  # noqa: WPS433  (import 시 로그인)
         return stock
     except Exception as e:  # pragma: no cover - 네트워크 의존
-        raise KrxUnavailable(
-            f"pykrx import/KRX 로그인 실패: {e!r}. "
-            "KRX_ID/KRX_PW와 비밀번호 만료 여부를 확인하세요."
-        )
+        raise KrxUnavailable(f"pykrx import/KRX 로그인 실패: {e!r}. KRX_ID/KRX_PW와 비밀번호 만료 여부를 확인하세요.")
 
 
-def _fetch_market(stock, ymd: str, market: str) -> pd.DataFrame | None:
-    df = stock.get_market_ohlcv(ymd, market=market)
-    time.sleep(SLEEP)
-    if df is None or df.empty:
-        return None
-
-    df = df.reset_index()
-    code_col = df.columns[0]
-    return pd.DataFrame({
-        "date": datetime.strptime(ymd, "%Y%m%d").date().isoformat(),
-        "stock_code": df[code_col].astype(str).str.zfill(6),
-        "market": market,
-        "close": pd.to_numeric(df["종가"], errors="coerce"),
-        "change_pct": pd.to_numeric(df["등락률"], errors="coerce"),
-        "trading_value": pd.to_numeric(df.get("거래대금"), errors="coerce"),
-    })
+def _ymd(d: str) -> str:
+    return d.replace("-", "")
 
 
-def fetch_day(ymd: str) -> pd.DataFrame | None:
-    """하루치 KOSPI+KOSDAQ 전종목. 두 시장을 병렬 조회한다."""
+def fetch_stock_prices(code: str, start: str, end: str) -> pd.DataFrame:
+    """한 종목의 start~end(YYYY-MM-DD) 일별 원주가.
+
+    adjusted=False: 비수정 종가. 분할·무상증자는 등락률(KRX 기준가 대비)로 역산해
+    engine.detect_corp_actions 가 찾는다.
+    """
     stock = _stock()
-
-    # pykrx의 내부 HTTP 요청을 시장별 독립 작업으로 실행한다.
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        futures = [executor.submit(_fetch_market, stock, ymd, market) for market in MARKETS]
-        frames = [f.result() for f in futures]
-
-    frames = [df for df in frames if df is not None and not df.empty]
-    if not frames:
-        return None
-
-    day = pd.concat(frames, ignore_index=True)
-
-    # 휴장일에 0만 채워 오는 경우 방지
-    if (day["trading_value"].fillna(0).sum() <= 0) and (day["close"].fillna(0).sum() <= 0):
-        return None
-    return day
+    df = stock.get_market_ohlcv(_ymd(start), _ymd(end), code, adjusted=False)
+    if df is None or df.empty:
+        return pd.DataFrame(columns=PRICE_COLS)
+    df = df.reset_index()
+    out = pd.DataFrame({
+        "date": pd.to_datetime(df.iloc[:, 0]).dt.date.astype(str),
+        "close": pd.to_numeric(df["종가"], errors="coerce"),
+        "change_pct": pd.to_numeric(df["등락률"], errors="coerce") if "등락률" in df else float("nan"),
+        "trading_value": pd.to_numeric(df["거래대금"], errors="coerce") if "거래대금" in df else float("nan"),
+    })
+    # 거래정지일 등 종가 0 행은 오류 데이터로 보고 제외 (0으로 계산하지 않음)
+    return out[out["close"] > 0].reset_index(drop=True)
 
 
-def update_prices(start: str | None = None, max_days: int | None = None) -> dict:
-    """마지막 저장일 이후의 거래일만 받는다.
-
-    start를 지정하면 그 날짜부터 재개할 수 있다.
-    max_days는 최초 구축을 여러 실행으로 나눌 때 사용한다.
-    """
-    have = saved_price_days()
-    skip = load_non_trading_days()
-
-    if start is None:
-        if have:
-            # 마지막 저장일 자체는 이미 있으므로 다음 날짜부터 탐색한다.
-            start_date = datetime.strptime(max(have), "%Y%m%d").date() + timedelta(days=1)
-        else:
-            start_date = date.fromisoformat(C.PRICE_START)
-    else:
-        start_date = date.fromisoformat(start)
-
-    today = date.today()
-    fetched = 0
-    last_ok = max(have) if have else None
-
-    try:
-        d = start_date
-        while d <= today:
-            ymd = d.strftime("%Y%m%d")
-
-            if d.weekday() < 5 and ymd not in have and ymd not in skip:
-                day = fetch_day(ymd)
-
-                if day is None:
-                    if d < today:
-                        add_non_trading_day(ymd)
-                else:
-                    p = daily_price_path(ymd)
-                    p.parent.mkdir(parents=True, exist_ok=True)
-                    day.to_csv(p, index=False)
-                    fetched += 1
-                    last_ok = ymd
-
-                    if max_days and fetched >= max_days:
-                        break
-
-            d += timedelta(days=1)
-
-        through = (
-            datetime.strptime(last_ok, "%Y%m%d").date().isoformat()
-            if last_ok else None
-        )
-        mark_source("prices", True, data_through=through, note=f"+{fetched} days")
-        return {"ok": True, "fetched_days": fetched, "through": through}
-
-    except Exception as e:
-        through = (
-            datetime.strptime(last_ok, "%Y%m%d").date().isoformat()
-            if last_ok else None
-        )
-        mark_source("prices", False, error=repr(e), data_through=through)
-        return {"ok": False, "error": repr(e), "fetched_days": fetched}
-
-
-def _safe_stock_name(stock, code: str, retries: int = 3) -> str | None:
-    """KRX 종목명 조회 실패 시 재시도한다.
-
-    pykrx는 KRX 응답이 일시적으로 비어 있으면 내부에서
-    'NoneType' object is not subscriptable를 로그로 남기고
-    None을 반환할 수 있다. 초기 구축에서는 이 한 건 때문에 전체
-    파이프라인을 실패시키지 않도록 짧게 재시도한다.
-    """
-    for attempt in range(retries):
-        try:
-            name = stock.get_market_ticker_name(code)
-            if isinstance(name, str) and name.strip():
-                return name.strip()
-        except Exception:
-            pass
-        time.sleep(0.5 * (attempt + 1))
-    return None
-
-
-def update_stock_list() -> dict:
-    """가장 최근 저장 거래일 기준 종목 목록. 이름은 새 종목만 조회한다."""
-    from .store import load_prices
-
-    try:
-        have = saved_price_days()
-        if not have:
-            raise RuntimeError("주가 데이터가 없습니다. 먼저 prices 단계를 실행하세요.")
-
-        latest = max(have)
-        latest_iso = datetime.strptime(latest, "%Y%m%d").date().isoformat()
-        day = load_prices(since=latest_iso)
-        day = day[day["date"].astype(str) == latest_iso]
-
-        old = pd.read_csv(C.STOCKS_CSV, dtype=str) if C.STOCKS_CSV.exists() else pd.DataFrame(
-            columns=["stock_code", "company_name", "market", "listing_status",
-                     "market_cap", "trading_value", "as_of"]
-        )
-        names = dict(zip(old["stock_code"], old["company_name"]))
-
-        stock = _stock()
-        rows = []
-        name_failures = 0
-        for _, r in day.iterrows():
-            code = str(r["stock_code"]).zfill(6)
-            name = names.get(code)
-            if not name or name == "nan":
-                name = _safe_stock_name(stock, code)
-
-            # KRX가 일시적으로 종목명을 주지 않는 경우에도
-            # 해당 종목의 가격/배당 데이터 수집은 계속할 수 있도록
-            # 종목코드를 임시 이름으로 사용한다. 다음 증분 실행에서 재조회한다.
-            if not name:
-                name = f"종목({code})"
-                name_failures += 1
-
-            rows.append({
-                "stock_code": code,
-                "company_name": name,
-                "market": r["market"],
-                "listing_status": "listed",
-                "trading_value": r["trading_value"],
-                "as_of": latest_iso,
-            })
-
-        new = pd.DataFrame(rows)
-
-        try:
-            cap = stock.get_market_cap(latest, market="ALL")
-            cap = cap.reset_index()
-            cap_map = dict(
-                zip(cap.iloc[:, 0].astype(str).str.zfill(6), cap["시가총액"])
-            )
-            new["market_cap"] = new["stock_code"].map(cap_map)
-        except Exception:
-            new["market_cap"] = None
-
-        gone = old[~old["stock_code"].isin(new["stock_code"])].copy()
-        if len(gone):
-            gone["listing_status"] = "not_trading"
-
-        out = pd.concat([new, gone], ignore_index=True)
-        out.to_csv(C.STOCKS_CSV, index=False)
-
-        note = f"{len(new)} listed"
-        if name_failures:
-            note += f", {name_failures} names temporarily unresolved"
-        mark_source("stocks", True, data_through=latest_iso, note=note)
-        return {"ok": True, "listed": len(new), "name_failures": name_failures}
-
-    except Exception as e:
-        mark_source("stocks", False, error=repr(e))
-        return {"ok": False, "error": repr(e)}
+def fetch_market_listing(asof: date | None = None) -> list[dict]:
+    """KOSPI·KOSDAQ 상장 종목 코드/이름/시장. master.json 생성용."""
+    stock = _stock()
+    ymd = (asof or date.today()).strftime("%Y%m%d")
+    rows = []
+    for market in ("KOSPI", "KOSDAQ"):
+        tickers = stock.get_market_ticker_list(ymd, market=market)
+        for t in tickers:
+            try:
+                name = stock.get_market_ticker_name(t)
+            except Exception:
+                name = None  # 이름 조회 실패는 DART 이름으로 보완
+            rows.append({"code": str(t).zfill(6), "name": name, "market": market})
+    return rows

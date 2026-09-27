@@ -175,3 +175,29 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
   .chart.tall { height: 300px; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+
+/* ---------- search ---------- */
+.search-wrap { padding: 18px 0 8px; border-bottom: 1px solid var(--rule); margin-bottom: 16px; }
+.search { position: relative; max-width: 560px; }
+.search-label { display: block; font-size: 0.8rem; color: var(--ink-2); margin-bottom: 4px; }
+.search-field { position: relative; }
+.search-field input { width: 100%; font-size: 1.05rem; padding: 10px 40px 10px 12px; min-height: 46px; border-color: var(--ink); }
+.search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 1.3rem; color: var(--ink-2); }
+.search-list { position: absolute; z-index: 10; left: 0; right: 0; margin: 4px 0 0; padding: 4px 0; list-style: none;
+  background: var(--surface); border: 1px solid var(--ink); border-radius: var(--radius-s); max-height: 360px; overflow-y: auto;
+  box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+.search-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 9px 12px; cursor: pointer; }
+.search-list li.on { background: var(--accent-soft); }
+.search-list .s-code { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.search-list .s-mkt { color: var(--ink-3); font-size: 0.82rem; min-width: 4.5em; text-align: right; }
+.search-list .search-empty { color: var(--ink-3); cursor: default; display: block; }
+.top-search { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: flex-end; padding-bottom: 0; }
+.top-search .search { flex: 1 1 280px; }
+.list-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.list-head h2 { font-size: 1.05rem; margin: 0; }
+.preparing h2 { font-size: 1.15rem; }
+.steps { line-height: 2; padding-left: 1.4em; }
+.banner { background: var(--accent-soft); border: 1px solid var(--accent-soft-strong); padding: 8px 12px; margin: 0; border-radius: var(--radius-s); }
+.banner.warn { background: transparent; border-color: var(--warn); color: var(--warn); }
+.err { color: var(--neg); }
+.err.big { font-size: 1.05rem; }

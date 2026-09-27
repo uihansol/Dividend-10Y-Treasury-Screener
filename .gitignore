@@ -12,9 +12,9 @@ web/dist/
 web/tsconfig.tsbuildinfo
 
 # 계산 결과 JSON은 매일 다시 만들어지므로 커밋하지 않는다.
-# (원천 데이터인 data/*.csv, data/*.parquet, data/dividends/*, data/prices/* 는 커밋 대상)
-web/public/data/meta.json
-web/public/data/screener.json
-web/public/data/stocks/
+# (data/ 의 공통 데이터와 종목별 캐시는 커밋 대상)
+web/public/data/
+data/cache/**/.lock
+.wrangler/
 
 .DS_Store

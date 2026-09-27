@@ -1,9 +1,8 @@
-import { lazy, Suspense, useEffect, useState } from "react";
-import { loadMeta, loadScreener } from "./lib/data";
-import type { Meta, ScreenerRow } from "./lib/types";
-import { Screener } from "./pages/Screener";
-const DetailPage = lazy(() => import("./pages/Detail").then((m) => ({ default: m.DetailPage })));
-import { DataStatus } from "./components/DataStatus";
+import { useEffect, useState } from "react";
+import { loadIndex, loadMaster } from "./lib/data";
+import type { CacheIndex, MasterStock } from "./lib/types";
+import { Home } from "./pages/Home";
+import { StockPage } from "./pages/StockPage";
 
 function useHashRoute(): string {
   const [hash, setHash] = useState(window.location.hash);
@@ -16,37 +15,19 @@ function useHashRoute(): string {
 }
 
 export function App() {
-  const [meta, setMeta] = useState<Meta | null>(null);
-  const [rows, setRows] = useState<ScreenerRow[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [master, setMaster] = useState<MasterStock[] | null>(null);
+  const [index, setIndex] = useState<CacheIndex | null>(null);
+  const [indexError, setIndexError] = useState<string | null>(null);
   const hash = useHashRoute();
-
-  useEffect(() => {
-    Promise.all([loadMeta(), loadScreener()])
-      .then(([m, r]) => { setMeta(m); setRows(r); })
-      .catch((e) => setError(String(e)));
-  }, []);
-
-  if (error) {
-    return (
-      <main className="page empty">
-        <h1>계산된 데이터가 없습니다</h1>
-        <p>data/meta.json을 읽지 못했습니다 ({error}).</p>
-        <p>저장소의 README “데이터 최초 구축” 순서대로 파이프라인을 실행하면 이 화면이 스크리너로 바뀝니다.</p>
-      </main>
-    );
-  }
-  if (!meta || !rows) return <main className="page"><p className="loading">불러오는 중…</p></main>;
-
   const m = hash.match(/^#\/stock\/(\d{6})/);
-  return (
-    <>
-      {m ? (
-        <Suspense fallback={<main className="page"><p className="loading">불러오는 중…</p></main>}>
-          <DetailPage code={m[1]} meta={meta} />
-        </Suspense>
-      ) : <Screener meta={meta} rows={rows} />}
-      <div className="page"><DataStatus meta={meta} /></div>
-    </>
-  );
+
+  useEffect(() => { loadMaster().then(setMaster).catch(() => setMaster([])); }, []);
+  useEffect(() => {
+    if (m) return;
+    loadIndex().then((i) => { setIndex(i); setIndexError(null); }).catch((e) => setIndexError(String(e.message ?? e)));
+  }, [m?.[1]]);   // 목록 화면으로 돌아올 때마다 새로 읽음
+
+  const onPick = (s: MasterStock) => { window.location.hash = `#/stock/${s.code}`; };
+  return m ? <StockPage key={m[1]} code={m[1]} master={master} onPick={onPick} />
+    : <Home master={master} index={index} indexError={indexError} onPick={onPick} />;
 }

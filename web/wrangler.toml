@@ -1,9 +1,16 @@
-# Cloudflare Workers 정적 자산 배포 설정.
-# name의 __WORKER_NAME__은 배포 워크플로(.github/workflows/deploy.yml)가 실행 시점에
-# CLOUDFLARE_WORKER_NAME 저장소 변수 값으로 바꿔치기한다 (기본값: 저장소 이름 기반).
+# Cloudflare Worker: 정적 자산(dist) + /api/* (worker.js)
+# name의 __WORKER_NAME__은 배포 워크플로가 CLOUDFLARE_WORKER_NAME 변수(없으면 저장소 이름)로 바꾼다.
 name = "__WORKER_NAME__"
+main = "worker.js"
 compatibility_date = "2025-01-01"
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"
 not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+[vars]
+GITHUB_REPO = "uihansol/Dividend-10Y-Treasury-Screener"
+GITHUB_BRANCH = "main"
+# GITHUB_TOKEN 은 secret: 배포 워크플로가 WORKER_GITHUB_TOKEN 저장소 시크릿에서 넣는다

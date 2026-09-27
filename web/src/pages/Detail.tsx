@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceDot, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { loadDetail } from "../lib/data";
-import type { Detail, Meta } from "../lib/types";
+import type { Detail } from "../lib/types";
 import { flagText, mult, pct, signedPct, won, NA } from "../lib/format";
 
 const DART = (rcp: string) => `https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${rcp}`;
@@ -20,22 +19,12 @@ function Card({ label, value, sub, strong }: { label: string; value: string; sub
   );
 }
 
-export function DetailPage({ code, meta }: { code: string; meta: Meta }) {
-  const [d, setD] = useState<Detail | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-  useEffect(() => {
-    setD(null); setErr(null);
-    loadDetail(code).then(setD).catch(() => setErr("이 종목은 배당 데이터가 없어 상세 분석을 만들지 않았습니다."));
-  }, [code]);
-
+/** 종목 상세 (analysis.json 한 개를 그대로 그린다). 데이터 조회·갱신은 StockPage가 담당 */
+export function DetailPage({ d }: { d: Detail }) {
   const series = useMemo(() => {
-    if (!d) return [];
     const s = d.series;
     return s.d.map((date, i) => ({ date, m: s.m[i], y: s.y[i], u: s.u[i], dps: s.dps[i], px: s.px[i] }));
   }, [d]);
-
-  if (err) return <main className="page"><a href="#/" className="back">← 스크리너</a><p className="empty-msg">{err}</p></main>;
-  if (!d) return <main className="page"><a href="#/" className="back">← 스크리너</a><p className="loading">불러오는 중…</p></main>;
 
   const s = d.summary, st = d.multiple_stats, p = d.persistence;
   const yMax = st ? Math.max(st.p90 * 1.8, st.current * 1.25) : undefined;
@@ -45,7 +34,6 @@ export function DetailPage({ code, meta }: { code: string; meta: Meta }) {
 
   return (
     <main className="page detail">
-      <a href="#/" className="back">← 스크리너</a>
       <header className="detail-head">
         <h1>{d.name}</h1>
         <span className="code">{d.code} {d.market}</span>
@@ -187,7 +175,7 @@ export function DetailPage({ code, meta }: { code: string; meta: Meta }) {
           <li>미국 10년물: FRED DGS10 {d.us10y_date ?? NA} 값 (기준일보다 앞선 가장 최근 값)</li>
           <li>배당: DART 정기보고서 {d.components.map((c) => `${c.confirmed} 접수`).join(", ") || NA}</li>
           <li>주식 수 변동 이벤트: {d.actions.length ? d.actions.map((a) => `${a.date} ×${a.ratio}`).join(", ") : "없음"}</li>
-          <li>계산 기준일 {meta.as_of}</li>
+          <li>계산 기준일 {d.as_of}{d.metadata?.updated_at ? ` · 캐시 갱신 ${d.metadata.updated_at.replace("T", " ").slice(0, 16)}` : ""}</li>
         </ul>
       </section>
     </main>

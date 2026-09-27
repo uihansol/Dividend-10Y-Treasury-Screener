@@ -184,129 +184,70 @@ def _period_amounts(fy: FiscalYear) -> dict[str, float]:
     return out
 
 
-def _quarter_amounts(fy: Optional[FiscalYear]) -> dict[str, tuple[float, tuple[str, float, date, str]]]:
-    """Q1/H1/Q3 누계 보고서에서 실제 Q1·Q2·Q3 배당을 복원한다."""
+def _cum_at(fy: Optional[FiscalYear], period: str) -> float:
+    """fy 사업연도의 period 시점까지 누적 중간·분기배당 (그 기간 보고서가 없으면 직전 기간 값)."""
     if fy is None:
-        return {}
-    recs = {r[0]: r for r in fy.interims}
-    out = {}
-    if "Q1" in recs:
-        out["Q1"] = (recs["Q1"][1], recs["Q1"])
-    if "H1" in recs:
-        h1 = recs["H1"][1]
-        q1 = recs["Q1"][1] if "Q1" in recs else 0.0
-        out["Q2"] = (max(h1 - q1, 0.0), recs["H1"])
-    if "Q3" in recs:
-        q3_cum = recs["Q3"][1]
-        h1 = recs["H1"][1] if "H1" in recs else 0.0
-        out["Q3"] = (max(q3_cum - h1, 0.0), recs["Q3"])
-    return out
+        return 0.0
+    best = 0.0
+    for p, v, _, _ in fy.interims:
+        if PERIOD_ORDER[p] <= PERIOD_ORDER[period]:
+            best = v
+    return best
 
-def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "annual") -> Optional[ExpectedDps]:
-    """기준일 t에 공개적으로 확정된 정보만으로 예상 연간 DPS를 계산한다.
 
-    핵심 규칙
-    - 일반(기말배당) 기업: 가장 최근 확정 연간 DPS의 기말배당을 사용한다.
-    - 중간/분기배당 기업: 현재 연도에 확정된 배당은 그대로 사용하고,
-      아직 확정되지 않은 뒤의 배당은 전년도 같은 기간의 배당으로 보완한다.
-      예) 올해 Q1만 확정 → 올해 Q1 + 전년도 Q2 + 전년도 Q3 + 전년도 기말.
-      올해 Q2까지 확정 → 올해 Q1~Q2 + 전년도 Q3 + 전년도 기말.
-      올해 Q3까지 확정 → 올해 Q1~Q3 + 전년도 기말.
-    - 현재 연도의 배당이 아직 하나도 확정되지 않았다면 직전 연도의 확정 연간 DPS를 사용한다.
-    - 분기/중간배당 기업이라도 필요한 전년도 기간별 자료가 없으면 임의로 0을 넣지 않고
-      확인 가능한 부분만으로 계산하지 않는다. 다만 전년도 기말배당은 연간 보고서로 확인한다.
-    - mode는 기존 호출부와의 호환성을 위해 인자로 유지하며 계산에는 사용하지 않는다.
+def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "substitute") -> Optional[ExpectedDps]:
+    """날짜 t에 알 수 있었던 정보만으로 계산한 예상 연간 DPS (현재 기준).
+
+    F = t까지 연간 DPS(사업보고서)가 확정된 가장 최근 사업연도 (= '전년도')
+    O = F + 1 (진행 중 사업연도 = '현재 연도')
+    p = O에서 t까지 확정된 가장 늦은 보고 기간 (Q1 / H1 / Q3)
+
+    예상 DPS = O의 p까지 확정 누계
+             + F의 p 이후 중간·분기배당 (아직 확정 안 된 O의 같은 기간을 전년도 값으로 대체)
+             + F의 기말배당
+
+    예) 전년도 Q1·Q2·Q3·기말 = 300씩
+        올해 Q1만 확정(400)   → 400 + 300 + 300 + 300 = 1,300
+        올해 H1까지 확정(800) → 800 + 300 + 300 = 1,400
+        올해 Q3까지 확정      → 올해 Q1~Q3 누계 + 전년도 기말
+        올해 확정분이 없음    → 전년도 연간 DPS (중간+기말)
+        사업보고서 제출 시    → F가 올해로 바뀌어 올해 실제 연간 DPS
+    mode는 이전 호출부 호환용 인자이며 계산에 쓰지 않는다.
     """
     confirmed = [fy for fy in years.values()
                  if fy.fy_total is not None and fy.fy_confirmed is not None and fy.fy_confirmed <= t]
     if not confirmed:
         return None
-
     F = max(confirmed, key=lambda fy: fy.year)
     flags: list[str] = list(F.flags)
-    final_f = F.final_dps or 0.0
+    final = F.final_dps or 0.0
     comps: list[DpsComponent] = []
 
     O = years.get(F.year + 1)
-    current_rec = _confirmed_interim_asof(O, t) if O else None
+    cum_o, rec = (O.interim_cum_asof(t) if O else (0.0, None))
 
-    # 현재 연도에 중간/분기배당이 아직 하나도 확정되지 않은 경우.
-    if O is None or current_rec is None:
+    if rec is not None and cum_o > 0:
+        p = rec[0]
+        fill = max(F.interim_total() - _cum_at(F, p), 0.0)
+        label = {"Q1": "1분기", "H1": "반기", "Q3": "3분기"}[p]
+        comps.append(DpsComponent(f"{O.year}년 {label}까지 확정 배당", "interim", O.year, cum_o, rec[2], rec[3]))
+        if fill > 0:
+            last = F.interims[-1]
+            comps.append(DpsComponent(f"{F.year}년 {label} 이후 중간·분기배당 (미확정분 대체)", "interim",
+                                      F.year, fill, last[2], last[3]))
+            flags.append("prior_year_unconfirmed_periods_filled")
+        comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year, final, F.fy_confirmed, F.fy_ref))
+        flags += list(O.flags)
+        value = cum_o + fill + final
+    else:
         if F.has_interim():
-            # 직전 연도의 연간 DPS가 이미 확정된 직후에는 그 연간 DPS 자체를 사용한다.
             last = F.interims[-1]
             comps.append(DpsComponent(f"{F.year}년 중간·분기배당", "interim", F.year,
                                       F.interim_total(), last[2], last[3]))
-            comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year,
-                                      final_f, F.fy_confirmed, F.fy_ref))
-            value = F.fy_total or 0.0
-        else:
-            comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year,
-                                      final_f, F.fy_confirmed, F.fy_ref))
-            value = final_f
-        return ExpectedDps(value=value, components=comps, latest_fy=F.year,
-                           flags=sorted(set(flags)))
+        comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year, final, F.fy_confirmed, F.fy_ref))
+        value = F.fy_total or 0.0
+    return ExpectedDps(value=value, components=comps, latest_fy=F.year, flags=sorted(set(flags)))
 
-    # 현재 연도에 확정된 중간/분기배당이 있는 경우.
-    flags += list(O.flags)
-
-    # 분기배당 기업: 현재 확정 누계 + 전년도 미확정 기간의 동일 기간 배당.
-    if O.is_quarterly():
-        latest_period = current_rec[0]
-        prior = years.get(F.year)
-        prior_quarters = _quarter_amounts(prior)
-
-        # 현재 확정분은 Q1/H1/Q3 보고서의 누계값 그대로 사용한다.
-        current_latest_value = current_rec[1]
-
-        # 현재 보고서 이후의 미확정 분기는 전년도 같은 분기의 실제 배당으로 보완한다.
-        latest_rank = {"Q1": 1, "H1": 2, "Q3": 3}.get(latest_period, 3)
-        remaining_quarters = [p for p, rank in (("Q2", 2), ("Q3", 3)) if rank > latest_rank]
-        prior_fill = []
-        for p in remaining_quarters:
-            rec = prior_quarters.get(p)
-            if rec is None:
-                flags.append(f"prior_year_period_missing:{p}")
-            else:
-                prior_fill.append((p, rec[0], rec[1]))
-
-        # 전년도 기말배당은 항상 마지막에 보완한다.
-        if prior is None or prior.fy_total is None or prior.fy_confirmed is None or prior.fy_confirmed > t:
-            flags.append("prior_year_final_missing")
-            prior_final = None
-        else:
-            prior_final = prior.final_dps or 0.0
-
-        if len(prior_fill) != len(remaining_periods) or prior_final is None:
-            return ExpectedDps(value=None, components=[], latest_fy=F.year,
-                               flags=sorted(set(flags)))
-
-        # 현재 확정분과 전년도 보완분을 구성요소로 명시한다.
-        comps.append(DpsComponent(
-            f"{O.year}년 {latest_period}까지 확정", "interim", O.year,
-            current_latest_value, current_rec[2], current_rec[3]))
-
-        for p, amount, amount_rec in prior_fill:
-            comps.append(DpsComponent(
-                f"{F.year}년 {p} 보완", "interim", F.year, amount,
-                amount_rec[2], amount_rec[3]))
-
-        comps.append(DpsComponent(f"{F.year}년 기말배당 보완", "final", F.year,
-                                  prior_final, F.fy_confirmed, F.fy_ref))
-        value = current_latest_value + sum(v for _, v, _ in prior_fill) + prior_final
-        flags.append("prior_year_unconfirmed_periods_filled")
-
-    else:
-        # 반기/중간배당 기업: 올해 확정 중간배당 + 전년도 기말배당.
-        current_cum = current_rec[1]
-        comps.append(DpsComponent(f"{O.year}년 중간배당", "interim", O.year,
-                                  current_cum, current_rec[2], current_rec[3]))
-        comps.append(DpsComponent(f"{F.year}년 기말배당 보완", "final", F.year,
-                                  final_f, F.fy_confirmed, F.fy_ref))
-        value = current_cum + final_f
-
-    return ExpectedDps(value=value, components=comps, latest_fy=F.year,
-                       flags=sorted(set(flags)))
 
 # ---------------------------------------------------------------------------
 # 수익률·배수

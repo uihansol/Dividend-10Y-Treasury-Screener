@@ -67,5 +67,23 @@ export interface Detail {
   multiple_stats: Stats | null;
   yield_stats: Stats | null;
   actions: { date: string; ratio: number }[];
+  metadata?: {
+    price_through?: string; dividend_through?: string | null; us10y_through?: string | null;
+    updated_at?: string; last_attempt?: string; last_error?: Record<string, string> | null;
+    steps?: Record<string, unknown>;
+  };
   series: { d: string[]; px: number[]; dps: (number | null)[]; y: (number | null)[]; u: (number | null)[]; m: (number | null)[] };
 }
+
+export interface MasterStock { code: string; name: string; market: Market; corp_code: string; aliases: string[] }
+
+export interface IndexRow extends ScreenerRow { updated_at?: string; price_through?: string; has_error?: boolean }
+
+export interface CacheIndex {
+  built_at?: string;
+  stocks: IndexRow[];
+  sources?: Record<string, { data_through?: string; last_success?: string; last_error?: string | null }>;
+  rules?: string[];
+}
+
+export interface RunInfo { id: number; status: string; conclusion: string | null; url: string; created_at: string; updated_at: string }

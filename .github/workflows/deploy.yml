@@ -1,58 +1,68 @@
 name: Deploy
 
-# 코드가 바뀌면(웹 소스) 실행되고, update-data 워크플로가 데이터를 갱신한 뒤에도 재사용되어 실행된다.
-#
-# Cloudflare가 2026년부터 새 정적 사이트에는 Pages 대신 "Workers + 정적 자산"을 권장하므로
-# 이 워크플로는 Pages 프로젝트를 따로 만들 필요 없이 wrangler로 Workers에 직접 배포한다.
+# 정적 화면 + /api Worker를 Cloudflare Workers에 배포.
+# 종목 데이터는 배포에 포함하지 않는다(Worker가 저장소 캐시를 실시간으로 읽음).
+# 검색용 master.json만 정적 파일로 함께 올리므로 master가 바뀌면 다시 배포한다.
 on:
   push:
     branches: [main]
-    paths: ["web/**", "pipeline/**", ".github/workflows/deploy.yml"]
-  workflow_call:
+    paths: ["web/**", "data/stocks/**", ".github/workflows/deploy.yml"]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
+    env:
+      HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-      - run: pip install -r requirements.txt
-
-      # 저장소에 커밋된 원천 데이터(data/)로 web/public/data(계산 결과 JSON)를 새로 만든다.
-      # 원천 데이터가 없으면(최초 설정 직후) 빈 화면 대신 안내 메시지가 뜨도록 실패시키지 않는다.
-      - name: Build computed data
-        run: python -m pipeline.update build || echo "::warning::계산할 원천 데이터가 아직 없습니다. update-data 워크플로를 먼저 실행하세요."
-
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
           cache-dependency-path: web/package-lock.json
 
+      - name: 검색용 master 복사
+        run: |
+          mkdir -p web/public/data
+          if [ -f data/stocks/master.json ]; then cp data/stocks/master.json web/public/data/master.json
+          else echo '{"stocks":{}}' > web/public/data/master.json; echo "::warning::master.json 없음 — Common data(init)를 먼저 실행하세요"; fi
+
       - run: npm ci
         working-directory: web
       - run: npm run build
         working-directory: web
 
+      - name: 비밀값이 번들에 없는지 확인
+        run: |
+          ! grep -rE "DART_API_KEY|KRX_PW|github_pat_|ghp_" web/dist || { echo "비밀값 흔적 발견"; exit 1; }
+
       - name: Worker 이름 설정
+        if: env.HAS_CF == 'true'
         working-directory: web
         run: |
           NAME="${{ vars.CLOUDFLARE_WORKER_NAME }}"
           if [ -z "$NAME" ]; then NAME="$(echo '${{ github.repository }}' | sed 's#.*/##' | tr '[:upper:]_' '[:lower:]-')"; fi
           sed -i "s/__WORKER_NAME__/$NAME/" wrangler.toml
+          sed -i "s#^GITHUB_REPO = .*#GITHUB_REPO = \"${{ github.repository }}\"#" wrangler.toml
 
       - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v4
+        if: env.HAS_CF == 'true'
+        uses: cloudflare/wrangler-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKER_GITHUB_TOKEN }}
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4"
           workingDirectory: web
           command: deploy
+          secrets: |
+            GITHUB_TOKEN
+
+      - name: Cloudflare 미설정 안내
+        if: env.HAS_CF != 'true'
+        run: echo "::warning::CLOUDFLARE_API_TOKEN 시크릿이 없어 빌드만 하고 배포는 건너뜁니다."
