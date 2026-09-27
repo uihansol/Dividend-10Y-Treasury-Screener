@@ -98,7 +98,7 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .grid th { position: sticky; top: 0; background: var(--surface); text-align: left; font-weight: 500; font-size: 0.82rem;
   color: var(--ink-2); padding: 10px 10px; border-bottom: 1px solid var(--ink); white-space: nowrap; z-index: 2; }
 .grid td { padding: 9px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
-.grid tbody tr { cursor: pointer; }
+.grid tbody tr { cursor: pointer; -webkit-user-select: none; user-select: none; }\n.grid tbody tr .name { -webkit-touch-callout: none; }
 .grid tbody tr:hover td { background: var(--accent-soft); }
 .grid .num { text-align: right; }
 .grid th.num { text-align: right; }
