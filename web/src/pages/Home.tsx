@@ -143,9 +143,6 @@ export function Home({ master, index, indexError, onPick }: {
 
       <section className="search-wrap">
         <SearchBox master={master} onPick={onPick} autoFocus />
-        <p className="note">
-          처음 조회하는 종목은 2016년부터 가격·배당을 모으느라 1~3분 걸립니다. 한 번 조회한 종목은 저장해 두고 다음부터는 새 데이터만 확인합니다.
-        </p>
         {recent.length > 0 && (
           <div className="recent-section">
             <div className="recent-head">
@@ -250,6 +247,10 @@ export function Home({ master, index, indexError, onPick }: {
           </div>
         )}
       </section>
+
+      <div className="home-notice">
+        <p className="note">처음 조회하는 종목은 2016년부터 가격·배당을 모으느라 1~3분 걸립니다. 한 번 조회한 종목은 저장해 두고 다음부터는 새 데이터만 확인합니다.</p>
+      </div>
 
       {index?.rules && (
         <details className="rules">
