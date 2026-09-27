@@ -50,7 +50,7 @@ export function Home({ master, index, indexError, onPick }: {
   const [columns, setColumns] = useState<ColumnOrder>(() => loadColumnOrder());
   const [editingColumns, setEditingColumns] = useState(false);
   const [sort, setSort] = useState<SortState>(() => loadSort());
-  const [nameSortDirection, setNameSortDirection] = useState<SortDirection>("asc");
+  const [nameSortDirection, setNameSortDirection] = useState<SortDirection | null>(null);
   const [recent, setRecent] = useState<RecentEntry[]>(() => loadRecent());
   const [editingRecent, setEditingRecent] = useState(false);
   const [selectedRecent, setSelectedRecent] = useState<Set<string>>(() => new Set());
@@ -93,7 +93,7 @@ export function Home({ master, index, indexError, onPick }: {
       return row.pct ?? -Infinity;
     };
     r.sort((a, b) => {
-      if (nameSortDirection) return nameSortDirection === "asc"
+      if (nameSortDirection !== null) return nameSortDirection === "asc"
         ? a.name.localeCompare(b.name, "ko")
         : b.name.localeCompare(a.name, "ko");
       const diff = value(a, sort.key) - value(b, sort.key);
@@ -203,7 +203,7 @@ export function Home({ master, index, indexError, onPick }: {
           <div className="table-wrap">
             <table className="grid">
               <thead><tr>
-                <th className="stick"><button type="button" className="stock-name-sort" onClick={() => toggleNameSort()} aria-label="기업 이름 정렬">종목 <span className="sort-indicator" aria-hidden="true">{nameSortDirection === "asc" ? "↑" : "↓"}</span></button></th><th className="hide-sm">시장</th>
+                <th className="stick"><button type="button" className="stock-name-sort" onClick={() => toggleNameSort()} aria-label="기업 이름 정렬">종목 <span className="sort-indicator" aria-hidden="true">{nameSortDirection === "asc" ? "↑" : nameSortDirection === "desc" ? "↓" : "↕"}</span></button></th><th className="hide-sm">시장</th>
                 <th className="num hide-sm">주가</th><th className="num hide-sm">예상 DPS</th>
                 {columns.map((key) => (
                   <th key={key} className={`num metric-th${key === "multiple" ? " key" : ""}`}>
