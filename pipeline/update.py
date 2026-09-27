@@ -66,6 +66,11 @@ def main(argv=None) -> int:
         j = DartClient().get("alotMatter.json", corp_code=corp_code, bsns_year=year,
                              reprt_code=C.REPRT_CODES[period]).json()
         out("rawdiv", j)
+    if a.step == "disclist":
+        from .dart import DartClient
+        corp_code, bgn, end = a.arg, a.extra[0], a.extra[1]
+        j = DartClient().get("list.json", corp_code=corp_code, bgn_de=bgn, end_de=end, page_count=100).json()
+        out("disclist", [(x.get("rcept_no"), x.get("rcept_dt"), x.get("report_nm")) for x in j.get("list", [])])
     if a.step == "stock":
         if not a.arg:
             ap.error("종목코드가 필요합니다")
