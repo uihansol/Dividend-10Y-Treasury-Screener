@@ -108,7 +108,7 @@ export function StockPage({ code, master, onPick }: {
     <>
       <div className="page top-search">
         <a href="#/" className="back">← 조회한 종목</a>
-        <SearchBox master={master} onPick={onPick} />
+        <div className="detail-search"><SearchBox master={master} onPick={onPick} /></div>
         {phase.kind === "ready" && (
           <button type="button" className="btn refresh-btn" disabled={refreshing} onClick={() => run(true)}
             title="이 종목의 최신 가격·배당 데이터를 다시 불러옵니다">
