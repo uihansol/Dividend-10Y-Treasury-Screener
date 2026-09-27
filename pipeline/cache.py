@@ -232,11 +232,15 @@ def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_v
     hist = yhist = None
     series = []
     if years:
-        start = date(as_of.year - C.HISTORY_YEARS, as_of.month, min(as_of.day, 28))
-        i0 = next((i for i, d in enumerate(dates) if d >= start), len(dates))
+        # 차트는 저장된 가격 데이터의 가능한 전체 기간을 사용한다.
+        chart_start = date.fromisoformat(C.PRICE_START)
+        i0 = next((i for i, d in enumerate(dates) if d >= chart_start), len(dates))
         series = daily_series(dates[i0:], adj[i0:], years, us_dates, us_vals, C.MIN_US10Y_FOR_MULTIPLE)
-        hist = history_stats([p.multiple for p in series], m)
-        yhist = history_stats([p.div_yield for p in series], y)
+        # 역사적 백분위는 기존처럼 최근 10년만 사용한다. 차트 기간 확장은 통계 기준을 바꾸지 않는다.
+        stats_start = date(as_of.year - C.HISTORY_YEARS, as_of.month, min(as_of.day, 28))
+        stats_series = [p for p in series if p.d >= stats_start]
+        hist = history_stats([p.multiple for p in stats_series], m)
+        yhist = history_stats([p.div_yield for p in stats_series], y)
 
     tv = prices["trading_value"].iloc[-1] if "trading_value" in prices else None
     summary = {
