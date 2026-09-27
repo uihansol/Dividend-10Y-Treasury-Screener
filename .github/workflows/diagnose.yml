@@ -1,0 +1,22 @@
+name: Diagnose (temporary)
+# 배포된 Worker의 /api 응답을 직접 확인하기 위한 1회성 진단 워크플로. 확인 후 삭제한다.
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "확인할 종목코드"
+        required: true
+        default: "005930"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: /api/stock/{code}
+        env:
+          CODE: ${{ inputs.code }}
+        run: |
+          URL="https://dividend-10y-treasury-screener.uihansol.workers.dev/api/stock/$CODE"
+          echo "GET $URL"
+          curl -sS -w "\nHTTP %{http_code}\n" "$URL" | tee /tmp/out.txt
+          echo "::notice::$(cat /tmp/out.txt | tr '\n' ' ' | cut -c1-900)"
