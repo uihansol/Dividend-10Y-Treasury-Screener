@@ -3,14 +3,14 @@ import type { MasterStock } from "./types";
 const KEY = "recent-stocks";
 const MAX = 8;
 
-type RecentEntry = { code: string; name: string; market: string; at: number };
+export type RecentEntry = { code: string; name: string; market: string; at: number };
 
 function safeParse(): RecentEntry[] {
   try {
     const raw = localStorage.getItem(KEY);
     return raw ? (JSON.parse(raw) as RecentEntry[]) : [];
   } catch {
-    return [];   // 프라이빗 모드 등으로 localStorage를 못 쓰면 그냥 빈 목록
+    return [];
   }
 }
 
@@ -25,4 +25,25 @@ export function pushRecent(s: Pick<MasterStock, "code" | "name" | "market">): vo
     list.unshift({ code: s.code, name: s.name, market: s.market, at: Date.now() });
     localStorage.setItem(KEY, JSON.stringify(list.slice(0, MAX)));
   } catch { /* 무시 */ }
+}
+
+export function removeRecent(code: string): RecentEntry[] {
+  try {
+    const next = safeParse().filter((r) => r.code !== code);
+    localStorage.setItem(KEY, JSON.stringify(next));
+    return next;
+  } catch {
+    return safeParse();
+  }
+}
+
+export function removeRecentMany(codes: Iterable<string>): RecentEntry[] {
+  try {
+    const targets = new Set(codes);
+    const next = safeParse().filter((r) => !targets.has(r.code));
+    localStorage.setItem(KEY, JSON.stringify(next));
+    return next;
+  } catch {
+    return safeParse();
+  }
 }
