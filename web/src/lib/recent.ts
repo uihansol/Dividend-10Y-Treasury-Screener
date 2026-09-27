@@ -1,7 +1,6 @@
 import type { MasterStock } from "./types";
 
 const KEY = "recent-stocks";
-const MAX = 8;
 
 export type RecentEntry = { code: string; name: string; market: string; at: number };
 
@@ -23,7 +22,7 @@ export function pushRecent(s: Pick<MasterStock, "code" | "name" | "market">): vo
   try {
     const list = safeParse().filter((r) => r.code !== s.code);
     list.unshift({ code: s.code, name: s.name, market: s.market, at: Date.now() });
-    localStorage.setItem(KEY, JSON.stringify(list.slice(0, MAX)));
+    localStorage.setItem(KEY, JSON.stringify(list));
   } catch { /* 무시 */ }
 }
 
