@@ -261,9 +261,7 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .metric-title { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; font-size: inherit; cursor: pointer; white-space: nowrap; }
 .metric-title:hover { color: var(--ink); }
 .sort-indicator { color: var(--ink-3); font-size: 11px; line-height: 1; }
-.sort-menu { position: absolute; z-index: 30; right: 0; top: calc(100% + 5px); min-width: 116px; padding: 4px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-s); box-shadow: 0 8px 20px rgba(25,30,40,.10); }
-.sort-menu button { display: block; width: 100%; border: 0; border-radius: 4px; background: transparent; color: var(--ink); text-align: left; padding: 7px 9px; cursor: pointer; font: inherit; font-size: 12px; white-space: nowrap; }
-.sort-menu button:hover, .sort-menu button.selected { background: var(--accent-soft); color: var(--accent); }
+
 .preparing h2 { font-size: 1.15rem; }
 .steps { line-height: 2; padding-left: 0; list-style: none; }
 .steps .step-todo { opacity: .55; }
