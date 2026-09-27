@@ -8,13 +8,16 @@
 - 계산 결과 생성: `pipeline/build.py` → `web/public/data/*.json`
 - 웹: `web/` (React + TypeScript + Recharts)
 
-## 아직 결정이 필요한 것 1가지
+## 예상 DPS 규칙
 
-중간배당 기업에서 "사업보고서 제출 직후 ~ 다음 중간배당 확정 전" 구간에 요구사항의 규칙 ①과 ③이
-서로 충돌한다 (자세한 설명은 `pipeline/engine.py`의 `expected_dps_asof` 주석 참고). 기본값은
-`EXPECTED_DPS_MODE=annual`(규칙 ③, 방금 확정된 연도의 연간 DPS 사용)이다. 규칙 ①을 글자 그대로
-쓰려면 `final_only`로 바꾼다. GitHub 저장소 Settings → Secrets and variables → Actions →
-Variables 탭에서 `EXPECTED_DPS_MODE`를 설정하면 자동 업데이트에 반영된다.
+분기배당 기업은 현재 연도에 **확정된 분기배당은 그대로 사용하고, 아직 확정되지 않은 분기는 전년도 같은 분기 배당으로 보완**한다.
+
+예를 들어 전년도 Q1/Q2/Q3/기말이 각각 300원이고 올해 Q1만 400원 확정됐다면 예상 연간 DPS는
+**400 + 전년도 Q2 300 + 전년도 Q3 300 + 전년도 기말 300 = 1,300원**이다.
+올해 Q2가 확정되면 올해 Q1+Q2와 전년도 Q3+기말로 다시 계산하고, Q3까지 확정되면 올해 Q1+Q2+Q3와 전년도 기말로 계산한다.
+
+중간배당 기업은 올해 확정 중간배당 + 전년도 기말배당을 사용하며, 사업보고서가 제출되면 해당 연도의 확정 연간 DPS로 전환한다.
+이 규칙은 현재 스크리닝뿐 아니라 역사적 일별 배수·백분위 계산에도 동일하게 적용한다.
 
 ---
 
@@ -79,7 +82,7 @@ git push -u origin main
      | 이름 | 값 |
      |---|---|
      | `CLOUDFLARE_WORKER_NAME` | (선택) Worker 이름. 생략하면 저장소 이름으로 자동 설정 |
-     | `EXPECTED_DPS_MODE` | `annual` (또는 `final_only`) — 생략하면 `annual` |
+     | `EXPECTED_DPS_MODE` | 더 이상 사용하지 않음 |
 
 3. **워크플로 켜기**
    - `.github/workflows/update-data.yml`: 평일 KST 오후 8시 자동 실행. 데이터를 받아 `data/`에
