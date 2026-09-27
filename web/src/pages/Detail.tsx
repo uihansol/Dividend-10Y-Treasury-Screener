@@ -171,7 +171,6 @@ export function DetailPage({ d }: { d: Detail }) {
 
   // 배당/10Y 배수 + 주가 (같은 기간을 함께 보므로 확대·범위는 하나로 동기화한다)
   const zoomM = useZoom(series.length);
-  const viewM = series.slice(zoomM.range.startIndex, zoomM.range.endIndex + 1);
   type BandPeriod = 3 | 5 | 10 | "all";
   const [bandPeriod, setBandPeriod] = useState<BandPeriod>("all");
   const bandPeriodStart = useMemo(() => {
