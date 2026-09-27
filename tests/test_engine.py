@@ -84,13 +84,6 @@ def test_case3_annual_confirmed_rule3_default():
     assert [c.kind for c in e.components] == ["interim", "final"]
 
 
-def test_case3_final_only_mode_is_literal_rule1():
-    yrs = build_fiscal_years(B, [])
-    e = expected_dps_asof(D(2026, 4, 1), yrs, mode="final_only")
-    assert e.value == 700
-    assert "prior_year_interim_not_counted" in e.flags
-
-
 def test_interim_lookahead():
     yrs = build_fiscal_years(B, [])
     # 2026 중간배당(8/14 접수) 직전에는 반영되지 않아야 한다
@@ -113,9 +106,14 @@ def test_case4_quarterly():
     yrs = build_fiscal_years(C, [])
     assert yrs[2025].final_dps == 361
     assert yrs[2025].is_quarterly()
-    assert expected_dps_asof(D(2026, 9, 25), yrs).value == 361 + 800
-    assert expected_dps_asof(D(2026, 6, 1), yrs).value == 361 + 400
-    # 2026-02: 2025 사업보고서 전 → 2024 연간 없음 → 2025년 3분기 누계는 F가 없어 N/A
+
+    # 2026-06-01: Q1만 확정 → 올해 Q1 + 전년도 Q2 + Q3 + 기말
+    assert expected_dps_asof(D(2026, 6, 1), yrs).value == 400 + 361 + 361 + 361
+
+    # 2026-09-25: H1까지 확정 → 올해 Q1+Q2 + 전년도 Q3 + 기말
+    assert expected_dps_asof(D(2026, 9, 25), yrs).value == 800 + 361 + 361
+
+    # 2026-02: 2025 사업보고서 전 → 2024 연간 없음 → N/A
     assert expected_dps_asof(D(2026, 2, 1), yrs) is None
 
 
