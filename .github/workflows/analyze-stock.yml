@@ -50,7 +50,9 @@ jobs:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: |
           ARGS=""; [ "$FORCE" = "true" ] && ARGS="--force"
-          python -m pipeline.update stock "$CODE" $ARGS
+          set -o pipefail
+          python -m pipeline.update stock "$CODE" $ARGS | tee /tmp/out.txt
+          while IFS= read -r line; do echo "::notice::${line:0:900}"; done < /tmp/out.txt
 
       - name: Commit cache (다른 종목 작업과 겹쳐도 안전하게 재시도)
         if: always()
@@ -68,7 +70,7 @@ jobs:
             if [ -f /tmp/keep/dgs10.csv ] && [ "$(wc -l < /tmp/keep/dgs10.csv)" -gt "$(wc -l < data/us10y/dgs10.csv 2>/dev/null || echo 0)" ]; then
               mkdir -p data/us10y && cp /tmp/keep/dgs10.csv data/us10y/dgs10.csv; fi
             python -m pipeline.update index
-            git add data/cache data/us10y
+            git add data/cache; [ -e data/us10y ] && git add data/us10y
             git diff --cached --quiet && { echo "변경 없음"; exit 0; }
             git commit -q -m "cache: $CODE $(date -u +%FT%H:%M)"
             git push -q origin HEAD:main && exit 0

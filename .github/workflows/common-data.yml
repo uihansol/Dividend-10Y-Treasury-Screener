@@ -45,14 +45,16 @@ jobs:
           if [ -n "$TASK" ]; then T="$TASK"
           elif [ "$(date -u +%u)" = "7" ]; then T="init"      # 일요일 UTC(=월요일 KST) 실행분은 master도 갱신
           else T="us10y"; fi
-          python -m pipeline.update "$T"
-          python -m pipeline.update index
+          python -m pipeline.update "$T" | tee /tmp/out.txt
+          python -m pipeline.update index | tee -a /tmp/out.txt
+          # 결과를 실행 요약(annotation)으로 남김
+          while IFS= read -r line; do echo "::notice::${line:0:900}"; done < /tmp/out.txt
 
       - name: Commit
         run: |
           git config user.name "dividend-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/us10y data/stocks data/sources.json data/cache/index.json 2>/dev/null || true
+          for p in data/us10y data/stocks data/sources.json data/cache/index.json; do [ -e "$p" ] && git add "$p"; done
           git diff --cached --quiet && { echo "변경 없음"; exit 0; }
           git commit -m "data: common $(date -u +%F)"
           for i in 1 2 3 4 5; do git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0; sleep 5; done
