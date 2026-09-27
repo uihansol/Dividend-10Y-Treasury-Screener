@@ -100,7 +100,7 @@ def update_stock_price_cache(code: str, today: date | None = None,
     pieces = [x for x in (old, backfill, new) if len(x)]
     df = pd.concat(pieces, ignore_index=True) if pieces else old
     df = df.drop_duplicates("date", keep="last").sort_values("date").reset_index(drop=True)
-    if len(new):
+    if len(new) or len(backfill):
         stock_dir(code).mkdir(parents=True, exist_ok=True)
         df.to_csv(stock_dir(code) / "prices.csv", index=False)
     return df, {"mode": mode, "added": int(len(new)) + int(len(backfill)), "from": (C.PRICE_START if len(backfill) else start.isoformat())}
