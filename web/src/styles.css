@@ -1,18 +1,23 @@
 :root {
-  --paper: #eef1ef;
+  --paper: #f7f8fa;
   --surface: #ffffff;
-  --ink: #17212b;
-  --ink-2: #4c5a67;
-  --ink-3: #8a97a2;
-  --rule: #d4dbd7;
-  --accent: #1d6b57;
-  --accent-soft: #e0ede7;
-  --accent-soft-strong: #9cc7b6;
-  --warn: #9a5b14;
-  --neg: #9e3434;
-  --radius-s: 4px;
+  --ink: #252a31;
+  --ink-2: #69717d;
+  --ink-3: #9aa1ab;
+  --rule: #e6e9ee;
+  --chart-grid: #eef0f3;
+  --accent: #5b57d8;
+  --accent-soft: #efefff;
+  --accent-soft-strong: #a9a6ee;
+  --chart-blue: #67b6d7;
+  --chart-green: #86c99d;
+  --chart-yellow: #e6b94f;
+  --chart-red: #e77878;
+  --warn: #a36a18;
+  --neg: #c85b5b;
+  --radius-s: 6px;
   --radius-m: 10px;
-  color-scheme: light dark;
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -36,8 +41,8 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
-  font-size: 15px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  font-size: 14px;
   line-height: 1.55;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
@@ -45,13 +50,13 @@ a { color: var(--accent); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .num, .card-value, .headline-figures dd, .quantiles td { font-variant-numeric: tabular-nums; }
 
-.page { max-width: 1240px; margin: 0 auto; padding: 20px 16px; }
+.page { max-width: 1280px; margin: 0 auto; padding: 24px 20px; }
 .loading, .empty-msg { color: var(--ink-2); }
 .empty h1 { font-size: 1.4rem; }
 
 /* ---------- masthead ---------- */
 .masthead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 32px;
-  padding-bottom: 14px; border-bottom: 2px solid var(--ink); }
+  padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
 .masthead h1 { margin: 0; font-size: clamp(1.45rem, 3.2vw, 2.1rem); font-weight: 700; letter-spacing: -0.02em; }
 .headline-figures { display: flex; gap: 28px; margin: 0; }
 .headline-figures dt { font-size: 0.8rem; color: var(--ink-2); }
@@ -117,29 +122,29 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 
 /* ---------- detail ---------- */
 .back { display: inline-block; margin-bottom: 10px; text-decoration: none; }
-.detail-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; border-bottom: 2px solid var(--ink); padding-bottom: 10px; }
-.detail-head h1 { margin: 0; font-size: clamp(1.5rem, 3.5vw, 2.1rem); letter-spacing: -0.02em; }
+.detail-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); padding-bottom: 14px; }
+.detail-head h1 { margin: 0; font-size: clamp(1.45rem, 3.2vw, 2rem); font-weight: 700; letter-spacing: -0.025em; }
 .detail-head .code { color: var(--ink-2); }
 /* flex + wrap: 마지막 줄에 카드가 하나만 남아도 grid처럼 빈 칸이 보이지 않고 그 카드가 남은 폭을 채운다 */
-.cards { display: flex; flex-wrap: wrap; gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin: 16px 0; }
-.card { background: var(--surface); padding: 12px 14px; flex: 1 1 148px; }
+.cards { display: flex; flex-wrap: wrap; gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin: 18px 0; }
+.card { background: var(--surface); padding: 14px 16px; flex: 1 1 148px; }
 .card-label { font-size: 0.8rem; color: var(--ink-2); }
-.card-value { font-size: 1.4rem; font-weight: 600; }
+.card-value { font-size: 1.32rem; font-weight: 700; letter-spacing: -0.02em; }
 .card-sub { font-size: 0.76rem; color: var(--ink-3); }
-.card.strong { background: var(--ink); color: var(--paper); }
-.card.strong .card-label { color: var(--accent-soft-strong); }
-.panel { background: var(--surface); border: 1px solid var(--rule); padding: 16px; margin-bottom: 16px; }
-.panel h2 { font-size: 1.05rem; margin: 0 0 12px; }
+.card.strong { background: var(--accent); color: #fff; }
+.card.strong .card-label { color: #dcdcff; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-s); padding: 18px; margin-bottom: 18px; }
+.panel h2 { font-size: 1rem; font-weight: 700; margin: 0 0 14px; letter-spacing: -0.015em; }
 .panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
 .panel-head h2 { margin: 0 0 12px; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.chart { height: 260px; }
-.chart.tall { height: 340px; }
-.chart.compare { height: 96px; }
+.chart { height: 280px; }
+.chart.tall { height: 350px; }
+.chart.compare { height: 108px; }
 .chart.brush-nav { height: 48px; margin-top: 2px; }
 
 /* 차트 항목 선택/해제 (범례가 있는 recharts 차트) */
-.recharts-legend-item { cursor: pointer; padding: 3px 6px; border-radius: var(--radius-s); }
+.recharts-legend-item { cursor: pointer; padding: 3px 7px; border-radius: var(--radius-s); font-size: 12px; }
 .recharts-legend-item:hover { background: var(--accent-soft); }
 .legend-off { opacity: 0.4; text-decoration: line-through; }
 
@@ -273,3 +278,13 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
   border-radius: 999px; font-size: 0.85rem; color: var(--ink); text-decoration: none; min-height: 32px; align-items: center; }
 .recent-chip:hover { border-color: var(--accent); }
 .recent-chip .code { color: var(--ink-3); font-size: 0.78rem; }
+
+/* ---------- Butler-inspired data visualization ---------- */
+.recharts-cartesian-axis-tick-value { fill: var(--ink-2); }
+.recharts-cartesian-grid-horizontal line { stroke: var(--chart-grid); }
+.recharts-cartesian-grid-vertical line { stroke: transparent; }
+.recharts-tooltip-cursor { fill: rgba(91,87,216,.05); }
+.recharts-default-tooltip { border-color: var(--rule) !important; border-radius: var(--radius-s) !important; box-shadow: 0 4px 14px rgba(25,30,40,.08) !important; }
+.recharts-brush { opacity: .9; }
+.recharts-brush-slide { fill: var(--accent-soft); fill-opacity: 1; }
+.recharts-brush-traveller { fill: var(--accent); }
