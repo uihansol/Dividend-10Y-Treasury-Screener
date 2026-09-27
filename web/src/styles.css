@@ -294,12 +294,28 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .tab.on { color: var(--ink); font-weight: 600; border-bottom-color: var(--accent); }
 
 /* ---------- 최근 조회 ---------- */
-.recent { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; }
-.recent-label { font-size: 0.8rem; color: var(--ink-3); margin-right: 2px; }
-.recent-chip { display: inline-flex; align-items: baseline; gap: 5px; padding: 5px 11px; border: 1px solid var(--rule);
-  border-radius: 999px; font-size: 0.85rem; color: var(--ink); text-decoration: none; min-height: 32px; align-items: center; }
+.recent-section { margin-top: 10px; }
+.recent-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.recent-title { display: flex; align-items: baseline; gap: 6px; }
+.recent-label { font-size: 0.8rem; color: var(--ink-3); }
+.recent-count { color: var(--ink-3); font-size: 0.75rem; }
+.recent-actions { display: flex; align-items: center; gap: 6px; }
+.recent-edit-btn, .recent-delete-btn { min-height: 32px; padding: 5px 10px; border: 1px solid var(--rule); border-radius: var(--radius-s); background: transparent; color: var(--ink-2); font: inherit; font-size: 0.82rem; cursor: pointer; }
+.recent-edit-btn:hover, .recent-edit-btn.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.recent-delete-btn { border-color: var(--neg); color: var(--neg); }
+.recent-delete-btn:hover { background: color-mix(in srgb, var(--neg) 8%, transparent); }
+.recent-hint, .recent-swipe-hint { margin: 5px 0 7px; color: var(--ink-3); font-size: 0.76rem; }
+.recent-list { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.recent-swipe-row { position: relative; display: inline-flex; overflow: hidden; border-radius: 999px; }
+.recent-swipe-content { display: inline-flex; align-items: center; gap: 5px; position: relative; z-index: 1; transition: transform .18s ease; }
+.recent-swipe-row.swiped .recent-swipe-content { transform: translateX(-58px); }
+.recent-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border: 1px solid var(--rule);
+  border-radius: 999px; font-size: 0.85rem; color: var(--ink); text-decoration: none; min-height: 32px; background: var(--surface); }
 .recent-chip:hover { border-color: var(--accent); }
 .recent-chip .code { color: var(--ink-3); font-size: 0.78rem; }
+.recent-swipe-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 58px; border: 0; background: var(--neg); color: #fff; font: inherit; font-size: 0.78rem; cursor: pointer; }
+.recent-check { width: 18px; height: 18px; margin: 0 2px 0 7px; accent-color: var(--accent); }
+.recent-swipe-hint { display: none; }
 
 /* ---------- Butler-inspired data visualization ---------- */
 .recharts-cartesian-axis-tick-value { fill: var(--ink-2); }
