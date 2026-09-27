@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import {
-  Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceDot, ReferenceLine,
+  Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, ReferenceDot, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import type { Detail } from "../lib/types";
@@ -27,6 +27,10 @@ export function DetailPage({ d }: { d: Detail }) {
   }, [d]);
 
   const s = d.summary, st = d.multiple_stats, p = d.persistence;
+  const rateCompare = useMemo(() => [
+    { name: "배당수익률", v: s.yield ?? 0, fill: C.accent },
+    { name: "미국 10년물", v: d.us10y ?? 0, fill: C.band },
+  ], [s.yield, d.us10y]);
   const yMax = st ? Math.max(st.p90 * 1.8, st.current * 1.25) : undefined;
   const last = series[series.length - 1];
   const total = d.components.reduce((a, c) => a + c.dps, 0);
@@ -71,6 +75,48 @@ export function DetailPage({ d }: { d: Detail }) {
           </tbody>
         </table>
         {s.flags.length > 0 && <ul className="flags">{s.flags.map((f) => <li key={f}>{flagText(f)}</li>)}</ul>}
+      </section>
+
+      <section className="panel">
+        <h2>오늘, 배당수익률 vs 미국 10년물</h2>
+        {s.yield != null && d.us10y != null ? (
+          <>
+            <div className="chart compare">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={rateCompare} layout="vertical" margin={{ top: 4, right: 44, left: 0, bottom: 4 }}>
+                  <XAxis type="number" hide domain={[0, (dataMax: number) => dataMax * 1.15]} />
+                  <YAxis type="category" dataKey="name" width={104} tickLine={false} axisLine={false} tick={{ fontSize: 13 }} />
+                  <Bar dataKey="v" barSize={22} radius={[0, 4, 4, 0]} isAnimationActive={false}
+                    label={{ position: "right", formatter: (v: number) => pct(v), fontSize: 13, fill: "var(--ink-2)" }}>
+                    {rateCompare.map((r) => <Cell key={r.name} fill={r.fill} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="note">
+              {s.multiple != null
+                ? `배당수익률이 미국 10년물의 ${mult(s.multiple)} 수준입니다.`
+                : "미국 10년물이 0% 이하라 배수를 계산하지 않습니다."}
+            </p>
+          </>
+        ) : <p className="empty-msg">미국 10년물 데이터가 없어 비교할 수 없습니다.</p>}
+      </section>
+
+      <section className="panel">
+        <h2>배당수익률 vs 미국 10년물, 최근 10년</h2>
+        <div className="chart">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid stroke={C.grid} vertical={false} />
+              <XAxis dataKey="date" ticks={ticks} tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
+              <YAxis width={44} tick={{ fontSize: 12 }} tickFormatter={(v: number) => `${v.toFixed(1)}%`} />
+              <Tooltip formatter={(v: number, n: string) => [pct(v), n]} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Line dataKey="y" name="배당수익률" stroke={C.accent} dot={false} strokeWidth={1.3} isAnimationActive={false} />
+              <Line dataKey="u" name="미국 10년물" stroke={C.band} dot={false} strokeWidth={1} isAnimationActive={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </section>
 
       <section className="panel">
@@ -148,23 +194,6 @@ export function DetailPage({ d }: { d: Detail }) {
             <dt>10년 전 DPS 대비 현재</dt><dd>{p.vs10y != null ? `${p.vs10y.toFixed(2)}배` : NA}
               {p.dps10y_ago != null && <small> ({p.latest_fy != null ? p.latest_fy - 10 : ""}년 {won(p.dps10y_ago)}원)</small>}</dd>
           </dl>
-        </div>
-      </section>
-
-      <section className="panel">
-        <h2>배당수익률, 최근 10년</h2>
-        <div className="chart">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke={C.grid} vertical={false} />
-              <XAxis dataKey="date" ticks={ticks} tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
-              <YAxis width={44} tick={{ fontSize: 12 }} tickFormatter={(v: number) => `${v.toFixed(1)}%`} />
-              <Tooltip formatter={(v: number, n: string) => [pct(v), n]} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Line dataKey="y" name="배당수익률" stroke={C.accent} dot={false} strokeWidth={1.3} isAnimationActive={false} />
-              <Line dataKey="u" name="미국 10년물" stroke={C.band} dot={false} strokeWidth={1} isAnimationActive={false} />
-            </LineChart>
-          </ResponsiveContainer>
         </div>
       </section>
 

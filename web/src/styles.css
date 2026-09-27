@@ -133,6 +133,7 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .chart { height: 260px; }
 .chart.tall { height: 340px; }
+.chart.compare { height: 96px; }
 .composition { border-collapse: collapse; min-width: min(420px, 100%); }
 .composition td { padding: 6px 12px 6px 0; }
 .composition .num { text-align: right; font-weight: 500; }
