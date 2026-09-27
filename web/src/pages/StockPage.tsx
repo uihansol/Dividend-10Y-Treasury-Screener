@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { getRun, getStock, requestRefresh } from "../lib/data";
 import type { Detail, MasterStock, RunInfo } from "../lib/types";
 import { SearchBox } from "../components/SearchBox";
@@ -37,17 +37,12 @@ export function StockPage({ code, master, onPick }: {
   const alive = useRef(true);
   const name = master?.find((s) => s.code === code)?.name ?? code;
 
-  useEffect(() => {
-    alive.current = true;
-    setPhase({ kind: "loading" });
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    run().catch((e) => alive.current && setPhase({ kind: "error", message: `서버에 연결하지 못했습니다 (${e.message}).` }));
-    return () => { alive.current = false; clearInterval(t); };
-
-    async function run() {
+  /** force=true: 캐시가 최신이어도(쿨다운 무시) 다시 수집·계산을 요청한다. 새로고침 버튼이 쓴다. */
+  const run = useCallback(async (force: boolean) => {
+    try {
       const first = await getStock(code);
       if (!alive.current) return;
-      if (first.status === "ready" && !first.stale) {
+      if (!force && first.status === "ready" && !first.stale) {
         setPhase({ kind: "ready", data: first.analysis, refreshing: false });
         return;
       }
@@ -55,21 +50,21 @@ export function StockPage({ code, master, onPick }: {
       if (first.status === "ready") setPhase({ kind: "ready", data: first.analysis, refreshing: true });
       else setPhase({ kind: "preparing", since: Date.now() });
 
-      const r = await requestRefresh(code);
+      const r = await requestRefresh(code, force);
       if (r.status === "error") throw new Error(r.error ?? "업데이트 요청 실패");
       const started = Date.now();
       while (alive.current && Date.now() - started < TIMEOUT_MS) {
         await new Promise((res) => setTimeout(res, POLL_MS));
         if (!alive.current) return;
-        const [s, run] = await Promise.all([getStock(code), getRun(code).catch(() => ({ run: null }))]);
+        const [s, runInfo] = await Promise.all([getStock(code), getRun(code).catch(() => ({ run: null }))]);
         if (s.status === "ready" && s.analysis.metadata?.last_attempt !== before) {
           const errs = s.analysis.metadata?.last_error;
           setPhase({ kind: "ready", data: s.analysis, refreshing: false,
             note: errs ? `일부 데이터 업데이트 실패(${Object.keys(errs).join(", ")}) — 기존 캐시로 계산했습니다.` : undefined });
           return;
         }
-        const failed = run.run && run.run.status === "completed" && run.run.conclusion !== "success"
-          && new Date(run.run.created_at).getTime() >= started - 60_000;
+        const failed = runInfo.run && runInfo.run.status === "completed" && runInfo.run.conclusion !== "success"
+          && new Date(runInfo.run.created_at).getTime() >= started - 60_000;
         if (failed) {
           if (s.status === "ready") {
             setPhase({ kind: "ready", data: s.analysis, refreshing: false, note: "최신 데이터 확인에 실패해 저장된 데이터를 보여줍니다." });
@@ -78,21 +73,40 @@ export function StockPage({ code, master, onPick }: {
           }
           return;
         }
-        setPhase((p) => (p.kind === "preparing" ? { ...p, run: run.run ?? undefined } : p));
+        setPhase((p) => (p.kind === "preparing" ? { ...p, run: runInfo.run ?? undefined } : p));
       }
       if (alive.current) {
         setPhase((p) => (p.kind === "ready" ? { ...p, refreshing: false, note: "최신 데이터 확인이 오래 걸려 저장된 데이터를 보여줍니다." }
           : { kind: "error", message: `${name} 데이터를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.` }));
       }
+    } catch (e) {
+      if (alive.current) setPhase({ kind: "error", message: `서버에 연결하지 못했습니다 (${(e as Error).message}).` });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code]);
+
+  useEffect(() => {
+    alive.current = true;
+    setPhase({ kind: "loading" });
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    run(false);
+    return () => { alive.current = false; clearInterval(t); };
+  }, [code, run]);
+
+  const refreshing = phase.kind === "ready" && phase.refreshing;
 
   return (
     <>
       <div className="page top-search">
         <a href="#/" className="back">← 조회한 종목</a>
         <SearchBox master={master} onPick={onPick} />
+        {phase.kind === "ready" && (
+          <button type="button" className="btn refresh-btn" disabled={refreshing} onClick={() => run(true)}
+            title="이 종목의 최신 가격·배당 데이터를 다시 불러옵니다">
+            <span className={`refresh-icon${refreshing ? " spin" : ""}`} aria-hidden>⟳</span>
+            {refreshing ? "새로고침 중…" : "새로고침"}
+          </button>
+        )}
       </div>
       {phase.kind === "loading" && <main className="page"><p className="loading">{name} 불러오는 중…</p></main>}
       {phase.kind === "error" && <main className="page"><p className="err big">{phase.message}</p></main>}

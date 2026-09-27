@@ -23,8 +23,11 @@ export type StockResponse =
   | { status: "ready"; code: string; stale: boolean; analysis: Detail };
 
 export const getStock = (code: string) => getJson<StockResponse>(`api/stock/${code}`);
-export const requestRefresh = (code: string) =>
-  getJson<{ status: "queued" | "running" | "error"; run?: RunInfo; error?: string }>(`api/stock/${code}/refresh`, { method: "POST" });
+/** force=true: 최신 여부와 상관없이(캐시 쿨다운 무시) 다시 수집·계산한다. 사용자가 "새로고침"을 눌렀을 때 쓴다. */
+export const requestRefresh = (code: string, force = false) =>
+  getJson<{ status: "queued" | "running" | "error"; run?: RunInfo; error?: string }>(`api/stock/${code}/refresh`, {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ force }),
+  });
 export const getRun = (code: string) => getJson<{ run: RunInfo | null }>(`api/stock/${code}/run`);
 
 // ---------------------------------------------------------------- 로컬 검색

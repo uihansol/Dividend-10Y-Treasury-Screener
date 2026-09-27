@@ -136,21 +136,12 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .chart { height: 260px; }
 .chart.tall { height: 340px; }
 .chart.compare { height: 96px; }
-.chart.price { height: 160px; margin-top: 4px; }
 .chart.brush-nav { height: 48px; margin-top: 2px; }
 
 /* 차트 항목 선택/해제 (범례가 있는 recharts 차트) */
 .recharts-legend-item { cursor: pointer; padding: 3px 6px; border-radius: var(--radius-s); }
 .recharts-legend-item:hover { background: var(--accent-soft); }
 .legend-off { opacity: 0.4; text-decoration: line-through; }
-
-/* 단일 계열 차트용 이름 토글 칩 */
-.chip-legend { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0 0 10px; padding: 0; }
-.chip { display: inline-flex; align-items: center; gap: 7px; background: var(--paper); border: 1px solid var(--rule);
-  border-radius: 999px; padding: 7px 13px; font: inherit; font-size: 0.88rem; color: var(--ink); cursor: pointer;
-  min-height: 36px; }
-.chip-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-.chip.off { opacity: 0.45; text-decoration: line-through; background: transparent; }
 
 /* 확대(zoom) 안내·초기화 */
 .zoom-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; margin: 6px 0 2px; }
@@ -192,7 +183,6 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
   .card { flex-basis: 132px; }
   .two-col { grid-template-columns: 1fr; }
   .chart.tall { height: 300px; }
-  .chart.price { height: 150px; }
 }
 
 @media (max-width: 720px) {
@@ -206,16 +196,13 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
   .gauge-track { width: 56px; }
   .status-table { display: block; overflow-x: auto; }
   .chart.tall { height: 280px; }
-  .chart.price { height: 140px; }
   .chart.brush-nav { height: 44px; }
   .panel { padding: 14px 12px; }
-  .chip { padding: 8px 12px; }
   .zoom-row { flex-direction: column; align-items: flex-start; gap: 6px; }
 }
 
 /* 터치 화면에서는 hover로만 보이던 상태를 늘 보이게: 범례·칩이 항상 눌러볼 수 있는 것처럼 보이게 */
 @media (hover: none) {
-  .chip { border-color: var(--ink-3); }
   .recharts-legend-item { text-decoration: underline dotted; text-underline-offset: 3px; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
@@ -237,6 +224,12 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .search-list .search-empty { color: var(--ink-3); cursor: default; display: block; }
 .top-search { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: flex-end; padding-bottom: 0; }
 .top-search .search { flex: 1 1 280px; }
+.refresh-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.refresh-btn:disabled { opacity: 0.6; cursor: default; }
+.refresh-icon { display: inline-block; font-size: 1.05em; line-height: 1; }
+.refresh-icon.spin { animation: refresh-spin 1s linear infinite; }
+@keyframes refresh-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .refresh-icon.spin { animation: none; } }
 .list-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
 .list-head h2 { font-size: 1.05rem; margin: 0; }
 .preparing h2 { font-size: 1.15rem; }

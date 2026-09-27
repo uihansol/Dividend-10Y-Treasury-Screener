@@ -14,6 +14,7 @@ Cloudflare Worker  /api/*   (web/worker.js)
   ├ GET  /api/index               조회한 종목 목록  ← 저장소 data/cache/index.json
   ├ GET  /api/stock/{code}        분석 결과 + stale 여부 ← data/cache/stocks/{code}/analysis.json
   ├ POST /api/stock/{code}/refresh GitHub Actions 'Analyze stock' 실행 (같은 종목 실행 중이면 생략)
+  │   body {"force": true} 이면 캐시가 최신이어도 다시 수집·계산 (화면의 "새로고침" 버튼이 씀)
   └ GET  /api/stock/{code}/run    최근 실행 상태 + 진행 단계(①~④)
   ▼
 GitHub Actions  analyze-stock.yml  (Python: pykrx + OpenDART + FRED → pipeline/engine.py)
