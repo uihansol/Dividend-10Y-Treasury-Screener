@@ -297,9 +297,9 @@ export function DetailPage({ d }: { d: Detail }) {
                   <Tooltip formatter={(v: number, n: string) => [n === "주가" ? `${won(v)}원` : mult(v), n]}
                     labelFormatter={(l: string) => l} />
                   <Legend wrapperStyle={{ fontSize: 12 }} onClick={togM.onLegendClick} formatter={togM.legendFormatter} />
-                  {([["p90", "90%"], ["p75", "75%"], ["p50", "50%"], ["p25", "25%"], ["p10", "10%"]] as const).map(([k, lab]) => (
-                    <ReferenceLine key={k} yAxisId="mult" y={st[k]} stroke={C.band} strokeDasharray={k === "p50" ? undefined : "3 4"}
-                      label={{ value: `${lab} ${st[k].toFixed(2)}`, position: "insideTopLeft", fontSize: 11, fill: "var(--ink-2)" }} />
+                  {([["p90", "상단"], ["p10", "하단"]] as const).map(([k, lab]) => (
+                    <ReferenceLine key={k} yAxisId="mult" y={st[k]} stroke={C.band} strokeDasharray="3 4"
+                      label={{ value: lab + " " + st[k].toFixed(2), position: k === "p90" ? "insideTopLeft" : "insideBottomLeft", fontSize: 11, fill: "var(--ink-2)" }} />
                   ))}
                   <Line yAxisId="mult" type="monotone" dataKey="m" name="배당/10Y" stroke={C.line} dot={false} strokeWidth={2}
                     isAnimationActive={false} connectNulls={false} hide={togM.isHidden("m")} />
