@@ -1,0 +1,610 @@
+{
+ "log": {
+  "2026-H1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:49+09:00"
+  },
+  "2026-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:50+09:00"
+  },
+  "2025-FY": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:50+09:00"
+  },
+  "2025-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:51+09:00"
+  },
+  "2025-H1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:51+09:00"
+  },
+  "2025-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:51+09:00"
+  },
+  "2024-FY": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:52+09:00"
+  },
+  "2024-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:52+09:00"
+  },
+  "2024-H1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:53+09:00"
+  },
+  "2024-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:53+09:00"
+  },
+  "2023-FY": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:53+09:00"
+  },
+  "2023-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:54+09:00"
+  },
+  "2023-H1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:54+09:00"
+  },
+  "2023-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:55+09:00"
+  },
+  "2022-FY": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:55+09:00"
+  },
+  "2022-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:55+09:00"
+  },
+  "2022-H1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:56+09:00"
+  },
+  "2022-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:56+09:00"
+  },
+  "2021-FY": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:57+09:00"
+  },
+  "2021-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:57+09:00"
+  },
+  "2021-H1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:57+09:00"
+  },
+  "2021-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:58+09:00"
+  },
+  "2020-FY": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:58+09:00"
+  },
+  "2020-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:59+09:00"
+  },
+  "2020-H1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:05:59+09:00"
+  },
+  "2020-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:00+09:00"
+  },
+  "2019-FY": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:00+09:00"
+  },
+  "2019-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:00+09:00"
+  },
+  "2019-H1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:01+09:00"
+  },
+  "2019-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:01+09:00"
+  },
+  "2018-FY": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:02+09:00"
+  },
+  "2018-Q3": {
+   "status": "no_row",
+   "fetched_at": "2026-09-28T01:06:02+09:00"
+  },
+  "2018-H1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:02+09:00"
+  },
+  "2018-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:03+09:00"
+  },
+  "2017-FY": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:03+09:00"
+  },
+  "2017-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:04+09:00"
+  },
+  "2017-H1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:04+09:00"
+  },
+  "2017-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:05+09:00"
+  },
+  "2016-FY": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:05+09:00"
+  },
+  "2016-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:05+09:00"
+  },
+  "2016-H1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:06+09:00"
+  },
+  "2016-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:06+09:00"
+  },
+  "2015-FY": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:07+09:00"
+  },
+  "2015-Q3": {
+   "status": "no_data",
+   "fetched_at": "2026-09-28T01:06:07+09:00"
+  },
+  "2015-H1": {
+   "status": "no_data",
+   "fetched_at": "2026-09-28T01:06:07+09:00"
+  },
+  "2015-Q1": {
+   "status": "no_data",
+   "fetched_at": "2026-09-28T01:06:08+09:00"
+  }
+ },
+ "reports": [
+  {
+   "fiscal_year": 2015,
+   "period": "FY",
+   "cum_dps": 1350.0,
+   "rcept_no": "20160330003575",
+   "confirmed_date": "2016-03-30",
+   "basis_date": "2015-12-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2016,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20160516003447",
+   "confirmed_date": "2016-05-16",
+   "basis_date": "2016-03-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2016,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20160816001769",
+   "confirmed_date": "2016-08-16",
+   "basis_date": "2016-06-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2016,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20161114002034",
+   "confirmed_date": "2016-11-14",
+   "basis_date": "2016-09-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2016,
+   "period": "FY",
+   "cum_dps": 1350.0,
+   "rcept_no": "20170331004642",
+   "confirmed_date": "2017-03-31",
+   "basis_date": "2016-12-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2017,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20170515004069",
+   "confirmed_date": "2017-05-15",
+   "basis_date": "2017-03-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2017,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20170814002082",
+   "confirmed_date": "2017-08-14",
+   "basis_date": "2017-06-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2017,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20171114001859",
+   "confirmed_date": "2017-11-14",
+   "basis_date": "2017-09-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2017,
+   "period": "FY",
+   "cum_dps": 1450.0,
+   "rcept_no": "20180330003087",
+   "confirmed_date": "2018-03-30",
+   "basis_date": "2017-12-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2018,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20180515002008",
+   "confirmed_date": "2018-05-15",
+   "basis_date": "2018-03-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2018,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20180814002904",
+   "confirmed_date": "2018-08-14",
+   "basis_date": "2018-06-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2018,
+   "period": "FY",
+   "cum_dps": 1450.0,
+   "rcept_no": "20190329004141",
+   "confirmed_date": "2019-03-29",
+   "basis_date": "2018-12-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2019,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20190515001988",
+   "confirmed_date": "2019-05-15",
+   "basis_date": "2019-03-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2019,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20190814002317",
+   "confirmed_date": "2019-08-14",
+   "basis_date": "2019-06-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2019,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20191114002093",
+   "confirmed_date": "2019-11-14",
+   "basis_date": "2019-09-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2019,
+   "period": "FY",
+   "cum_dps": 1850.0,
+   "rcept_no": "20200330004294",
+   "confirmed_date": "2020-03-30",
+   "basis_date": "2019-12-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2020,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20200518000081",
+   "confirmed_date": "2020-05-18",
+   "basis_date": "2020-03-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2020,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20200814002060",
+   "confirmed_date": "2020-08-14",
+   "basis_date": "2020-06-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2020,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20201116001900",
+   "confirmed_date": "2020-11-16",
+   "basis_date": "2020-09-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2020,
+   "period": "FY",
+   "cum_dps": 2000.0,
+   "rcept_no": "20210323001025",
+   "confirmed_date": "2021-03-23",
+   "basis_date": "2020-12-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2021,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20210517001459",
+   "confirmed_date": "2021-05-17",
+   "basis_date": "2021-03-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2021,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20210817001646",
+   "confirmed_date": "2021-08-17",
+   "basis_date": "2021-06-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2021,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20211115002092",
+   "confirmed_date": "2021-11-15",
+   "basis_date": "2021-09-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2021,
+   "period": "FY",
+   "cum_dps": 2300.0,
+   "rcept_no": "20220321001352",
+   "confirmed_date": "2022-03-21",
+   "basis_date": "2021-12-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2022,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20220516002143",
+   "confirmed_date": "2022-05-16",
+   "basis_date": "2022-03-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2022,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20220816001727",
+   "confirmed_date": "2022-08-16",
+   "basis_date": "2022-06-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2022,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20221114002261",
+   "confirmed_date": "2022-11-14",
+   "basis_date": "2022-09-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2022,
+   "period": "FY",
+   "cum_dps": 2500.0,
+   "rcept_no": "20230321001305",
+   "confirmed_date": "2023-03-21",
+   "basis_date": "2022-12-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2023,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20230515002777",
+   "confirmed_date": "2023-05-15",
+   "basis_date": "2023-03-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2023,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20230814002962",
+   "confirmed_date": "2023-08-14",
+   "basis_date": "2023-06-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2023,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20231114002304",
+   "confirmed_date": "2023-11-14",
+   "basis_date": "2023-09-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2023,
+   "period": "FY",
+   "cum_dps": 3000.0,
+   "rcept_no": "20240320001996",
+   "confirmed_date": "2024-03-20",
+   "basis_date": "2023-12-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2024,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20240516001598",
+   "confirmed_date": "2024-05-16",
+   "basis_date": "2024-03-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2024,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20240814003065",
+   "confirmed_date": "2024-08-14",
+   "basis_date": "2024-06-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2024,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20241114002720",
+   "confirmed_date": "2024-11-14",
+   "basis_date": "2024-09-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2024,
+   "period": "FY",
+   "cum_dps": 3000.0,
+   "rcept_no": "20250325000721",
+   "confirmed_date": "2025-03-25",
+   "basis_date": "2024-12-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2025,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20250515002018",
+   "confirmed_date": "2025-05-15",
+   "basis_date": "2025-03-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2025,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20250814001942",
+   "confirmed_date": "2025-08-14",
+   "basis_date": "2025-06-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2025,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20251114001784",
+   "confirmed_date": "2025-11-14",
+   "basis_date": "2025-09-30",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2025,
+   "period": "FY",
+   "cum_dps": 3300.0,
+   "rcept_no": "20260318001509",
+   "confirmed_date": "2026-03-18",
+   "basis_date": "2025-12-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2026,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20260515001949",
+   "confirmed_date": "2026-05-15",
+   "basis_date": "2026-03-31",
+   "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2026,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20260814002852",
+   "confirmed_date": "2026-08-14",
+   "basis_date": "2026-06-30",
+   "stock_knd": "보통주"
+  }
+ ],
+ "announcements": {
+  "20260810800751": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:10+09:00",
+   "rcept_no": "20260810800751",
+   "confirmed_date": "2026-08-10",
+   "basis_date": "2026-08-31",
+   "amount": 1500.0
+  },
+  "20260511800794": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:10+09:00",
+   "rcept_no": "20260511800794",
+   "confirmed_date": "2026-05-11",
+   "basis_date": "2026-05-31",
+   "amount": 1500.0
+  },
+  "20260210800456": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:10+09:00",
+   "rcept_no": "20260210800456",
+   "confirmed_date": "2026-02-10",
+   "basis_date": "2026-03-31",
+   "amount": 3300.0
+  },
+  "20260209801583": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:10+09:00",
+   "rcept_no": "20260209801583",
+   "confirmed_date": "2026-02-09",
+   "basis_date": "2026-03-31",
+   "amount": 3300.0
+  },
+  "20260209801562": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T01:06:11+09:00",
+   "rcept_no": "20260209801562",
+   "confirmed_date": "2026-02-09",
+   "basis_date": "2026-02-28",
+   "amount": 1500.0
+  }
+ }
+}
