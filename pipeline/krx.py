@@ -143,6 +143,25 @@ def update_prices(start: str | None = None, max_days: int | None = None) -> dict
         return {"ok": False, "error": repr(e), "fetched_days": fetched}
 
 
+def _safe_stock_name(stock, code: str, retries: int = 3) -> str | None:
+    """KRX 종목명 조회 실패 시 재시도한다.
+
+    pykrx는 KRX 응답이 일시적으로 비어 있으면 내부에서
+    'NoneType' object is not subscriptable를 로그로 남기고
+    None을 반환할 수 있다. 초기 구축에서는 이 한 건 때문에 전체
+    파이프라인을 실패시키지 않도록 짧게 재시도한다.
+    """
+    for attempt in range(retries):
+        try:
+            name = stock.get_market_ticker_name(code)
+            if isinstance(name, str) and name.strip():
+                return name.strip()
+        except Exception:
+            pass
+        time.sleep(0.5 * (attempt + 1))
+    return None
+
+
 def update_stock_list() -> dict:
     """가장 최근 저장 거래일 기준 종목 목록. 이름은 새 종목만 조회한다."""
     from .store import load_prices
@@ -165,12 +184,19 @@ def update_stock_list() -> dict:
 
         stock = _stock()
         rows = []
+        name_failures = 0
         for _, r in day.iterrows():
-            code = r["stock_code"]
+            code = str(r["stock_code"]).zfill(6)
             name = names.get(code)
             if not name or name == "nan":
-                name = stock.get_market_ticker_name(code)
-                time.sleep(0.05)
+                name = _safe_stock_name(stock, code)
+
+            # KRX가 일시적으로 종목명을 주지 않는 경우에도
+            # 해당 종목의 가격/배당 데이터 수집은 계속할 수 있도록
+            # 종목코드를 임시 이름으로 사용한다. 다음 증분 실행에서 재조회한다.
+            if not name:
+                name = f"종목({code})"
+                name_failures += 1
 
             rows.append({
                 "stock_code": code,
@@ -200,8 +226,11 @@ def update_stock_list() -> dict:
         out = pd.concat([new, gone], ignore_index=True)
         out.to_csv(C.STOCKS_CSV, index=False)
 
-        mark_source("stocks", True, data_through=latest_iso, note=f"{len(new)} listed")
-        return {"ok": True, "listed": len(new)}
+        note = f"{len(new)} listed"
+        if name_failures:
+            note += f", {name_failures} names temporarily unresolved"
+        mark_source("stocks", True, data_through=latest_iso, note=note)
+        return {"ok": True, "listed": len(new), "name_failures": name_failures}
 
     except Exception as e:
         mark_source("stocks", False, error=repr(e))
