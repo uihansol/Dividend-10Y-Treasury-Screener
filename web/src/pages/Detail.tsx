@@ -172,6 +172,18 @@ export function DetailPage({ d }: { d: Detail }) {
   // 배당/10Y 배수 + 주가 (같은 기간을 함께 보므로 확대·범위는 하나로 동기화한다)
   const zoomM = useZoom(series.length);
   const viewM = series.slice(zoomM.range.startIndex, zoomM.range.endIndex + 1);
+  type BandPeriod = 3 | 5 | 10 | "all";
+  const [bandPeriod, setBandPeriod] = useState<BandPeriod>("all");
+  const bandPeriodStart = useMemo(() => {
+    if (bandPeriod === "all") return 0;
+    const latest = series[series.length - 1]?.date;
+    if (!latest) return 0;
+    const end = new Date(latest + "T00:00:00");
+    end.setFullYear(end.getFullYear() - bandPeriod);
+    const cutoff = end.toISOString().slice(0, 10);
+    return Math.max(0, series.findIndex((row) => row.date >= cutoff));
+  }, [series, bandPeriod]);
+  const bandPeriodView = series.slice(bandPeriodStart);
   const ticksM = yearTicks(viewM);
   const yMax = st ? Math.max(st.p90 * 1.8, st.current * 1.25) : undefined;
   const lastM = viewM[viewM.length - 1];
@@ -296,35 +308,39 @@ export function DetailPage({ d }: { d: Detail }) {
       <div style={show("밴드")}>
       <section className="panel">
         <div className="panel-head">
-          <h2>배당/10Y 배수 &amp; 주가, 최근 10년</h2>
+          <h2>배당/10Y 배수</h2>
         </div>
         {st ? (
           <>
             <div className="chart tall">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={viewM} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <LineChart data={bandPeriodView} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke={C.grid} vertical={false} />
                   <XAxis dataKey="date" ticks={ticksM} tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
                   {/* 세로축만 둘로 나눈 한 차트: 왼쪽=배당/10Y 배수, 오른쪽=주가(원). 각 축 눈금을 해당 선 색으로 칠해 구분한다. */}
                   <YAxis yAxisId="mult" domain={[0, yMax ?? "auto"]} allowDataOverflow width={44}
                     tick={{ fontSize: 12, fill: C.line }} tickFormatter={(v: number) => `${v.toFixed(1)}x`} />
-                  <YAxis yAxisId="price" orientation="right" domain={["auto", "auto"]} width={64}
-                    tick={{ fontSize: 12, fill: C.price }} tickFormatter={(v: number) => won(v)} />
                   <Tooltip content={<BandTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} onClick={togM.onLegendClick} formatter={togM.legendFormatter} />
                   {([["p90", "상단"], ["p10", "하단"]] as const).map(([k, lab]) => (
                     <ReferenceLine key={k} yAxisId="mult" y={st[k]} stroke={C.band} strokeDasharray="3 4"
                       label={{ value: lab + " " + st[k].toFixed(2), position: k === "p90" ? "insideTopLeft" : "insideBottomLeft", fontSize: 11, fill: "var(--ink-2)" }} />
                   ))}
-                  <Line yAxisId="mult" type="monotone" dataKey="m" name="배당/10Y" stroke={C.line} dot={false} strokeWidth={2}
+                  <Line yAxisId="mult" type="monotone" dataKey="m" name="배당/10Y" stroke={C.line} dot={false} strokeWidth={2.5}
                     isAnimationActive={false} connectNulls={false} hide={togM.isHidden("m")} />
-                  <Line yAxisId="price" type="monotone" dataKey="px" name="주가" stroke={C.price} dot={false} strokeWidth={2}
-                    isAnimationActive={false} connectNulls={false} hide={togM.isHidden("px")} />
                   {lastM?.m != null && !togM.isHidden("m") && (
                     <ReferenceDot yAxisId="mult" x={lastM.date} y={lastM.m} r={5} fill={C.line} stroke="var(--surface)" />
                   )}
                 </LineChart>
               </ResponsiveContainer>
+            </div>
+            <div className="band-periods" role="group" aria-label="밴드 차트 기간 선택">
+              {([[3, "3년"], [5, "5년"], [10, "10년"], ["all", "전체"]] as const).map(([value, label]) => (
+                <button key={String(value)} type="button" className={bandPeriod === value ? "on" : ""}
+                  onClick={() => setBandPeriod(value as BandPeriod)} aria-pressed={bandPeriod === value}>
+                  {label}
+                </button>
+              ))}
             </div>
             <div className="chart brush-nav">
               <ResponsiveContainer width="100%" height="100%">
@@ -345,9 +361,9 @@ export function DetailPage({ d }: { d: Detail }) {
               </tr></tbody>
             </table>
             <p className="note">
-              일별 표본 {st.n.toLocaleString()}개. 왼쪽 세로축(배당/10Y 배수)은 금리가 매우 낮았던 시기의 급등 구간을 자르고
-              표시합니다(최댓값 {mult(st.max)}). 백분위 계산에는 모든 값을 씁니다. 오른쪽 세로축은 주가(원)이며 단위가 달라
-              배수와 눈금을 공유하지 않습니다. 범례 이름을 누르면 그 선만 숨길 수 있습니다.
+              일별 표본 {st.n.toLocaleString()}개(역사적 백분위는 최근 10년 기준). 차트는 사용 가능한 전체 기간을
+              확인할 수 있으며, 아래 버튼으로 3년·5년·10년·전체 기간을 빠르게 선택할 수 있습니다. 낮은 금리 시기의
+              배수 급등 구간은 표시 상한을 적용하지만 백분위 계산에는 모든 값을 사용합니다.
             </p>
           </>
         ) : <p className="empty-msg">배수를 계산할 수 있는 날이 20일 미만입니다.</p>}
