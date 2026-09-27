@@ -314,8 +314,7 @@ export function DetailPage({ d }: { d: Detail }) {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={bandPeriodView} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke={C.grid} vertical={false} />
-                  <XAxis dataKey="date" ticks={ticksM} tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
-                  {/* 세로축만 둘로 나눈 한 차트: 왼쪽=배당/10Y 배수, 오른쪽=주가(원). 각 축 눈금을 해당 선 색으로 칠해 구분한다. */}
+                  <XAxis dataKey="date" tickFormatter={(v: string) => v.slice(0, 4)} tick={{ fontSize: 12 }} />
                   <YAxis yAxisId="mult" domain={[0, yMax ?? "auto"]} allowDataOverflow width={44}
                     tick={{ fontSize: 12, fill: C.line }} tickFormatter={(v: number) => `${v.toFixed(1)}x`} />
                   <Tooltip content={<BandTooltip />} />
