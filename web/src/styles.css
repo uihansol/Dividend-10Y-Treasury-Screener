@@ -362,3 +362,9 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .tab-move button, .tab-reset { min-width: 32px; min-height: 32px; padding: 4px 8px; border: 1px solid var(--rule); border-radius: 5px; background: var(--surface); color: var(--ink-2); font: inherit; cursor: pointer; }
 .tab-move button:hover:not(:disabled), .tab-reset:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .tab-move button:disabled { opacity: .35; cursor: default; }
+
+.chart-tooltip-detail { min-width: 150px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); box-shadow: 0 4px 14px rgba(25,30,40,.08); font-size: 12px; }
+.chart-tooltip-date { margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid var(--rule); color: var(--ink); font-weight: 650; }
+.chart-tooltip-detail > div:not(.chart-tooltip-date) { display: flex; justify-content: space-between; gap: 18px; line-height: 1.65; }
+.chart-tooltip-detail span { color: var(--ink-2); }
+.chart-tooltip-detail strong { color: var(--ink); font-weight: 650; }
