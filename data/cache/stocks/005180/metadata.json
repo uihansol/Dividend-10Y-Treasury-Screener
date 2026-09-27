@@ -1,0 +1,56 @@
+{
+ "code": "005180",
+ "name": "빙그레",
+ "market": "KOSPI",
+ "price_through": "2026-09-23",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T00:36:12+09:00",
+ "updated_at": "2026-09-28T00:36:12+09:00",
+ "last_attempt": "2026-09-28T00:36:12+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2879,
+   "from": "2015-01-01"
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 39
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 1
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-09-25",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "summary": {
+  "code": "005180",
+  "name": "빙그레",
+  "market": "KOSPI",
+  "price": 84300.0,
+  "price_date": "2026-09-23",
+  "dps": 3300.0,
+  "yield": 3.9146,
+  "multiple": 0.7892,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 28.1,
+  "p10": 0.6561,
+  "p90": 2.1875,
+  "mcap": null,
+  "tv": 5500676800.0,
+  "has_div_data": true,
+  "flags": []
+ }
+}
