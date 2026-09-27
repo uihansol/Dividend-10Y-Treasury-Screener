@@ -203,7 +203,7 @@ export function DetailPage({ d }: { d: Detail }) {
   }, [bandPeriodView]);
   const bandYDomain: [number, number] = bandStats
     ? [bandStats.min, bandStats.max]
-    : [0, yMax ?? 1];
+    : [0, 1];
   const lastM = bandPeriodView[bandPeriodView.length - 1];
   const togM = useToggle();
 
