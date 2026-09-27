@@ -1,0 +1,58 @@
+{
+ "code": "000660",
+ "name": "SK하이닉스",
+ "market": "KOSPI",
+ "price_through": "2026-09-23",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T00:35:37+09:00",
+ "updated_at": "2026-09-28T00:35:37+09:00",
+ "last_attempt": "2026-09-28T00:35:37+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2879,
+   "from": "2015-01-01"
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 28
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 2
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-09-25",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "summary": {
+  "code": "000660",
+  "name": "SK하이닉스",
+  "market": "KOSPI",
+  "price": 1862000.0,
+  "price_date": "2026-09-23",
+  "dps": 2625.0,
+  "yield": 0.141,
+  "multiple": 0.0284,
+  "paid10": 6,
+  "known10": 6,
+  "paid5": 5,
+  "pct": 0.6,
+  "p10": 0.1207,
+  "p90": 0.8348,
+  "mcap": null,
+  "tv": 5480333530143.0,
+  "has_div_data": true,
+  "flags": [
+   "provisional_dividend_used"
+  ]
+ }
+}
