@@ -208,6 +208,8 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
   .panel { padding: 14px 6px; }
   .chart { width: calc(100% + 4px); margin-left: -2px; }
   .zoom-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .list-head { align-items: flex-start; }
+  .column-editor { right: 0; }
 }
 
 /* 터치 화면에서는 hover로만 보이던 상태를 늘 보이게: 범례·칩이 항상 눌러볼 수 있는 것처럼 보이게 */
@@ -241,6 +243,27 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 @media (prefers-reduced-motion: reduce) { .refresh-icon.spin { animation: none; } }
 .list-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
 .list-head h2 { font-size: 1.05rem; margin: 0; }
+.list-actions { position: relative; display: flex; align-items: center; gap: 8px; }
+.column-edit-btn { background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-s); padding: 6px 11px; min-height: 34px; color: var(--ink-2); cursor: pointer; font: inherit; font-size: 0.85rem; }
+.column-edit-btn:hover, .column-edit-btn.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.column-editor { position: absolute; z-index: 20; right: 0; top: calc(100% + 6px); width: min(300px, calc(100vw - 24px)); background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-s); box-shadow: 0 8px 24px rgba(25,30,40,.10); padding: 14px; }
+.column-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.column-editor p { margin: 0 0 10px; color: var(--ink-2); font-size: 12px; }
+.column-editor ol { list-style: none; padding: 0; margin: 0; }
+.column-editor li { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; border-top: 1px solid var(--rule); font-size: 13px; }
+.column-move { display: flex; gap: 4px; }
+.column-move button, .column-reset { min-width: 32px; min-height: 32px; padding: 4px 8px; border: 1px solid var(--rule); border-radius: 5px; background: var(--surface); color: var(--ink-2); font: inherit; cursor: pointer; }
+.column-move button:hover:not(:disabled), .column-reset:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.column-move button:disabled { opacity: .35; cursor: default; }
+
+.metric-th { position: relative !important; }
+.metric-title-wrap { position: relative; display: inline-flex; justify-content: flex-end; }
+.metric-title { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; font-size: inherit; cursor: pointer; white-space: nowrap; }
+.metric-title:hover { color: var(--ink); }
+.sort-indicator { color: var(--ink-3); font-size: 11px; line-height: 1; }
+.sort-menu { position: absolute; z-index: 30; right: 0; top: calc(100% + 5px); min-width: 116px; padding: 4px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-s); box-shadow: 0 8px 20px rgba(25,30,40,.10); }
+.sort-menu button { display: block; width: 100%; border: 0; border-radius: 4px; background: transparent; color: var(--ink); text-align: left; padding: 7px 9px; cursor: pointer; font: inherit; font-size: 12px; white-space: nowrap; }
+.sort-menu button:hover, .sort-menu button.selected { background: var(--accent-soft); color: var(--accent); }
 .preparing h2 { font-size: 1.15rem; }
 .steps { line-height: 2; padding-left: 0; list-style: none; }
 .steps .step-todo { opacity: .55; }
