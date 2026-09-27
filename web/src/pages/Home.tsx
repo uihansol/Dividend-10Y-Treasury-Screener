@@ -50,7 +50,6 @@ export function Home({ master, index, indexError, onPick }: {
   const [columns, setColumns] = useState<ColumnOrder>(() => loadColumnOrder());
   const [editingColumns, setEditingColumns] = useState(false);
   const [sort, setSort] = useState<SortState>(() => loadSort());
-  const [sortMenu, setSortMenu] = useState<MetricKey | null>(null);
 
   const saveColumns = (next: ColumnOrder) => {
     setColumns(next);
@@ -67,11 +66,12 @@ export function Home({ master, index, indexError, onPick }: {
 
   const resetColumns = () => saveColumns(DEFAULT_COLUMNS);
 
-  const chooseSort = (key: MetricKey, direction: SortDirection) => {
-    const next = { key, direction };
+  const toggleSort = (key: MetricKey) => {
+    const next: SortState = sort.key === key
+      ? { key, direction: sort.direction === "asc" ? "desc" : "asc" }
+      : { key, direction: "desc" };
     setSort(next);
     localStorage.setItem(SORT_KEY, JSON.stringify(next));
-    setSortMenu(null);
   };
 
   const rows = useMemo(() => {
@@ -152,13 +152,9 @@ export function Home({ master, index, indexError, onPick }: {
                 {columns.map((key) => (
                   <th key={key} className={`num metric-th${key === "multiple" ? " key" : ""}`}>
                     <div className="metric-title-wrap">
-                      <button type="button" className="metric-title" onClick={() => setSortMenu(sortMenu === key ? null : key)} aria-haspopup="menu" aria-expanded={sortMenu === key}>
+                      <button type="button" className="metric-title" onClick={() => toggleSort(key)} aria-label={`${COLUMN_LABELS[key]} 정렬`}>
                         {COLUMN_LABELS[key]} <span className="sort-indicator" aria-hidden="true">{sort.key === key ? (sort.direction === "asc" ? "↑" : "↓") : "↕"}</span>
                       </button>
-                      {sortMenu === key && <div className="sort-menu" role="menu">
-                        <button type="button" role="menuitem" className={sort.key === key && sort.direction === "asc" ? "selected" : ""} onClick={() => chooseSort(key, "asc")}>오름차순</button>
-                        <button type="button" role="menuitem" className={sort.key === key && sort.direction === "desc" ? "selected" : ""} onClick={() => chooseSort(key, "desc")}>내림차순</button>
-                      </div>}
                     </div>
                   </th>
                 ))}
