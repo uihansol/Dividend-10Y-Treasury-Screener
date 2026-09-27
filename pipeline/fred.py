@@ -45,9 +45,9 @@ def _fetch_api(start: date) -> pd.DataFrame:
 def _fetch_csv() -> pd.DataFrame:
     """키 없이 쓰는 FRED 그래프 CSV. 응답이 느린 경우가 있어 3번까지 재시도한다."""
     last_err = None
-    for attempt in range(3):
+    for attempt in range(2):
         try:
-            r = requests.get(FRED_CSV_URL, timeout=(10, 120),
+            r = requests.get(FRED_CSV_URL, timeout=(10, 45),
                              headers={"User-Agent": "Mozilla/5.0 (dividend-10y personal screener)"})
             r.raise_for_status()
             df = pd.read_csv(io.StringIO(r.text))
@@ -67,7 +67,10 @@ def update_us10y() -> dict:
     try:
         if C.FRED_API_KEY:
             start = (last - timedelta(days=7)) if last else date(2015, 1, 1)
-            new = _fetch_api(start)
+            try:
+                new = _fetch_api(start)
+            except Exception:
+                new = _fetch_csv()
         else:
             new = _fetch_csv()
         new["us10y"] = pd.to_numeric(new["us10y"], errors="coerce")  # '.' → NaN
