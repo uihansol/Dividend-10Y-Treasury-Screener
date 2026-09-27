@@ -214,7 +214,7 @@ export function DetailPage({ d }: { d: Detail }) {
             </p>
           </>
         ) : <p className="empty-msg">미국 10년물 데이터가 없어 비교할 수 없습니다.</p>}
-      </section
+      </section>
 
       <section className="panel">
         <h2>예상 DPS 구성</h2>
