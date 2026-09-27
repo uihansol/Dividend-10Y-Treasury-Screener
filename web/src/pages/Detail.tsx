@@ -403,7 +403,7 @@ export function DetailPage({ d }: { d: Detail }) {
                   onClick={() => {
                     const period = value as BandPeriod;
                     const start = getBandPeriodStart(period);
-                    zoomM.setRange(start, series.length - 1);
+                    setBandRangeDirect(start, series.length - 1);
                     setBandPeriod(period);
                   }} aria-pressed={bandPeriod === value}>
                   {label}
