@@ -1,0 +1,56 @@
+{
+ "code": "006800",
+ "name": "미래에셋증권",
+ "market": "KOSPI",
+ "price_through": "2026-09-23",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T00:52:51+09:00",
+ "updated_at": "2026-09-28T00:52:51+09:00",
+ "last_attempt": "2026-09-28T00:52:51+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2879,
+   "from": "2015-01-01"
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 42
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-09-25",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "summary": {
+  "code": "006800",
+  "name": "미래에셋증권",
+  "market": "KOSPI",
+  "price": 32250.0,
+  "price_date": "2026-09-23",
+  "dps": 300.0,
+  "yield": 0.9302,
+  "multiple": 0.1875,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 7.9,
+  "p10": 0.2265,
+  "p90": 2.3675,
+  "mcap": null,
+  "tv": 26091635875.0,
+  "has_div_data": true,
+  "flags": []
+ }
+}
