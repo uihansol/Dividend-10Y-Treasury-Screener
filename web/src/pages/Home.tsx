@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { CacheIndex, MasterStock } from "../lib/types";
 import { mult, pct, won, NA } from "../lib/format";
-import { loadRecent } from "../lib/recent";
+import { loadRecent, removeRecent, removeRecentMany, type RecentEntry } from "../lib/recent";
 import { BandGauge } from "../components/BandGauge";
 import { SearchBox } from "../components/SearchBox";
 
@@ -50,6 +50,10 @@ export function Home({ master, index, indexError, onPick }: {
   const [columns, setColumns] = useState<ColumnOrder>(() => loadColumnOrder());
   const [editingColumns, setEditingColumns] = useState(false);
   const [sort, setSort] = useState<SortState>(() => loadSort());
+  const [recent, setRecent] = useState<RecentEntry[]>(() => loadRecent());
+  const [editingRecent, setEditingRecent] = useState(false);
+  const [selectedRecent, setSelectedRecent] = useState<Set<string>>(() => new Set());
+  const [swipedRecent, setSwipedRecent] = useState<string | null>(null);
 
   const saveColumns = (next: ColumnOrder) => {
     setColumns(next);
@@ -90,8 +94,28 @@ export function Home({ master, index, indexError, onPick }: {
     return r;
   }, [index, sort]);
 
+  const deleteRecent = (code: string) => {
+    if (!window.confirm("최근 조회 목록에서 삭제할까요?")) return;
+    setRecent(removeRecent(code));
+    setSelectedRecent((prev) => { const next = new Set(prev); next.delete(code); return next; });
+    setSwipedRecent(null);
+  };
+  const toggleRecentSelection = (code: string) => {
+    setSelectedRecent((prev) => { const next = new Set(prev); if (next.has(code)) next.delete(code); else next.add(code); return next; });
+  };
+  const deleteSelectedRecent = () => {
+    if (selectedRecent.size === 0) return;
+    if (!window.confirm("선택한 " + selectedRecent.size + "개 종목을 최근 조회 목록에서 삭제할까요?")) return;
+    setRecent(removeRecentMany(selectedRecent));
+    setSelectedRecent(new Set());
+    setEditingRecent(false);
+  };
+  const toggleRecentEdit = () => {
+    setEditingRecent((v) => !v);
+    setSelectedRecent(new Set());
+    setSwipedRecent(null);
+  };
   const us = index?.sources?.us10y;
-  const recent = useMemo(() => loadRecent(), []);   // 이 브라우저에서만 남는 방문 기록(서버 저장 아님)
 
   return (
     <main className="page">
@@ -109,16 +133,31 @@ export function Home({ master, index, indexError, onPick }: {
           처음 조회하는 종목은 2016년부터 가격·배당을 모으느라 1~3분 걸립니다. 한 번 조회한 종목은 저장해 두고 다음부터는 새 데이터만 확인합니다.
         </p>
         {recent.length > 0 && (
-          <div className="recent">
-            <span className="recent-label">최근 조회</span>
-            {recent.map((r) => (
-              <a key={r.code} href={`#/stock/${r.code}`} className="recent-chip">
-                {r.name} <span className="code">{r.code}</span>
-              </a>
-            ))}
+          <div className="recent-section">
+            <div className="recent-head">
+              <div className="recent-title"><span className="recent-label">최근 조회</span><span className="recent-count">{recent.length}개</span></div>
+              <div className="recent-actions">
+                {editingRecent && selectedRecent.size > 0 && <button type="button" className="recent-delete-btn" onClick={deleteSelectedRecent}>선택 삭제 ({selectedRecent.size})</button>}
+                <button type="button" className={"recent-edit-btn" + (editingRecent ? " on" : "")} onClick={toggleRecentEdit}>{editingRecent ? "완료" : "편집"}</button>
+              </div>
+            </div>
+            {editingRecent && <p className="recent-hint">삭제할 종목을 체크한 뒤 <strong>선택 삭제</strong>를 누르세요.</p>}
+            <div className="recent-list">
+              {recent.map((r) => (
+                <div key={r.code} className={"recent-swipe-row" + (swipedRecent === r.code ? " swiped" : "")}
+                  onTouchStart={(e) => { if (!editingRecent) (e.currentTarget as HTMLElement).dataset.touchX = String(e.touches[0].clientX); }}
+                  onTouchEnd={(e) => { if (editingRecent) return; const el = e.currentTarget as HTMLElement; const startX = Number(el.dataset.touchX); const delta = startX - e.changedTouches[0].clientX; if (delta > 45) setSwipedRecent(r.code); else if (delta < -45) setSwipedRecent(null); delete el.dataset.touchX; }}>
+                  <div className="recent-swipe-content">
+                    {editingRecent && <input type="checkbox" className="recent-check" checked={selectedRecent.has(r.code)} onChange={() => toggleRecentSelection(r.code)} aria-label={r.name + " 선택"} />}
+                    <a href={editingRecent ? undefined : "#/stock/" + r.code} className="recent-chip">{r.name} <span className="code">{r.code}</span></a>
+                  </div>
+                  <button type="button" className="recent-swipe-delete" onClick={() => deleteRecent(r.code)} aria-label={r.name + " 삭제"}>삭제</button>
+                </div>
+              ))}
+            </div>
+            {!editingRecent && <p className="recent-swipe-hint">모바일에서는 종목을 왼쪽으로 밀어 삭제할 수 있습니다.</p>}
           </div>
-        )}
-      </section>
+        )}      </section>
 
       <section>
         <div className="list-head">
