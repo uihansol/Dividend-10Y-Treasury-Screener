@@ -15,7 +15,6 @@ on:
         required: false
         default: ""
 
-# 같은 워크플로가 겹쳐 실행되며 data/를 동시에 커밋하지 않도록
 concurrency:
   group: update-data
   cancel-in-progress: false
@@ -26,27 +25,24 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 350   # 최초 10년치 구축은 여러 번 나눠 걸릴 수 있음
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-
       - run: pip install -r requirements.txt
 
       - name: Run pipeline
         env:
-          DART_API_KEY: ${{ secrets.DART_API_KEY }}
-          KRX_ID: ${{ secrets.KRX_ID }}
-          KRX_PW: ${{ secrets.KRX_PW }}
-          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          DART_API_KEY: $\{{ secrets.DART_API_KEY }}
+          KRX_ID: $\{{ secrets.KRX_ID }}
+          KRX_PW: $\{{ secrets.KRX_PW }}
         run: |
           ARGS=""
-          if [ -n "${{ github.event.inputs.start }}" ]; then ARGS="$ARGS --start ${{ github.event.inputs.start }}"; fi
-          if [ -n "${{ github.event.inputs.max_days }}" ]; then ARGS="$ARGS --max-days ${{ github.event.inputs.max_days }}"; fi
+          if [ -n "$\{{ github.event.inputs.start }}" ]; then ARGS="$ARGS --start $\{{ github.event.inputs.start }}"; fi
+          if [ -n "$\{{ github.event.inputs.max_days }}" ]; then ARGS="$ARGS --max-days $\{{ github.event.inputs.max_days }}"; fi
           python -m pipeline.update all $ARGS
 
       - name: Commit updated source data
