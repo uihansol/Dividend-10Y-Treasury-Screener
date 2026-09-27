@@ -1,0 +1,49 @@
+{
+ "code": "049430",
+ "name": "코메론",
+ "market": "KOSDAQ",
+ "price_through": "2026-09-23",
+ "dividend_through": "2026-09-27",
+ "us10y_through": null,
+ "created_at": "2026-09-27T17:31:10+09:00",
+ "updated_at": "2026-09-27T17:31:10+09:00",
+ "last_attempt": "2026-09-27T17:31:10+09:00",
+ "last_error": {
+  "us10y": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=45)\"))"
+ },
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 2631,
+   "from": "2016-01-01"
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 39
+  },
+  "us10y": {
+   "ok": false,
+   "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=45)\"))"
+  }
+ },
+ "summary": {
+  "code": "049430",
+  "name": "코메론",
+  "market": "KOSDAQ",
+  "price": 23100.0,
+  "price_date": "2026-09-23",
+  "dps": 700.0,
+  "yield": 3.0303,
+  "multiple": null,
+  "paid10": 9,
+  "known10": 9,
+  "paid5": 4,
+  "pct": null,
+  "p10": null,
+  "p90": null,
+  "mcap": null,
+  "tv": 414990200.0,
+  "has_div_data": true,
+  "flags": []
+ }
+}
