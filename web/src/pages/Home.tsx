@@ -216,20 +216,21 @@ export function Home({ master, index, indexError, onPick }: {
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.code}
-                    onTouchStart={() => startRowLongPress(r.code)}
-                    onTouchEnd={cancelRowLongPress}
-                    onTouchMove={cancelRowLongPress}
-                    onTouchCancel={cancelRowLongPress}
-                    onClick={(e) => {
-                      if (longPressTriggered.current) {
-                        e.preventDefault();
-                        longPressTriggered.current = false;
-                        return;
-                      }
-                      window.location.hash = `#/stock/${r.code}`;
-                    }}>
+                    onClick={() => { window.location.hash = `#/stock/${r.code}`; }}>
                     <td className="stick">
-                      <a href={`#/stock/${r.code}`} className="name">{r.name}</a>
+                      <a href={`#/stock/${r.code}`} className="name"
+                        onTouchStart={() => startRowLongPress(r.code)}
+                        onTouchEnd={cancelRowLongPress}
+                        onTouchMove={cancelRowLongPress}
+                        onTouchCancel={cancelRowLongPress}
+                        onClick={(e) => {
+                          if (longPressTriggered.current) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            longPressTriggered.current = false;
+                          }
+                        }}
+                        onContextMenu={(e) => e.preventDefault()}>{r.name}</a>
                       <span className="code">{r.code}<span className="show-sm"> {r.market}</span></span>
                     </td>
                     <td className="hide-sm">{r.market}</td>
