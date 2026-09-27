@@ -27,7 +27,7 @@ except ImportError:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("step", choices=["init", "us10y", "master", "stock", "search", "index", "recompute",
-                                     "rawdiv", "disclist"])
+                                     "rawdiv", "disclist", "rawdoc"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("extra", nargs="*")
     ap.add_argument("--force", action="store_true")
@@ -72,6 +72,16 @@ def main(argv=None) -> int:
         corp_code, bgn, end = a.arg, a.extra[0], a.extra[1]
         j = DartClient().get("list.json", corp_code=corp_code, bgn_de=bgn, end_de=end, page_count=100).json()
         out("disclist", [(x.get("rcept_no"), x.get("rcept_dt"), x.get("report_nm")) for x in j.get("list", [])])
+    if a.step == "rawdoc":
+        import io
+        import zipfile
+        from .dart import DartClient
+        rcept_no = a.arg
+        r = DartClient().get("document.xml", rcept_no=rcept_no)
+        zf = zipfile.ZipFile(io.BytesIO(r.content))
+        for name in zf.namelist():
+            text = zf.read(name).decode("utf-8", errors="replace")
+            out("rawdoc", {"name": name, "len": len(text), "head": text[:4000]})
     if a.step == "stock":
         if not a.arg:
             ap.error("종목코드가 필요합니다")
