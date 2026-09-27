@@ -1,0 +1,6 @@
+pandas>=2.2
+pyarrow>=16
+requests>=2.31
+python-dotenv>=1.0
+pykrx>=1.2.8
+pytest>=8.0

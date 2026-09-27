@@ -1,0 +1,71 @@
+name: Update data
+
+# 매일 KST 오후 8시(UTC 11:00) 자동 실행 + 수동 실행(Actions 탭 → Run workflow)
+on:
+  schedule:
+    - cron: "0 11 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "prices 시작일 YYYY-MM-DD (최초 구축·재시작용, 비워두면 이어받기)"
+        required: false
+        default: ""
+      max_days:
+        description: "이번 실행에서 받을 최대 거래일 수 (비워두면 오늘까지 전부)"
+        required: false
+        default: ""
+
+# 같은 워크플로가 겹쳐 실행되며 data/를 동시에 커밋하지 않도록
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350   # 최초 10년치 구축은 여러 번 나눠 걸릴 수 있음
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run pipeline
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          EXPECTED_DPS_MODE: ${{ vars.EXPECTED_DPS_MODE }}
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.start }}" ]; then ARGS="$ARGS --start ${{ github.event.inputs.start }}"; fi
+          if [ -n "${{ github.event.inputs.max_days }}" ]; then ARGS="$ARGS --max-days ${{ github.event.inputs.max_days }}"; fi
+          python -m pipeline.update all $ARGS
+
+      - name: Commit updated source data
+        run: |
+          git config user.name "kr-div-us10y-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet && echo "변경 없음" || git commit -m "chore: 데이터 업데이트 $(date -u +%Y-%m-%d)"
+          git push
+
+      - name: Upload build output (계산 결과, 배포용)
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-data
+          path: web/public/data
+          retention-days: 3
+
+  deploy:
+    needs: update
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit

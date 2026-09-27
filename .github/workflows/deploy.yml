@@ -1,0 +1,49 @@
+name: Deploy
+
+# 코드가 바뀌면(웹 소스) 실행되고, update-data 워크플로가 데이터를 갱신한 뒤에도 재사용되어 실행된다.
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", "pipeline/**", ".github/workflows/deploy.yml"]
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      # 저장소에 커밋된 원천 데이터(data/)로 web/public/data(계산 결과 JSON)를 새로 만든다.
+      # 원천 데이터가 없으면(최초 설정 직후) 빈 화면 대신 안내 메시지가 뜨도록 실패시키지 않는다.
+      - name: Build computed data
+        run: python -m pipeline.update build || echo "::warning::계산할 원천 데이터가 아직 없습니다. update-data 워크플로를 먼저 실행하세요."
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
+          directory: web/dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
