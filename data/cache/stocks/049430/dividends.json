@@ -537,5 +537,15 @@
    "basis_date": "2026-06-30",
    "stock_knd": "보통주"
   }
- ]
+ ],
+ "announcements": {
+  "20260226901739": {
+   "status": "ok",
+   "fetched_at": "2026-09-27T21:44:54+09:00",
+   "rcept_no": "20260226901739",
+   "confirmed_date": "2026-02-26",
+   "basis_date": "2025-12-31",
+   "amount": 700.0
+  }
+ }
 }

@@ -6,8 +6,8 @@
  "dividend_through": "2026-09-27",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T17:31:10+09:00",
- "updated_at": "2026-09-27T18:02:50+09:00",
- "last_attempt": "2026-09-27T18:02:50+09:00",
+ "updated_at": "2026-09-27T21:44:56+09:00",
+ "last_attempt": "2026-09-27T21:44:56+09:00",
  "last_error": null,
  "steps": {
   "prices": {
@@ -18,9 +18,12 @@
   "dividends": {
    "mode": "incremental",
    "added": 0
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 1
   }
  },
- "recomputed_at": "2026-09-27T19:43:25+09:00",
  "summary": {
   "code": "049430",
   "name": "코메론",
