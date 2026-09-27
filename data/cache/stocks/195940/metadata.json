@@ -1,0 +1,56 @@
+{
+ "code": "195940",
+ "name": "HK이노엔",
+ "market": "KOSDAQ",
+ "price_through": "2026-09-23",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T00:07:02+09:00",
+ "updated_at": "2026-09-28T00:07:02+09:00",
+ "last_attempt": "2026-09-28T00:07:02+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 1254,
+   "from": "2015-01-01"
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 27
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 2
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-09-25",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "summary": {
+  "code": "195940",
+  "name": "HK이노엔",
+  "market": "KOSDAQ",
+  "price": 38850.0,
+  "price_date": "2026-09-23",
+  "dps": 410.0,
+  "yield": 1.0553,
+  "multiple": 0.2128,
+  "paid10": 6,
+  "known10": 7,
+  "paid5": 5,
+  "pct": 57.2,
+  "p10": 0.0,
+  "p90": 0.2649,
+  "mcap": null,
+  "tv": 2782319350.0,
+  "has_div_data": true,
+  "flags": []
+ }
+}
