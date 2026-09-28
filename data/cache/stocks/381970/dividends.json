@@ -366,5 +366,34 @@
    "basis_date": "2026-06-30",
    "stock_knd": "보통주"
   }
- ]
+ ],
+ "announcements": {
+  "20260814802156": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T23:28:31+09:00",
+   "report_nm": "현금ㆍ현물배당결정              ",
+   "rcept_no": "20260814802156",
+   "confirmed_date": "2026-08-14",
+   "basis_date": "2026-06-30",
+   "amount": 50.0
+  },
+  "20260514800127": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T23:28:32+09:00",
+   "report_nm": "현금ㆍ현물배당결정              ",
+   "rcept_no": "20260514800127",
+   "confirmed_date": "2026-05-14",
+   "basis_date": "2026-03-31",
+   "amount": 300.0
+  },
+  "20260210800076": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T23:28:32+09:00",
+   "report_nm": "현금ㆍ현물배당결정              ",
+   "rcept_no": "20260210800076",
+   "confirmed_date": "2026-02-10",
+   "basis_date": "2025-12-31",
+   "amount": 300.0
+  }
+ }
 }

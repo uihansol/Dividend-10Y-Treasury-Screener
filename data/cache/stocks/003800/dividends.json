@@ -627,7 +627,8 @@
    "rcept_no": "20260202901605",
    "confirmed_date": "2026-02-02",
    "basis_date": "2025-12-31",
-   "amount": 2300.0
+   "amount": 2300.0,
+   "report_nm": "현금ㆍ현물배당결정              "
   }
  }
 }

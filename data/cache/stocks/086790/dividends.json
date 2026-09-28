@@ -545,23 +545,18 @@
    "rcept_no": "20260724800419",
    "confirmed_date": "2026-07-24",
    "basis_date": "2026-08-10",
-   "amount": 1155.0
+   "amount": 1155.0,
+   "report_nm": "현금ㆍ현물배당결정              "
   },
   "20260723800652": {
-   "status": "ok",
-   "fetched_at": "2026-09-28T01:05:06+09:00",
-   "rcept_no": "20260723800652",
-   "confirmed_date": "2026-07-23",
-   "basis_date": "2026-08-10",
-   "amount": 559.48
+   "status": "subsidiary",
+   "fetched_at": "2026-09-28T23:27:12+09:00",
+   "report_nm": "현금ㆍ현물배당결정(자회사의 주요경영사항)              "
   },
   "20260723800641": {
-   "status": "ok",
-   "fetched_at": "2026-09-28T01:05:06+09:00",
-   "rcept_no": "20260723800641",
-   "confirmed_date": "2026-07-23",
-   "basis_date": "2026-08-06",
-   "amount": 886.26
+   "status": "subsidiary",
+   "fetched_at": "2026-09-28T23:27:12+09:00",
+   "report_nm": "현금ㆍ현물배당결정(자회사의 주요경영사항)              "
   },
   "20260424800413": {
    "status": "ok",
@@ -569,7 +564,8 @@
    "rcept_no": "20260424800413",
    "confirmed_date": "2026-04-24",
    "basis_date": "2026-05-11",
-   "amount": 1145.0
+   "amount": 1145.0,
+   "report_nm": "현금ㆍ현물배당결정              "
   }
  }
 }

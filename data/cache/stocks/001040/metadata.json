@@ -28,31 +28,28 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T23:23:57+09:00",
+ "recomputed_at": "2026-09-28T23:28:42+09:00",
  "summary": {
   "code": "001040",
   "name": "CJ",
   "market": "KOSPI",
   "price": 134700.0,
   "price_date": "2026-09-28",
-  "dps": 6300.0,
-  "yield": 4.6771,
-  "multiple": 0.9047,
+  "dps": 3300.0,
+  "yield": 2.4499,
+  "multiple": 0.4739,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 68.8,
+  "pct": 36.4,
   "p10": 0.3168,
   "p90": 1.6029,
   "mcap": null,
   "tv": 13481585350.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
+  "flags": [],
   "tags": [
-   "crown",
-   "bomb"
+   "crown"
   ]
  }
 }

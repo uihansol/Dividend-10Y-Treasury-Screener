@@ -622,28 +622,19 @@
  ],
  "announcements": {
   "20260304801347": {
-   "status": "ok",
-   "fetched_at": "2026-09-28T02:56:57+09:00",
-   "rcept_no": "20260304801347",
-   "confirmed_date": "2026-03-04",
-   "basis_date": "2025-12-31",
-   "amount": 62500.0
+   "status": "subsidiary",
+   "fetched_at": "2026-09-28T23:25:19+09:00",
+   "report_nm": "현금ㆍ현물배당결정(자회사의 주요경영사항)              "
   },
   "20260225801825": {
-   "status": "ok",
-   "fetched_at": "2026-09-28T02:56:57+09:00",
-   "rcept_no": "20260225801825",
-   "confirmed_date": "2026-02-25",
-   "basis_date": "2025-12-31",
-   "amount": 10100.0
+   "status": "subsidiary",
+   "fetched_at": "2026-09-28T23:25:19+09:00",
+   "report_nm": "현금ㆍ현물배당결정(자회사의 주요경영사항)              "
   },
   "20260225801669": {
-   "status": "ok",
-   "fetched_at": "2026-09-28T02:56:58+09:00",
-   "rcept_no": "20260225801669",
-   "confirmed_date": "2026-02-25",
-   "basis_date": "2025-12-31",
-   "amount": 7500.0
+   "status": "subsidiary",
+   "fetched_at": "2026-09-28T23:25:19+09:00",
+   "report_nm": "현금ㆍ현물배당결정(자회사의 주요경영사항)              "
   },
   "20260225801581": {
    "status": "ok",
@@ -651,7 +642,8 @@
    "rcept_no": "20260225801581",
    "confirmed_date": "2026-02-25",
    "basis_date": "2025-12-31",
-   "amount": 5000.0
+   "amount": 5000.0,
+   "report_nm": "현금ㆍ현물배당결정              "
   }
  }
 }

@@ -577,20 +577,14 @@
  ],
  "announcements": {
   "20260311802455": {
-   "status": "ok",
-   "fetched_at": "2026-09-28T22:36:56+09:00",
-   "rcept_no": "20260311802455",
-   "confirmed_date": "2026-03-11",
-   "basis_date": "2026-04-01",
-   "amount": 500.0
+   "status": "subsidiary",
+   "fetched_at": "2026-09-28T23:27:22+09:00",
+   "report_nm": "[기재정정]현금ㆍ현물배당결정(자회사의 주요경영사항)              "
   },
   "20260311802342": {
-   "status": "ok",
-   "fetched_at": "2026-09-28T22:36:57+09:00",
-   "rcept_no": "20260311802342",
-   "confirmed_date": "2026-03-11",
-   "basis_date": "2026-04-01",
-   "amount": 525.0
+   "status": "subsidiary",
+   "fetched_at": "2026-09-28T23:27:22+09:00",
+   "report_nm": "[기재정정]현금ㆍ현물배당결정(자회사의 주요경영사항)              "
   },
   "20260311802367": {
    "status": "ok",
@@ -598,31 +592,23 @@
    "rcept_no": "20260311802367",
    "confirmed_date": "2026-03-11",
    "basis_date": "2026-04-01",
-   "amount": 120.0
+   "amount": 120.0,
+   "report_nm": "[기재정정]현금ㆍ현물배당결정              "
   },
   "20260210800317": {
-   "status": "ok",
-   "fetched_at": "2026-09-28T22:36:57+09:00",
-   "rcept_no": "20260210800317",
-   "confirmed_date": "2026-02-10",
-   "basis_date": "2026-04-01",
-   "amount": 525.0
+   "status": "subsidiary",
+   "fetched_at": "2026-09-28T23:27:22+09:00",
+   "report_nm": "현금ㆍ현물배당결정(자회사의 주요경영사항)              "
   },
   "20260205801276": {
-   "status": "ok",
-   "fetched_at": "2026-09-28T22:36:58+09:00",
-   "rcept_no": "20260205801276",
-   "confirmed_date": "2026-02-05",
-   "basis_date": "2025-04-01",
-   "amount": 500.0
+   "status": "subsidiary",
+   "fetched_at": "2026-09-28T23:27:22+09:00",
+   "report_nm": "[기재정정]현금ㆍ현물배당결정(자회사의 주요경영사항)              "
   },
   "20260205801178": {
-   "status": "ok",
-   "fetched_at": "2026-09-28T22:36:58+09:00",
-   "rcept_no": "20260205801178",
-   "confirmed_date": "2026-02-05",
-   "basis_date": "2025-04-01",
-   "amount": 500.0
+   "status": "subsidiary",
+   "fetched_at": "2026-09-28T23:27:22+09:00",
+   "report_nm": "현금ㆍ현물배당결정(자회사의 주요경영사항)              "
   },
   "20260205800901": {
    "status": "ok",
@@ -630,7 +616,8 @@
    "rcept_no": "20260205800901",
    "confirmed_date": "2026-02-05",
    "basis_date": "2026-04-01",
-   "amount": 120.0
+   "amount": 120.0,
+   "report_nm": "현금ㆍ현물배당결정              "
   }
  }
 }

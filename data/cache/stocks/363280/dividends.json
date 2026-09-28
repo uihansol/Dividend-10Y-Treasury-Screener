@@ -330,5 +330,12 @@
    "basis_date": "2026-06-30",
    "stock_knd": "보통주"
   }
- ]
+ ],
+ "announcements": {
+  "20260226801138": {
+   "status": "subsidiary",
+   "fetched_at": "2026-09-28T23:28:25+09:00",
+   "report_nm": "현금ㆍ현물배당결정(자회사의 주요경영사항)              "
+  }
+ }
 }

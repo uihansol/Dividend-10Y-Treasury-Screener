@@ -321,5 +321,16 @@
    "basis_date": "2023-03-31",
    "stock_knd": "보통주"
   }
- ]
+ ],
+ "announcements": {
+  "20260309901415": {
+   "status": "ok",
+   "fetched_at": "2026-09-28T23:28:18+09:00",
+   "report_nm": "현금ㆍ현물배당결정              ",
+   "rcept_no": "20260309901415",
+   "confirmed_date": "2026-03-09",
+   "basis_date": "2025-12-31",
+   "amount": 2871.0
+  }
+ }
 }

@@ -600,7 +600,8 @@
    "rcept_no": "20260814900953",
    "confirmed_date": "2026-08-14",
    "basis_date": "2026-06-30",
-   "amount": 40.0
+   "amount": 40.0,
+   "report_nm": "현금ㆍ현물배당결정              (분기배당)"
   },
   "20260515900948": {
    "status": "ok",
@@ -608,7 +609,8 @@
    "rcept_no": "20260515900948",
    "confirmed_date": "2026-05-15",
    "basis_date": "2026-04-30",
-   "amount": 40.0
+   "amount": 40.0,
+   "report_nm": "현금ㆍ현물배당결정              (분기배당)"
   },
   "20260223900777": {
    "status": "no_row",
@@ -620,7 +622,8 @@
    "rcept_no": "20260211900776",
    "confirmed_date": "2026-02-11",
    "basis_date": "2025-12-31",
-   "amount": 50.0
+   "amount": 50.0,
+   "report_nm": "현금ㆍ현물배당결정              "
   }
  }
 }

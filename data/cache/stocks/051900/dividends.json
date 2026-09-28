@@ -581,7 +581,8 @@
    "rcept_no": "20260729800735",
    "confirmed_date": "2026-07-29",
    "basis_date": "2026-08-14",
-   "amount": 1500.0
+   "amount": 1500.0,
+   "report_nm": "현금ㆍ현물배당결정              "
   },
   "20260128800534": {
    "status": "ok",
@@ -589,7 +590,8 @@
    "rcept_no": "20260128800534",
    "confirmed_date": "2026-01-28",
    "basis_date": "2026-03-31",
-   "amount": 1000.0
+   "amount": 1000.0,
+   "report_nm": "현금ㆍ현물배당결정              "
   }
  }
 }
