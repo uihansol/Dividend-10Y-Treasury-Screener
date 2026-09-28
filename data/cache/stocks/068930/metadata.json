@@ -2,55 +2,50 @@
  "code": "068930",
  "name": "디지털대성",
  "market": "KOSDAQ",
- "price_through": "2026-09-23",
+ "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T00:53:03+09:00",
- "updated_at": "2026-09-28T00:53:03+09:00",
- "last_attempt": "2026-09-28T00:53:03+09:00",
+ "updated_at": "2026-09-28T22:35:40+09:00",
+ "last_attempt": "2026-09-28T22:35:40+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2879,
-   "from": "2015-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
+   "mode": "incremental",
    "added": 43
   },
   "announcements": {
    "mode": "check",
-   "added": 1
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
+   "added": 0
   }
  },
- "recomputed_at": "2026-09-28T21:09:55+09:00",
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "068930",
   "name": "디지털대성",
   "market": "KOSDAQ",
-  "price": 9600.0,
-  "price_date": "2026-09-23",
+  "price": 9670.0,
+  "price_date": "2026-09-28",
   "dps": 520.0,
-  "yield": 5.4167,
-  "multiple": 1.0477,
+  "yield": 5.3775,
+  "multiple": 1.0401,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
   "pct": 23.6,
-  "p10": 0.7431,
-  "p90": 2.8566,
+  "p10": 0.743,
+  "p90": 2.8587,
   "mcap": null,
-  "tv": 3344629655.0,
+  "tv": 3253271240.0,
   "has_div_data": true,
   "flags": [],
   "tags": []
