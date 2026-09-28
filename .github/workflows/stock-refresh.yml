@@ -99,7 +99,12 @@ jobs:
           KRX_PW: ${{ secrets.KRX_PW }}
         run: |
           for n in $(seq 1 12); do
-            python -m pipeline.update backfill "$CODE" | tee -a /tmp/out.txt
+            OUT="$(python -m pipeline.update backfill "$CODE")" || true
+            echo "$OUT" | tee -a /tmp/out.txt
+            # 새로 받은 행이 없으면(완료·상장 전 구간·조회 실패) 재계산·커밋 없이 끝낸다.
+            if ! echo "$OUT" | grep -q '"added": [1-9]'; then
+              break
+            fi
             python -m pipeline.update stock "$CODE" --stage compute | tee -a /tmp/out.txt
 
             mkdir -p /tmp/backfill && rm -rf "/tmp/backfill/$CODE"
@@ -118,8 +123,9 @@ jobs:
               sleep $((RANDOM % 6 + 3))
             done
 
-            if python -c 'import os,pandas as pd; from pipeline import config as C; from pathlib import Path; p=Path("data/cache/stocks")/os.environ["CODE"]/"prices.csv"; df=pd.read_csv(p,dtype={"date":str}) if p.exists() else None; raise SystemExit(0 if df is not None and len(df) and df["date"].min() <= C.PRICE_START else 1)'
-            then
+            # backfill이 끝(done)을 알리면 멈춘다. (예전 조건 'date.min() <= PRICE_START'는 PRICE_START가
+            # 휴장일(1/1)이라 참이 되지 않아, 끝난 종목도 매번 12회 조회·커밋했다.)
+            if echo "$OUT" | grep -q '"done": true'; then
               break
             fi
           done

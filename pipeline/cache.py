@@ -156,20 +156,26 @@ def backfill_stock_price_cache(code: str, today: date | None = None,
 
     earliest = date.fromisoformat(old["date"].min())
     floor = date.fromisoformat(C.PRICE_START)
-    if earliest <= floor:
+    # PRICE_START(1월 1일)는 휴장일이라 첫 거래일은 그보다 늦다. 첫 주 안이면 이미 끝까지 받은 것으로 본다
+    # (그렇지 않으면 완료된 종목도 매번 1일치 KRX 조회를 다시 한다).
+    if earliest <= floor + timedelta(days=7):
         return {"done": True, "added": 0, "from": floor.isoformat(),
                 "to": (earliest - timedelta(days=1)).isoformat()}
 
     end = earliest - timedelta(days=1)
     start = max(floor, end - timedelta(days=chunk_days - 1))
+    if start <= floor + timedelta(days=7):   # 마지막 청크는 항상 floor까지 조회해 첫 거래일을 빠뜨리지 않는다
+        start = floor
     new = fetch(code, start.isoformat(), end.isoformat()) if start <= end else pd.DataFrame(columns=PRICE_COLS)
     if len(new):
         df = pd.concat([old, new], ignore_index=True)
         df = df.drop_duplicates("date", keep="last").sort_values("date").reset_index(drop=True)
         stock_dir(code).mkdir(parents=True, exist_ok=True)
         df.to_csv(stock_dir(code) / "prices.csv", index=False)
+    # 1년 구간 전체에 거래가 없으면 그 이전 상장 이력이 없는 것(2015년 이후 상장)으로 보고 이번 실행을 끝낸다.
+    # 저장하는 상태가 아니므로 KRX 일시 오류로 빈 결과가 와도 다음 새로고침 때 다시 확인한다.
     return {
-        "done": start == floor,
+        "done": start == floor or len(new) == 0,
         "added": int(len(new)),
         "from": start.isoformat(),
         "to": end.isoformat(),
