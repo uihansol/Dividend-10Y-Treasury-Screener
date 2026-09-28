@@ -1,0 +1,44 @@
+name: KRX live check
+# 수동 점검용: Worker의 KRX 직접 조회 모듈(web/krx.js)을 실제 KRX로 검증하고,
+# 배포된 Worker의 /api 응답과 캐시 헤더를 확인한다. 비밀값은 출력하지 않는다.
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "종목코드"
+        required: false
+        default: "005930"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: KRX 모듈 검증 (로그인·ISIN·일별 시세·중복 로그인)
+        env:
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
+          CODE: ${{ github.event.inputs.code }}
+        run: node web/scripts/krx-check.mjs
+
+      - name: 배포된 Worker 응답 확인
+        if: always()
+        env:
+          CODE: ${{ github.event.inputs.code }}
+        run: |
+          B="https://dividend-10y-treasury-screener.uihansol.workers.dev"
+          for p in /api/index /api/index "/api/stock/$CODE" "/api/stock/$CODE" "/api/stock/$CODE?fresh=1" \
+                   "/api/stock/$CODE/meta" "/api/stock/$CODE/run" "/api/stock/$CODE/live"; do
+            echo "== GET $p"
+            curl -sS -m 60 -o /tmp/body -D /tmp/h -w "status=%{http_code} time=%{time_total}s size=%{size_download}\n" "$B$p" || true
+            grep -iE "^(cf-cache-status|cache-control|age):" /tmp/h || true
+            head -c 600 /tmp/body; echo
+          done
