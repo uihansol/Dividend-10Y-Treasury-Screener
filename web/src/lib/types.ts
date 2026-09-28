@@ -19,6 +19,8 @@ export interface ScreenerRow {
   tv: number | null;
   has_div_data: boolean;
   flags: string[];
+  /** "crown"(연속 10년 배당·삭감 없음) · "bomb"(당해 배당 전년 대비 50%+ 증가). pipeline/engine.py dividend_tags() */
+  tags: ("crown" | "bomb")[];
 }
 
 export interface SourceState {

@@ -255,7 +255,7 @@ export function Home({ master, index, indexError, onPick }: {
                 <th className="stick"><button type="button" className="stock-name-sort" onClick={() => toggleNameSort()} aria-label="기업 이름 정렬">종목 <span className="sort-indicator" aria-hidden="true">{nameSortDirection === "asc" ? "↑" : nameSortDirection === "desc" ? "↓" : "↕"}</span></button></th><th className="hide-sm">시장</th>
                 <th className="num hide-sm">주가</th><th className="num hide-sm">예상 DPS</th>
                 {columns.map((key) => (
-                  <th key={key} className={`num metric-th${key === "multiple" ? " key" : ""}`}>
+                  <th key={key} className={`num metric-th${key === "multiple" ? " key" : ""}${key === "paid10" ? " hide-sm" : ""}`}>
                     <div className="metric-title-wrap">
                       <button type="button" className="metric-title" onClick={() => toggleSort(key)} aria-label={`${COLUMN_LABELS[key]} 정렬`}>
                         {COLUMN_LABELS[key]} <span className="sort-indicator" aria-hidden="true">{sort.key === key ? (sort.direction === "asc" ? "↑" : "↓") : "↕"}</span>
@@ -282,7 +282,19 @@ export function Home({ master, index, indexError, onPick }: {
                             longPressTriggered.current = false;
                           }
                         }}
-                        onContextMenu={(e) => e.preventDefault()}>{r.name}</a>
+                        onContextMenu={(e) => e.preventDefault()}>
+                        <span className="name-text">{r.name}</span>
+                        {r.tags.length > 0 && (
+                          <span className="name-tags">
+                            {r.tags.includes("crown") && (
+                              <span className="tag-icon" role="img" aria-label="연속 10년 배당, 삭감 없음" title="연속 10년 배당, 삭감 없음">👑</span>
+                            )}
+                            {r.tags.includes("bomb") && (
+                              <span className="tag-icon" role="img" aria-label="올해 배당 전년 대비 50%+ 증가" title="올해 배당 전년 대비 50%+ 증가">💣</span>
+                            )}
+                          </span>
+                        )}
+                      </a>
                       <span className="code">{r.code}<span className="show-sm"> {r.market}</span></span>
                     </td>
                     <td className="hide-sm">{r.market}</td>
@@ -291,7 +303,7 @@ export function Home({ master, index, indexError, onPick }: {
                     {columns.map((key) => {
                       if (key === "yield") return <td key={key} className={`num${r.isLive ? " prov" : ""}`}>{pct(r.yield)}</td>;
                       if (key === "multiple") return <td key={key} className={`num key${r.isLive ? " prov" : ""}`}>{mult(r.multiple)}</td>;
-                      if (key === "paid10") return <td key={key} className="num">{r.paid10 == null ? NA : `${r.paid10}/10`}</td>;
+                      if (key === "paid10") return <td key={key} className="num hide-sm">{r.paid10 == null ? NA : `${r.paid10}/10`}</td>;
                       return <td key={key}><BandGauge pct={r.pct} /></td>;
                     })}
                     <td className="hide-sm num">{r.price_date}{r.isLive && <span className="prov-tag"> 잠정</span>}</td>

@@ -27,8 +27,8 @@ import pandas as pd
 
 from . import config as C
 from .engine import (CorpAction, DividendReport, adjusted_prices, annual_breakdown, build_fiscal_years,
-                     daily_series, detect_corp_actions, dividend_yield, expected_dps_asof, history_stats,
-                     persistence, round_ratio, us10y_asof, us10y_multiple)
+                     daily_series, detect_corp_actions, dividend_tags, dividend_yield, expected_dps_asof,
+                     history_stats, persistence, round_ratio, us10y_asof, us10y_multiple)
 from .store import KST, now_kst, read_json, write_json
 from .krx import PRICE_COLS
 
@@ -307,6 +307,7 @@ def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_v
     y = dividend_yield(dps, price)
     m = us10y_multiple(y, cur_us, C.MIN_US10Y_FOR_MULTIPLE)
     pers = persistence(years, valuation_date, dps) if years else None
+    tags = dividend_tags(years, valuation_date, exp) if years else {"crown": False, "bomb": False}
 
     hist = yhist = None
     series = []
@@ -332,6 +333,7 @@ def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_v
         "p10": _r(hist["p10"]) if hist else None, "p90": _r(hist["p90"]) if hist else None,
         "mcap": None, "tv": _r(tv, 0) if tv is not None and not pd.isna(tv) else None,
         "has_div_data": bool(div["reports"]), "flags": exp.flags if exp else [],
+        "tags": [k for k, v in tags.items() if v],
     }
     return {
         "code": code, "name": info["name"], "market": info["market"], "as_of": as_of.isoformat(),

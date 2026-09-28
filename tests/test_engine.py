@@ -10,7 +10,7 @@ import pytest
 
 from pipeline.engine import (
     CorpAction, DividendReport, build_fiscal_years, daily_series, detect_corp_actions,
-    dividend_yield, expected_dps_asof, history_stats, persistence, round_ratio,
+    dividend_tags, dividend_yield, expected_dps_asof, history_stats, persistence, round_ratio,
     us10y_asof, us10y_multiple, adjusted_prices,
 )
 
@@ -157,6 +157,102 @@ def test_case6_large_change():
     assert p["vs10y"] == pytest.approx(5.0)              # 2015 대비
     assert p["cagr5"] == pytest.approx(((500 / 400) ** 0.2 - 1) * 100)
     assert p["cagr10"] == pytest.approx(((500 / 100) ** 0.1 - 1) * 100)
+
+
+# --- 메인 목록 태그(왕관/폭탄) ----------------------------------------------------------
+def test_crown_ten_years_flat_or_growing():
+    """10년 연속 배당, 매해 전년 이상 → 왕관."""
+    rows = _annual({y: 100 + (y - 2015) * 10 for y in range(2015, 2026)})  # 2015~2025
+    yrs = build_fiscal_years(rows, [])
+    asof = D(2026, 9, 1)
+    exp = expected_dps_asof(asof, yrs)
+    tags = dividend_tags(yrs, asof, exp)
+    assert tags["crown"] is True
+
+
+def test_crown_false_on_one_cut():
+    """9년은 증가·유지, 딱 한 해 감소 → 왕관 아님."""
+    values = {y: 100 for y in range(2015, 2026)}
+    values[2020] = 80   # 2019(100) → 2020(80) 감소
+    rows = _annual(values)
+    yrs = build_fiscal_years(rows, [])
+    asof = D(2026, 9, 1)
+    exp = expected_dps_asof(asof, yrs)
+    assert dividend_tags(yrs, asof, exp)["crown"] is False
+
+
+def test_crown_false_on_missing_year():
+    """중간에 배당 데이터가 없는(연속이 아닌) 해가 있으면 왕관 아님."""
+    values = {y: 100 for y in range(2015, 2026) if y != 2019}
+    rows = _annual(values)
+    yrs = build_fiscal_years(rows, [])
+    asof = D(2026, 9, 1)
+    exp = expected_dps_asof(asof, yrs)
+    assert dividend_tags(yrs, asof, exp)["crown"] is False
+
+
+def test_crown_flat_dps_allowed():
+    """전년과 정확히 같은 금액(감소 아님)은 왕관을 깨지 않는다."""
+    rows = _annual({y: 100 for y in range(2015, 2026)})
+    yrs = build_fiscal_years(rows, [])
+    asof = D(2026, 9, 1)
+    exp = expected_dps_asof(asof, yrs)
+    assert dividend_tags(yrs, asof, exp)["crown"] is True
+
+
+def test_bomb_fifty_percent_increase_confirmed():
+    """직전 확정 사업연도 대비 올해 사업보고서가 50% 이상 늘면 폭탄."""
+    rows = _annual({2024: 100, 2025: 150})  # +50%
+    yrs = build_fiscal_years(rows, [])
+    asof = D(2026, 4, 1)
+    exp = expected_dps_asof(asof, yrs)
+    assert exp.value == 150 and exp.latest_fy == 2025
+    assert dividend_tags(yrs, asof, exp)["bomb"] is True
+
+
+def test_bomb_false_under_threshold():
+    rows = _annual({2024: 100, 2025: 149})  # +49%
+    yrs = build_fiscal_years(rows, [])
+    asof = D(2026, 4, 1)
+    exp = expected_dps_asof(asof, yrs)
+    assert dividend_tags(yrs, asof, exp)["bomb"] is False
+
+
+def test_bomb_provisional_increase_mid_year():
+    """올해 1분기까지 확정 금액만으로도 예상 DPS가 전년 대비 50% 이상이면 폭탄(잠정 포함)."""
+    rows = [
+        R(2025, "FY", 100, D(2025, 12, 31), D(2026, 3, 13)),
+        R(2026, "Q1", 90, D(2026, 3, 31), D(2026, 5, 15)),   # 1분기만으로 이미 전년 총액 근접
+    ]
+    yrs = build_fiscal_years(rows, [])
+    asof = D(2026, 6, 1)
+    exp = expected_dps_asof(asof, yrs)
+    # exp.value = 올해 Q1 확정분(90) + 전년도 Q1 이후분 대체(전년 기말 100, 중간 없음) = 190
+    assert exp.value == pytest.approx(190)
+    assert dividend_tags(yrs, asof, exp)["bomb"] is True
+
+
+def test_bomb_false_no_new_confirmation_yet():
+    """올해 새로 확정된 것이 없으면(exp.value == 전년 총액) 폭탄이 아니다."""
+    rows = _annual({2024: 100, 2025: 150})
+    yrs = build_fiscal_years(rows, [])
+    asof = D(2026, 2, 1)  # 2025 사업보고서(3/15 접수) 전: F=2024
+    exp = expected_dps_asof(asof, yrs)
+    assert exp.value == 100 and exp.latest_fy == 2024
+    assert dividend_tags(yrs, asof, exp)["bomb"] is False
+
+
+def test_bomb_false_zero_baseline():
+    """직전 확정 사업연도 배당이 0이면(무배당→배당) 비율이 무의미하므로 폭탄으로 보지 않는다."""
+    rows = _annual({2024: 0, 2025: 200})
+    yrs = build_fiscal_years(rows, [])
+    asof = D(2026, 4, 1)
+    exp = expected_dps_asof(asof, yrs)
+    assert dividend_tags(yrs, asof, exp)["bomb"] is False
+
+
+def test_tags_empty_without_dividend_history():
+    assert dividend_tags({}, D(2026, 9, 1), None) == {"crown": False, "bomb": False}
 
 
 # --- 가상 기업 E: 액면분할 (⑦) ---------------------------------------------------------

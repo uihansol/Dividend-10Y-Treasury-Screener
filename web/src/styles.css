@@ -110,7 +110,10 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .grid th.key { color: var(--ink); }
 .grid .stick { position: sticky; left: 0; background: var(--surface); z-index: 1; min-width: 8.5em; max-width: 12em; }
 .grid th.stick { z-index: 3; }
-.grid .name { display: block; color: var(--ink); text-decoration: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+.grid .name { display: flex; align-items: baseline; gap: 3px; color: var(--ink); text-decoration: none; font-weight: 500; min-width: 0; }
+.grid .name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.grid .name-tags { display: inline-flex; flex: 0 0 auto; gap: 1px; }
+.grid .tag-icon { font-size: 0.78em; line-height: 1; }
 .grid .code { display: block; font-size: 0.78rem; color: var(--ink-3); }
 .na { color: var(--ink-3); }
 .show-sm { display: none; }
@@ -231,9 +234,12 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
   .hide-sm { display: none; }
   .show-sm { display: inline; }
   .grid { font-size: 0.93rem; }
-  .grid td, .grid th { padding: 9px 7px; }
+  .grid td, .grid th { padding: 9px 5px; }
   .grid .rank { display: none; }
-  .gauge-track { width: 56px; }
+  /* 역사적 위치 게이지를 좁혀 이름·태그·배당률·배당/10Y와 함께 스크롤 없이 보이게 한다 */
+  .gauge { gap: 4px; }
+  .gauge-track { width: 38px; }
+  .gauge-num { min-width: 2em; font-size: 0.82rem; }
   .status-table { display: block; overflow-x: auto; }
   .chart.tall, .band-main-chart { height: 310px; min-height: 310px; }
   .band-periods { width: min(94%, 360px); justify-content: center; }

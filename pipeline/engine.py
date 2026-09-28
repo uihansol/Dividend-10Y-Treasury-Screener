@@ -61,8 +61,11 @@ class DpsComponent:
 class ExpectedDps:
     value: float
     components: list[DpsComponent]
-    latest_fy: int            # 연간 DPS가 확정된 가장 최근 사업연도
+    latest_fy: int            # 연간 DPS가 확정된 가장 최근 사업연도 (F)
     flags: list[str] = field(default_factory=list)
+    # value가 실제로 나타내는 사업연도. 올해(O=F+1) 확정분이 있으면 O, 없으면(전년도 값을 그대로 쓴
+    # 경우) F. 전년 대비 증감(예: 폭탄 태그)은 이 값 - 1 사업연도와 비교해야 한다.
+    estimate_fy: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -274,12 +277,15 @@ def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "substi
         if p == "PROV":
             flags.append("provisional_dividend_used")
         value = cum_o + fill + final
+        estimate_fy = O.year
     else:
         if F.has_interim():
             comps.extend(_interim_components(F))
         comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year, final, F.fy_confirmed, F.fy_ref))
         value = F.fy_total or 0.0
-    return ExpectedDps(value=value, components=comps, latest_fy=F.year, flags=sorted(set(flags)))
+        estimate_fy = F.year
+    return ExpectedDps(value=value, components=comps, latest_fy=F.year, flags=sorted(set(flags)),
+                       estimate_fy=estimate_fy)
 
 
 # ---------------------------------------------------------------------------
@@ -419,6 +425,32 @@ def persistence(years: dict[int, FiscalYear], asof: date, current_dps: Optional[
         "vs10y": (current_dps / base10) if (current_dps is not None and base10 and base10 > 0) else None,
         "dps10y_ago": base10,
     }
+
+
+def dividend_tags(years: dict[int, FiscalYear], asof: date, exp: Optional[ExpectedDps]) -> dict:
+    """메인 목록 태그.
+
+    crown(왕관): asof까지 확정된 최근 10개 사업연도 데이터가 전부 있고(연속 10년), 그 10년 모두
+                배당을 지급했으며(0원인 해 없음), 10년 안에서 전년 대비 감소가 한 번도 없었던 경우.
+    bomb(폭탄):  올해 예상(잠정 포함) DPS(exp.value, exp.estimate_fy 사업연도 추정치)가 그 직전
+                사업연도(exp.estimate_fy - 1) 확정 DPS 대비 50% 이상 늘어난 경우.
+    """
+    annual = {fy.year: fy.fy_total for fy in years.values()
+              if fy.fy_total is not None and fy.fy_confirmed and fy.fy_confirmed <= asof}
+    crown = False
+    if annual:
+        F = max(annual)
+        win10 = list(range(F - 9, F + 1))
+        if all(y in annual and (annual[y] or 0) > 0 for y in win10):
+            crown = all(annual[win10[i]] >= annual[win10[i - 1]] for i in range(1, len(win10)))
+
+    bomb = False
+    if exp is not None:
+        base = annual.get(exp.estimate_fy - 1)
+        if base and base > 0:
+            bomb = (exp.value / base - 1.0) >= 0.50
+
+    return {"crown": crown, "bomb": bomb}
 
 
 def annual_breakdown(years: dict[int, FiscalYear], asof: date) -> list[dict]:
