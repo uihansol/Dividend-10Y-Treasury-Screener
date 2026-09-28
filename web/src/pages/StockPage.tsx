@@ -13,6 +13,10 @@ type Phase =
   | { kind: "error"; message: string };
 
 const POLL_MS = 6000;
+const INTRADAY_REFRESH_MS = 45_000; // 장중 최신 가격 확인
+const DAY_CHANGE_CHECK_MS = 30_000; // KST 날짜 변경 확인
+const MARKET_OPEN_MIN = 9 * 60;
+const MARKET_CLOSE_MIN = 15 * 60 + 30;
 const STEPS = [
   "가격 데이터 확인 (2016년~, KRX)",
   "배당 데이터 확인 (2015년~, DART 정기보고서)",
@@ -98,19 +102,53 @@ export function StockPage({ code, master, onPick }: {
     alive.current = true;
     setPhase({ kind: "loading" });
     let lastDay = dayKey();
+
+    const isKstWeekday = (d: Date) => {
+      const weekday = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Seoul", weekday: "short",
+      }).format(d);
+      return weekday !== "Sat" && weekday !== "Sun";
+    };
+    const kstMinutes = (d: Date) => {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false,
+      }).formatToParts(d);
+      return Number(parts.find((p) => p.type === "hour")?.value ?? 0) * 60
+        + Number(parts.find((p) => p.type === "minute")?.value ?? 0);
+    };
+    const isKstMarketHours = () => {
+      const d = new Date();
+      const m = kstMinutes(d);
+      return isKstWeekday(d) && m >= MARKET_OPEN_MIN && m <= MARKET_CLOSE_MIN;
+    };
+
     const clock = setInterval(() => setNow(Date.now()), 1000);
+
+    // KST 날짜 변경: 하루가 바뀌면 배당·가격·미국10Y의 증분 갱신을 한 번 확인한다.
     const dayWatcher = setInterval(() => {
       const currentDay = dayKey();
       if (currentDay !== lastDay) {
         lastDay = currentDay;
         run(false);
       }
-    }, 30_000);
+    }, DAY_CHANGE_CHECK_MS);
+
+    // 장중에는 45초마다 최신 가격을 확인한다.
+    // 서버의 증분 수집/쿨다운이 실제 외부 API 호출 빈도를 제어하므로
+    // 브라우저에서 빈번하게 확인해도 과도한 전체 데이터 재수집은 하지 않는다.
+    const intradayWatcher = setInterval(() => {
+      if (isKstMarketHours() && alive.current) {
+        run(false);
+      }
+    }, INTRADAY_REFRESH_MS);
+
     run(false);
+
     return () => {
       alive.current = false;
       clearInterval(clock);
       clearInterval(dayWatcher);
+      clearInterval(intradayWatcher);
     };
   }, [code, run]);
 
