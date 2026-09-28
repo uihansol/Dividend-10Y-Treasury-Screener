@@ -2,187 +2,233 @@
  "log": {
   "2026-H1": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:29+09:00"
+   "fetched_at": "2026-09-28T22:12:20+09:00",
+   "parser_version": 2
   },
   "2026-Q1": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:29+09:00"
+   "fetched_at": "2026-09-28T22:12:21+09:00",
+   "parser_version": 2
   },
   "2025-FY": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:29+09:00"
+   "fetched_at": "2026-09-28T22:12:21+09:00",
+   "parser_version": 2
   },
   "2025-Q3": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:30+09:00"
+   "fetched_at": "2026-09-28T22:12:21+09:00",
+   "parser_version": 2
   },
   "2025-H1": {
    "status": "no_data",
-   "fetched_at": "2026-09-28T01:04:30+09:00"
+   "fetched_at": "2026-09-28T22:12:21+09:00",
+   "parser_version": 2
   },
   "2025-Q1": {
-   "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:30+09:00"
+   "status": "ok",
+   "fetched_at": "2026-09-28T22:12:22+09:00",
+   "parser_version": 2
   },
   "2024-FY": {
-   "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:30+09:00"
+   "status": "ok",
+   "fetched_at": "2026-09-28T22:12:22+09:00",
+   "parser_version": 2
   },
   "2024-Q3": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:31+09:00"
+   "fetched_at": "2026-09-28T22:12:22+09:00",
+   "parser_version": 2
   },
   "2024-H1": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:31+09:00"
+   "fetched_at": "2026-09-28T22:12:22+09:00",
+   "parser_version": 2
   },
   "2024-Q1": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:31+09:00"
+   "fetched_at": "2026-09-28T22:12:22+09:00",
+   "parser_version": 2
   },
   "2023-FY": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:31+09:00"
+   "fetched_at": "2026-09-28T22:12:23+09:00",
+   "parser_version": 2
   },
   "2023-Q3": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:32+09:00"
+   "fetched_at": "2026-09-28T22:12:23+09:00",
+   "parser_version": 2
   },
   "2023-H1": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:32+09:00"
+   "fetched_at": "2026-09-28T22:12:23+09:00",
+   "parser_version": 2
   },
   "2023-Q1": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:32+09:00"
+   "fetched_at": "2026-09-28T22:12:23+09:00",
+   "parser_version": 2
   },
   "2022-FY": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:32+09:00"
+   "fetched_at": "2026-09-28T22:12:24+09:00",
+   "parser_version": 2
   },
   "2022-Q3": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:32+09:00"
+   "fetched_at": "2026-09-28T22:12:24+09:00",
+   "parser_version": 2
   },
   "2022-H1": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:33+09:00"
+   "fetched_at": "2026-09-28T22:12:24+09:00",
+   "parser_version": 2
   },
   "2022-Q1": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:33+09:00"
+   "fetched_at": "2026-09-28T22:12:24+09:00",
+   "parser_version": 2
   },
   "2021-FY": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:33+09:00"
+   "fetched_at": "2026-09-28T22:12:25+09:00",
+   "parser_version": 2
   },
   "2021-Q3": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:33+09:00"
+   "fetched_at": "2026-09-28T22:12:25+09:00",
+   "parser_version": 2
   },
   "2021-H1": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:34+09:00"
+   "fetched_at": "2026-09-28T22:12:25+09:00",
+   "parser_version": 2
   },
   "2021-Q1": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:34+09:00"
+   "fetched_at": "2026-09-28T22:12:25+09:00",
+   "parser_version": 2
   },
   "2020-FY": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:34+09:00"
+   "fetched_at": "2026-09-28T22:12:25+09:00",
+   "parser_version": 2
   },
   "2020-Q3": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:34+09:00"
+   "fetched_at": "2026-09-28T22:12:26+09:00",
+   "parser_version": 2
   },
   "2020-H1": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:35+09:00"
+   "fetched_at": "2026-09-28T22:12:26+09:00",
+   "parser_version": 2
   },
   "2020-Q1": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:35+09:00"
+   "fetched_at": "2026-09-28T22:12:26+09:00",
+   "parser_version": 2
   },
   "2019-FY": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:35+09:00"
+   "fetched_at": "2026-09-28T22:12:26+09:00",
+   "parser_version": 2
   },
   "2019-Q3": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:35+09:00"
+   "fetched_at": "2026-09-28T22:12:27+09:00",
+   "parser_version": 2
   },
   "2019-H1": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:36+09:00"
+   "fetched_at": "2026-09-28T22:12:27+09:00",
+   "parser_version": 2
   },
   "2019-Q1": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:36+09:00"
+   "fetched_at": "2026-09-28T22:12:27+09:00",
+   "parser_version": 2
   },
   "2018-FY": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:36+09:00"
+   "fetched_at": "2026-09-28T22:12:27+09:00",
+   "parser_version": 2
   },
   "2018-Q3": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:36+09:00"
+   "fetched_at": "2026-09-28T22:12:28+09:00",
+   "parser_version": 2
   },
   "2018-H1": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:37+09:00"
+   "fetched_at": "2026-09-28T22:12:28+09:00",
+   "parser_version": 2
   },
   "2018-Q1": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:37+09:00"
+   "fetched_at": "2026-09-28T22:12:28+09:00",
+   "parser_version": 2
   },
   "2017-FY": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:37+09:00"
+   "fetched_at": "2026-09-28T22:12:28+09:00",
+   "parser_version": 2
   },
   "2017-Q3": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:37+09:00"
+   "fetched_at": "2026-09-28T22:12:29+09:00",
+   "parser_version": 2
   },
   "2017-H1": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:37+09:00"
+   "fetched_at": "2026-09-28T22:12:29+09:00",
+   "parser_version": 2
   },
   "2017-Q1": {
    "status": "no_row",
-   "fetched_at": "2026-09-28T01:04:38+09:00"
+   "fetched_at": "2026-09-28T22:12:29+09:00",
+   "parser_version": 2
   },
   "2016-FY": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:38+09:00"
+   "fetched_at": "2026-09-28T22:12:29+09:00",
+   "parser_version": 2
   },
   "2016-Q3": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:38+09:00"
+   "fetched_at": "2026-09-28T22:12:29+09:00",
+   "parser_version": 2
   },
   "2016-H1": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:38+09:00"
+   "fetched_at": "2026-09-28T22:12:30+09:00",
+   "parser_version": 2
   },
   "2016-Q1": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:39+09:00"
+   "fetched_at": "2026-09-28T22:12:30+09:00",
+   "parser_version": 2
   },
   "2015-FY": {
    "status": "ok",
-   "fetched_at": "2026-09-28T01:04:39+09:00"
+   "fetched_at": "2026-09-28T22:12:30+09:00",
+   "parser_version": 2
   },
   "2015-Q3": {
    "status": "no_data",
-   "fetched_at": "2026-09-28T01:04:39+09:00"
+   "fetched_at": "2026-09-28T22:12:30+09:00",
+   "parser_version": 2
   },
   "2015-H1": {
    "status": "no_data",
-   "fetched_at": "2026-09-28T01:04:39+09:00"
+   "fetched_at": "2026-09-28T22:12:31+09:00",
+   "parser_version": 2
   },
   "2015-Q1": {
    "status": "no_data",
-   "fetched_at": "2026-09-28T01:04:40+09:00"
+   "fetched_at": "2026-09-28T22:12:31+09:00",
+   "parser_version": 2
   }
  },
  "reports": [
@@ -392,6 +438,24 @@
    "confirmed_date": "2024-11-14",
    "basis_date": "2024-09-30",
    "stock_knd": "보통주"
+  },
+  {
+   "fiscal_year": 2024,
+   "period": "FY",
+   "cum_dps": 3174.0,
+   "rcept_no": "20260324000822",
+   "confirmed_date": "2026-03-24",
+   "basis_date": "2024-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2025,
+   "period": "Q1",
+   "cum_dps": 912.0,
+   "rcept_no": "20250526000374",
+   "confirmed_date": "2025-05-26",
+   "basis_date": "2025-03-31",
+   "stock_knd": "-"
   },
   {
    "fiscal_year": 2025,
