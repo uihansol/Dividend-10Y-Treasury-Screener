@@ -6,22 +6,10 @@
  "dividend_through": "2026-09-27",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T23:18:10+09:00",
- "updated_at": "2026-09-27T23:18:10+09:00",
- "last_attempt": "2026-09-28T22:40:01+09:00",
- "last_error": {
-  "dividends": "ConnectTimeout(MaxRetryError(\"HTTPSConnectionPool(host='opendart.fss.or.kr', port=443): Max retries exceeded with url: /api/alotMatter.json?crtfc_key=ec6c957ff8f9b45d3b178a078f1a48264aa8a565&corp_code=00441447&bsns_year=2026&reprt_code=11012 (Caused by ConnectTimeoutError(<HTTPSConnection(host='open"
- },
- "steps": {
-  "prices": {
-   "mode": "incremental",
-   "added": 4,
-   "from": "2026-09-21",
-   "recent_first": true,
-   "recent_days": 7,
-   "quick_initial": false,
-   "gap_filled": false
-  }
- },
+ "updated_at": "2026-09-28T22:40:19+09:00",
+ "last_attempt": "2026-09-28T22:40:19+09:00",
+ "last_error": null,
+ "steps": {},
  "valuation_date": "2026-09-28",
  "summary": {
   "code": "089150",
