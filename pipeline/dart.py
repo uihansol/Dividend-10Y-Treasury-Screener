@@ -220,6 +220,12 @@ def _is_dvd_decision(report_nm: str) -> bool:
     return "배당결정" in name and ("현금" in name or "현물" in name) and "명부폐쇄" not in name
 
 
+def _is_subsidiary_filing(report_nm: str) -> bool:
+    """지주회사가 대신 공시한 자회사의 배당결정. 그 회사 자신의 배당이 아니다
+    (예: CJ가 공시한 CJ제일제당 분기배당, 오리온홀딩스가 공시한 오리온 배당)."""
+    return "자회사" in re.sub(r"\s+", "", report_nm or "")
+
+
 def _field_after(html: str, label: str) -> str | None:
     """'N. 항목명' 다음에 나오는 첫 xforms_input 칸의 값. 금융위 표준 서식이라 항목 번호가
     회사마다 고정돼 있다."""
@@ -272,13 +278,24 @@ def fetch_dividend_announcements(corp_code: str, year: int, log: dict, today: da
         raise DartError(f"DART {st}: {j.get('message')}")
     new = []
     for row in j.get("list", []) if st == "000" else []:
-        if not _is_dvd_decision(row.get("report_nm", "")):
+        name = row.get("report_nm", "")
+        if not _is_dvd_decision(name):
             continue
         rcept_no = row.get("rcept_no", "")
+        if not rcept_no:
+            continue
         rec = log.get(rcept_no, {})
-        # status가 "ok"인데 amount가 없으면(예전 버전에서 파싱 결과를 안 남기던 시절의 기록) 다시 읽는다.
-        already = rec.get("status") == "no_row" or (rec.get("status") == "ok" and "amount" in rec)
-        if not rcept_no or already:
+        if _is_subsidiary_filing(name):
+            # 예전에 'ok'로 받아 둔 자회사 공시도 여기서 덮어써 잠정치 계산에서 빠지게 한다.
+            if rec.get("status") != "subsidiary":
+                log[rcept_no] = {"status": "subsidiary", "fetched_at": now_kst(), "report_nm": name}
+            continue
+        if rec.get("status") == "ok" and "amount" in rec:
+            if rec.get("report_nm") != name:   # 제목을 안 남기던 예전 기록 보강(원문은 다시 안 읽음)
+                log[rcept_no] = {**rec, "report_nm": name}
+            continue
+        # "ok"인데 amount가 없는 기록(파싱 결과를 안 남기던 시절)은 아래에서 원문을 다시 읽는다.
+        if rec.get("status") == "no_row":
             continue
         r = client.get("document.xml", rcept_no=rcept_no)
         try:
@@ -291,8 +308,8 @@ def fetch_dividend_announcements(corp_code: str, year: int, log: dict, today: da
             entry = {"rcept_no": rcept_no,
                     "confirmed_date": datetime.strptime(rcept_no[:8], "%Y%m%d").date().isoformat(),
                     "basis_date": parsed["basis_date"], "amount": parsed["amount"]}
-            log[rcept_no] = {"status": "ok", "fetched_at": now_kst(), **entry}
+            log[rcept_no] = {"status": "ok", "fetched_at": now_kst(), "report_nm": name, **entry}
             new.append(entry)
         else:
-            log[rcept_no] = {"status": "no_row", "fetched_at": now_kst()}
+            log[rcept_no] = {"status": "no_row", "fetched_at": now_kst(), "report_nm": name}
     return new, log

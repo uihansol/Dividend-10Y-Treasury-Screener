@@ -17,9 +17,14 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Iterable, Optional, Sequence
 
-PERIOD_ORDER = {"Q1": 1, "H1": 2, "Q3": 3, "FY": 4, "PROV": 5}
-# PROV: 정기보고서가 아직 안 나온, '현금·현물배당결정' 수시공시로 미리 안 잠정값.
-# Q1/H1/Q3보다 항상 늦게(=더 최근 정보로) 취급한다. fy.interims에만 들어가고 FY와는 섞이지 않는다.
+PERIOD_ORDER = {"Q1": 1, "PROV_Q1": 1.5, "H1": 2, "PROV_H1": 2.5, "Q3": 3, "PROV_Q3": 3.5, "FY": 4}
+# PROV_*: 정기보고서가 아직 반영하지 않은 '현금·현물배당결정' 수시공시 잠정값. 그 배당이 속한 기간
+# 바로 뒤에 놓아, 같은 기간 정기보고서(아직 반영 전)보다는 앞서고 그다음 기간 정기보고서에는 밀린다.
+# fy.interims에만 들어가고 FY와는 섞이지 않는다.
+
+
+def is_provisional_period(period: str) -> bool:
+    return period.startswith("PROV")
 
 
 # ---------------------------------------------------------------------------
@@ -161,13 +166,17 @@ def build_fiscal_years(reports: Iterable[DividendReport],
 
     for fy in years.values():
         fy.interims.sort(key=lambda x: PERIOD_ORDER[x[0]])
-        vals = [x[1] for x in fy.interims]
+        # 기간분/누적 판정은 정기보고서끼리만 한다. 수시공시 잠정값(PROV_*)은 이미 누적으로 만들어
+        # 들어오고, 반영이 늦는 정기보고서보다 클 수 있어 섞어 비교하면 잘못 판정한다.
+        regular = [x for x in fy.interims if not is_provisional_period(x[0])]
+        vals = [x[1] for x in regular]
         if any(vals[i] + 1e-6 < vals[i - 1] for i in range(1, len(vals))):
             running, fixed = 0.0, []
-            for p, v, c, ref in fy.interims:
+            for p, v, c, ref in regular:
                 running += v
                 fixed.append((p, running, c, ref))
-            fy.interims = fixed
+            fy.interims = sorted(fixed + [x for x in fy.interims if is_provisional_period(x[0])],
+                                 key=lambda x: PERIOD_ORDER[x[0]])
             fy.flags.append("interim_values_treated_as_per_period")
         if fy.fy_total is not None and fy.interim_total() > fy.fy_total + 1e-6:
             fy.flags.append("interim_exceeds_annual")
@@ -184,7 +193,7 @@ def _period_amounts(fy: FiscalYear) -> dict[str, float]:
     prev = 0.0
     for period, cumulative, _, _ in recs:
         out[period] = max(cumulative - prev, 0.0)
-        prev = cumulative
+        prev = max(prev, cumulative)
     return out
 
 
@@ -195,11 +204,12 @@ def _cum_at(fy: Optional[FiscalYear], period: str) -> float:
     best = 0.0
     for p, v, _, _ in fy.interims:
         if PERIOD_ORDER[p] <= PERIOD_ORDER[period]:
-            best = v
+            best = max(best, v)
     return best
 
 
-_PERIOD_LABEL = {"Q1": "1분기", "H1": "반기", "Q3": "3분기", "PROV": "배당 결정"}
+_PERIOD_LABEL = {"Q1": "1분기", "H1": "반기", "Q3": "3분기",
+                 "PROV_Q1": "1분기 배당 결정", "PROV_H1": "반기 배당 결정", "PROV_Q3": "3분기 배당 결정"}
 
 
 def _interim_components(fy: FiscalYear, *, upto: Optional[str] = None, after: Optional[str] = None,
@@ -216,15 +226,16 @@ def _interim_components(fy: FiscalYear, *, upto: Optional[str] = None, after: Op
     out: list[DpsComponent] = []
     prev = 0.0
     for period, cum, confirmed, ref in sorted(fy.interims, key=lambda x: PERIOD_ORDER[x[0]]):
-        amt, prev = max(cum - prev, 0.0), cum
+        amt, prev = max(cum - prev, 0.0), max(prev, cum)
         if upto is not None and PERIOD_ORDER[period] > PERIOD_ORDER[upto]:
             continue
         if after is not None and PERIOD_ORDER[period] <= PERIOD_ORDER[after]:
             continue
         if amt <= 0:
             continue
-        kind = "provisional" if period == "PROV" else "interim"
-        prov_suffix = " (수시공시, 정기보고서 확정 전)" if period == "PROV" else suffix
+        prov = is_provisional_period(period)
+        kind = "provisional" if prov else "interim"
+        prov_suffix = " (수시공시, 정기보고서 확정 전)" if prov else suffix
         out.append(DpsComponent(f"{fy.year}년 {_PERIOD_LABEL[period]}{prov_suffix}", kind, fy.year,
                                 amt, confirmed, ref))
     return out
@@ -271,7 +282,7 @@ def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "substi
             flags.append("prior_year_unconfirmed_periods_filled")
         comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year, final, F.fy_confirmed, F.fy_ref))
         flags += list(O.flags)
-        if p == "PROV":
+        if is_provisional_period(p):
             flags.append("provisional_dividend_used")
         value = cum_o + fill + final
     else:
@@ -500,7 +511,7 @@ def annual_breakdown(years: dict[int, FiscalYear], asof: date) -> list[dict]:
                 "interim": cum,
                 "final": 0.0,
                 "total": cum,
-                "quarterly": any(p in ("Q1", "Q3") for p, v, c, _ in cur.interims if v > 0 and c <= asof),
+                "quarterly": any(p.replace("PROV_", "") in ("Q1", "Q3") for p, v, c, _ in cur.interims if v > 0 and c <= asof),
                 "confirmed": rec[2].isoformat() if rec else None,
                 "flags": cur.flags,
                 "provisional": True,

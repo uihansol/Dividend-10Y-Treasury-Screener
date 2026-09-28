@@ -7,6 +7,7 @@
   python -m pipeline.update stock 005930 --force   # cooldown 무시
   python -m pipeline.update stock 005930 --stage prices|dividends|us10y|compute   # 단계별 실행 (Actions용)
   python -m pipeline.update recompute         # 캐시된 종목만 네트워크 없이 다시 계산
+  python -m pipeline.update announcements     # 캐시된 종목의 올해 배당결정 공시만 다시 확인(DART) 후 재계산
   python -m pipeline.update search 삼성        # 로컬 master 검색 (네트워크 없음)
   python -m pipeline.update index             # data/cache/index.json 재생성
   python -m pipeline.update rawdiv 00244455 2026 Q1   # DART alotMatter 원본 확인 (파싱 디버그용)
@@ -27,7 +28,7 @@ except ImportError:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("step", choices=["init", "us10y", "master", "stock", "backfill", "search", "index", "recompute",
-                                     "rawdiv", "disclist", "rawdoc"])
+                                     "announcements", "rawdiv", "disclist", "rawdoc"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("extra", nargs="*")
     ap.add_argument("--force", action="store_true")
@@ -35,7 +36,8 @@ def main(argv=None) -> int:
     ap.add_argument("--quick", action="store_true", help="최초 가격 조회 시 최근 90일만 먼저 수집")
     a = ap.parse_args(argv)
 
-    from .cache import DataUnavailable, StockNotFound, analyze_stock, backfill_stock_price_cache, rebuild_index, recompute_cached
+    from .cache import (DataUnavailable, StockNotFound, analyze_stock, backfill_stock_price_cache, rebuild_index,
+                        recompute_cached, refresh_announcements_cached)
     from .fred import update_us10y
     from .master import build_master, search
 
@@ -49,6 +51,8 @@ def main(argv=None) -> int:
             out("recompute", recompute_cached())
     if a.step == "recompute":
         out("recompute", recompute_cached())
+    if a.step == "announcements":
+        out("announcements", refresh_announcements_cached())
     if a.step in ("init", "master"):
         r = build_master()
         out("master", r)

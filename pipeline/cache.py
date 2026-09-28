@@ -232,51 +232,113 @@ def to_reports(div: dict) -> list[DividendReport]:
     return out
 
 
-_PERIOD_END = {"Q1": (3, 31), "H1": (6, 30), "Q3": (9, 30), "FY": (12, 31)}
+_QUARTER_ENDS = ((3, 31, "Q1"), (6, 30, "H1"), (9, 30, "Q3"), (12, 31, "FY"))
+_INTERIM_PERIODS = ("Q1", "H1", "Q3")
+_NEXT_PERIOD = {"Q1": "H1", "H1": "Q3", "Q3": "Q3"}
 
 
-def _period_end_date(r: dict) -> date:
-    if r.get("basis_date"):
-        return date.fromisoformat(str(r["basis_date"])[:10])
-    m, d = _PERIOD_END[r["period"]]
-    return date(int(r["fiscal_year"]), m, d)
+def _latest_period_end(d: date, *, inclusive: bool) -> tuple[int, str]:
+    """d 이전(inclusive면 d 당일 포함) 가장 최근 분기 말 → (사업연도, 기간)."""
+    for y in (d.year, d.year - 1):
+        for m, dd, p in reversed(_QUARTER_ENDS):
+            end = date(y, m, dd)
+            if end < d or (inclusive and end == d):
+                return y, p
+    raise ValueError(d)
+
+
+def _attribute_announcement(decided: date, basis: date) -> tuple[int, str]:
+    """배당결정 공시가 어느 사업연도·기간의 배당인지.
+
+    - 1~3월에 결정된 배당은 직전 사업연도 결산(기말)배당이다. 2024년 배당절차 개선 이후엔
+      기준일이 결정 뒤(2~4월)로 잡혀 기준일 연도가 다음 해가 되므로(광주신세계 037710: 결정 2/11,
+      기준일 3/31) 기준일로는 판단할 수 없다.
+    - 기준일을 먼저 두고 나중에 결정하는 종전 방식(기준일 ≤ 결정일)은 기준일이 속한 분기의 배당이다
+      (서호전기 065710: 결정 8/12, 기준일 6/30 → 반기).
+    - 결정 뒤에 기준일을 잡는 개정 방식은 결정 직전에 끝난 분기의 배당이다
+      (037710: 결정 5/13·기준일 5/29 → 1분기보고서에 600원으로 실림)."""
+    y, p = _latest_period_end(decided, inclusive=False)
+    if p == "FY" or basis > decided:
+        return y, p
+    return _latest_period_end(basis, inclusive=True)
 
 
 def _provisional_reports(div: dict) -> list[DividendReport]:
-    """'현금·현물배당결정' 수시공시 중 같은 해 정기보고서로 아직 안 덮인 것만 PROV 보고서로 만든다.
-    누계(cum_dps) = 그 공시 접수일까지 정기보고서로 이미 확정된 같은 해 누계 + 공시 금액.
+    """'현금·현물배당결정' 수시공시 중 정기보고서가 아직 반영하지 않은 것만 잠정 보고서(PROV_*)로 만든다.
 
-    '이미 반영됐다'는 접수일 순서가 아니라 보고기간으로 판단한다: 정기보고서의 결산기준일이
-    이 공시의 배당기준일 이후면(그 분기·반기가 이 배당까지 포함하는 기간이면) 그 정기보고서를
-    신뢰하고 잠정치는 버린다. KT&G처럼 반기보고서(결산기준일 6/30)가 8월 분기배당 공시(배당기준일
-    8/21)보다 늦게 '접수'돼도 그 배당을 반영하지 않는 경우가 있어, 접수일만으로는 판단할 수 없다.
-
-    다만 결산기준일만으로 '반영됨'을 판단하면 서호전기(065710)처럼 반기보고서(결산기준일 6/30)가
-    분기배당 공시(배당기준일 6/30, 같은 날) 이틀 뒤에 나왔는데도 그 표(주당 현금배당금)엔 아직
-    0으로 남아 있는 경우를 잘못 '반영됨'으로 봐서 잠정치를 버리고, 그 해 자체가 화면에서 통째로
-    사라진다. 그래서 결산기준일 조건에 더해, 그 정기보고서의 누계가 실제로 공시 금액만큼
-    늘어났는지(직전 누계 + 공시 금액 이상인지)까지 확인한다 — 기간은 지났지만 표에 아직 안 실렸으면
-    '반영 안 됨'으로 보고 잠정치를 유지한다.
-
-    사업연도는 공시 접수일이 아니라 배당기준일(basis_date) 기준으로 정한다. 예를 들어 전년도
-    기말배당 공시는 보통 다음 해 2~3월에 '접수'되므로, 접수일 연도를 쓰면 전년도 배당이 올해
-    잠정치로 잘못 섞여 들어간다(서호전기 065710: 2025년 기말배당 공시가 접수일 기준 2026년으로
-    잘못 분류되면서 2026년 중간배당 잠정치와 뒤섞였다)."""
+    원 데이터(조회한 종목 전체의 공시·정기보고서)에서 확인한 규칙:
+    1. 사업연도·기간은 결정일과 기준일로 정한다(_attribute_announcement). 결산배당(FY)은
+       사업보고서가 확정하므로 잠정치를 만들지 않는다 — 올해 분기 잠정치로 섞이면 폭탄 태그가
+       잘못 붙는다.
+    2. 같은 기준일·금액의 공시는 정정·재공시이므로 하나로 본다(가장 이른 결정일 기준).
+    3. 한 기간에 공시가 여럿이면, 그중 하나라도 정기보고서가 이미 반영했으면 그 기간은 정기보고서를
+       믿고 모두 버린다(예: 하나금융 086790 반기 1,155원이 반영돼 있으면 같은 기간의 다른 금액은
+       무시). 모두 미반영이면 가장 나중에 결정된 공시(정정분)를 쓴다.
+    4. 누계는 기간 순서대로 쌓는다: 직전 기간까지의 누계(정기보고서 또는 앞 기간 잠정치) + 이번 금액.
+       예전에는 공시마다 따로 계산해 같은 해 잠정치 중 목록상 마지막(=DART 목록에서 가장 오래된)
+       공시 하나만 남았다.
+    5. '반영됨' = 같은 사업연도, 결정일 이후 접수, 같거나 뒤 기간의 정기보고서 누계가 이 누계 이상.
+    6. 결정일 이후 나온 같은 기간 정기보고서가 반영하지 않았거나(KT&G 033780·서호전기 065710:
+       8월 결정분이 반기보고서엔 0), 아직 그 보고서가 없는데 작년 같은 기간 보고서엔 배당이 없고
+       다음 기간 보고서에 실렸다면, 이 회사는 이런 배당을 다음 기간 보고서에 싣는 것으로 보고
+       잠정치를 다음 기간(PROV_Q3 등)으로 옮긴다. 그래야 전년도 미확정분 대체가 이중 계산되지 않는다."""
     periodic = [r for r in div["reports"] if r.get("confirmed_date")]
-    out = []
+    order = {"Q1": 1, "H1": 2, "Q3": 3, "FY": 4}
+
+    events: dict[tuple[str, float], dict] = {}
     for a in div.get("announcements", {}).values():
         if a.get("status") != "ok" or not a.get("confirmed_date") or not a.get("amount"):
             continue
-        ann_basis = date.fromisoformat(a["basis_date"]) if a.get("basis_date") else date.fromisoformat(a["confirmed_date"])
-        year = ann_basis.year
-        same_year = [r for r in periodic if int(r["fiscal_year"]) == year]
-        prior_cum = max([0.0] + [float(r["cum_dps"]) for r in same_year if r["confirmed_date"] <= a["confirmed_date"]])
-        covered = any(_period_end_date(r) >= ann_basis and float(r["cum_dps"]) >= prior_cum + float(a["amount"])
-                     for r in same_year)
-        if covered:
-            continue
-        out.append(DividendReport(year, "PROV", prior_cum + float(a["amount"]), ann_basis,
-                                  date.fromisoformat(a["confirmed_date"]), str(a.get("rcept_no", ""))))
+        basis = a.get("basis_date") or a["confirmed_date"]
+        key = (basis, float(a["amount"]))
+        if key not in events or a["confirmed_date"] < events[key]["confirmed_date"]:
+            events[key] = a
+
+    by_period: dict[tuple[int, str], list[dict]] = {}
+    for a in events.values():
+        decided = date.fromisoformat(a["confirmed_date"])
+        basis = date.fromisoformat(a.get("basis_date") or a["confirmed_date"])
+        fy, p = _attribute_announcement(decided, basis)
+        if p != "FY":
+            by_period.setdefault((fy, p), []).append(a)
+
+    out: list[DividendReport] = []
+    for fy in sorted({k[0] for k in by_period}):
+        reps = [r for r in periodic if int(r["fiscal_year"]) == fy]
+        if any(r["period"] == "FY" for r in reps):
+            continue  # 사업보고서가 나온 해는 그 연간 값이 전부 확정한다
+        last_year = {r["period"]: float(r["cum_dps"]) for r in periodic if int(r["fiscal_year"]) == fy - 1}
+        running = 0.0
+        for p in _INTERIM_PERIODS:
+            cands = sorted(by_period.get((fy, p), []), key=lambda a: a["confirmed_date"])
+            if not cands:
+                continue
+
+            def target(a: dict) -> float:
+                before = [float(r["cum_dps"]) for r in reps if r["confirmed_date"] < a["confirmed_date"]]
+                return max([running] + before) + float(a["amount"])
+
+            def covered(a: dict) -> bool:
+                return any(r["confirmed_date"] >= a["confirmed_date"] and order[r["period"]] >= order[p]
+                           and float(r["cum_dps"]) >= target(a) - 1e-6 for r in reps)
+
+            hit = [target(a) for a in cands if covered(a)]
+            if hit:
+                running = max(hit)
+                continue
+            a = cands[-1]
+            cum = target(a)
+            lagging_now = any(r["period"] == p and r["confirmed_date"] >= a["confirmed_date"] for r in reps)
+            prev_p = {"Q1": None, "H1": "Q1", "Q3": "H1"}[p]
+            lagged_last_year = (p in last_year and _NEXT_PERIOD[p] in last_year
+                                and last_year[p] <= last_year.get(prev_p, 0.0) + 1e-6
+                                and last_year[_NEXT_PERIOD[p]] > last_year[p] + 1e-6)
+            no_report_yet = not any(r["period"] == p for r in reps)
+            shown = _NEXT_PERIOD[p] if lagging_now or (no_report_yet and lagged_last_year) else p
+            out.append(DividendReport(fy, f"PROV_{shown}", cum,
+                                      date.fromisoformat(a.get("basis_date") or a["confirmed_date"]),
+                                      date.fromisoformat(a["confirmed_date"]), str(a.get("rcept_no", ""))))
+            running = cum
     return out
 
 
@@ -542,6 +604,28 @@ def recompute_cached(master: dict | None = None) -> dict:
                 failed[code] = repr(e)[:200]
     rebuild_index()
     return {"recomputed": len(done), "failed": failed or None}
+
+
+def refresh_announcements_cached(master: dict | None = None, today: date | None = None,
+                                 fetch: Callable | None = None) -> dict:
+    """이미 캐시된 종목만 올해 '현금·현물배당결정' 공시 기록을 다시 확인하고(종목당 공시 목록 1회,
+    새 공시만 원문 조회) 네트워크 없이 재계산한다. 자회사 공시 제외처럼 공시 판별 규칙이 바뀌었을 때
+    각 종목을 따로 새로고침하지 않고 한 번에 반영하는 용도. 가격·정기보고서는 다시 받지 않는다."""
+    from .master import load_master
+    master = master if master is not None else load_master()
+    done, failed = [], {}
+    if C.CACHE_DIR.exists():
+        for p in sorted(C.CACHE_DIR.glob("*/dividends.json")):
+            code = p.parent.name
+            if code not in master:
+                continue
+            try:
+                with _lock(code):
+                    update_stock_announcement_cache(code, master[code]["corp_code"], today, fetch)
+                done.append(code)
+            except Exception as e:
+                failed[code] = repr(e)[:200]
+    return {"refreshed": len(done), "failed": failed or None, "recompute": recompute_cached(master)}
 
 
 def rebuild_index() -> dict:

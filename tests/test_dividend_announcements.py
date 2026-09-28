@@ -14,7 +14,7 @@ import pytest
 
 from pipeline.cache import _provisional_reports, to_reports
 from pipeline.dart import fetch_dividend_announcements, parse_dvd_decision
-from pipeline.engine import build_fiscal_years, expected_dps_asof
+from pipeline.engine import DividendReport, build_fiscal_years, expected_dps_asof
 
 
 def _span(label: str, value: str) -> str:
@@ -92,7 +92,8 @@ def test_fetch_dividend_announcements_only_fetches_dvd_decision_docs():
                     "basis_date": "2026-08-21", "amount": 2000.0}]
     # log 자체가 파싱 결과(금액 등)를 들고 있어야 한다 — cache._provisional_reports가
     # 원문을 다시 열지 않고 div["announcements"](=이 log)에서 바로 읽는다.
-    assert log["20260806800319"] == {**new[0], "status": "ok", "fetched_at": log["20260806800319"]["fetched_at"]}
+    assert log["20260806800319"] == {**new[0], "status": "ok", "fetched_at": log["20260806800319"]["fetched_at"],
+                                     "report_nm": rows[0]["report_nm"]}
 
 
 def test_fetch_dividend_announcements_skips_already_logged():
@@ -103,7 +104,8 @@ def test_fetch_dividend_announcements_skips_already_logged():
                               "amount": 2000.0, "rcept_no": "20260806800319"}}
     new, log2 = fetch_dividend_announcements("00244455", 2026, log, today=D(2026, 9, 27), client=client)
     assert new == [] and [c[0] for c in client.calls] == ["list.json"]   # 원문 재조회 없음
-    assert log2 == log
+    # 제목만 보강한다(자회사 공시 판별용). 금액 등 파싱 결과는 그대로.
+    assert log2 == {k: {**v, "report_nm": "현금ㆍ현물배당결정"} for k, v in log.items()}
 
 
 def test_fetch_dividend_announcements_refetches_legacy_incomplete_log_entry():
@@ -133,7 +135,8 @@ def test_provisional_report_adds_amount_on_top_of_periodic_cumulative():
     out = _provisional_reports(div)
     assert len(out) == 1
     p = out[0]
-    assert (p.fiscal_year, p.period, p.cum_dps) == (2026, "PROV", 2000.0)  # 0(직전 누계) + 2000
+    # 8/6 결정분이 8/14 반기보고서엔 0 → 이 회사는 이런 배당을 다음(3분기) 보고서에 싣는다.
+    assert (p.fiscal_year, p.period, p.cum_dps) == (2026, "PROV_Q3", 2000.0)  # 0(직전 누계) + 2000
     assert p.confirmed_date == D(2026, 8, 6) and p.basis_date == D(2026, 8, 21)
 
 
@@ -169,14 +172,12 @@ def test_provisional_report_kept_when_periodic_report_covers_period_but_shows_ze
     }
     out = _provisional_reports(div)
     assert len(out) == 1
-    assert (out[0].fiscal_year, out[0].period, out[0].cum_dps) == (2026, "PROV", 2000.0)
+    assert (out[0].fiscal_year, out[0].period, out[0].cum_dps) == (2026, "PROV_Q3", 2000.0)
 
 
-def test_provisional_report_uses_basis_year_not_confirmed_year():
-    """서호전기(065710) 사고 ②: 전년도(2025) 기말배당 공시는 배당기준일이 2025-12-31이지만 보통
-    다음 해 2~3월에 '접수'된다. 접수일(2026년) 기준으로 사업연도를 정하면 이 2025년 배당이 올해
-    (2026년) 중간배당 잠정치와 같은 연도로 뒤섞여 잘못된 값이 된다 — 배당기준일(2025년) 기준으로
-    분류해야 이미 확정된 2025년 정기보고서(FY)로 정상적으로 덮인다."""
+def test_year_end_dividend_announced_next_year_is_not_current_year_provisional():
+    """서호전기(065710): 2025년 기말배당 공시는 2026-02-27에 접수된다. 접수일 연도(2026)로
+    분류하면 올해 중간배당 잠정치와 뒤섞인다 — 1~3월 결정분은 직전 사업연도 결산배당이다."""
     div = {
         "reports": [_periodic(2025, "FY", 6000, "2026-03-19")],   # 2025년 사업보고서로 이미 확정
         "announcements": {
@@ -184,7 +185,7 @@ def test_provisional_report_uses_basis_year_not_confirmed_year():
                       "basis_date": "2025-12-31", "amount": 4000.0, "rcept_no": "fy2025"},
         },
     }
-    assert _provisional_reports(div) == []   # 2025년로 분류되어 이미 정기보고서가 덮은 것으로 처리
+    assert _provisional_reports(div) == []
 
 
 def test_to_reports_includes_provisional_alongside_periodic():
@@ -194,7 +195,117 @@ def test_to_reports_includes_provisional_alongside_periodic():
                                 "basis_date": "2026-08-21", "amount": 2000.0, "rcept_no": "r1"}},
     }
     periods = {(r.fiscal_year, r.period) for r in to_reports(div)}
-    assert periods == {(2025, "FY"), (2026, "Q1"), (2026, "PROV")}
+    assert periods == {(2025, "FY"), (2026, "Q1"), (2026, "PROV_H1")}
+
+
+# ------------------------------------------------------------------ 같은 해 공시가 여럿일 때 (원 데이터 기반)
+def _ann(conf, basis, amount, rno=None):
+    return {"status": "ok", "confirmed_date": conf, "basis_date": basis, "amount": amount,
+            "rcept_no": rno or f"{conf.replace('-', '')}{int(amount)}"}
+
+
+def _anns(*items):
+    # DART 목록처럼 최신 공시가 앞에 오도록 넣는다 — 예전 코드는 이 순서 때문에 가장 오래된 공시가 남았다.
+    return {a["rcept_no"]: a for a in sorted(items, key=lambda a: a["confirmed_date"], reverse=True)}
+
+
+def test_gwangju_shinsegae_uses_this_years_dividends_not_last_years_final():
+    """광주신세계(037710) 원 데이터. 2/11 공시(2,400원, 기준일 3/31)는 2025년 결산배당(배당절차 개선으로
+    기준일이 결정 뒤)이고, 5/13·8/14 공시(각 600원)는 올해 1분기·반기 배당으로 정기보고서에 이미 실렸다.
+    예전에는 셋 다 2026년 'PROV' 하나로 겹쳐 가장 오래된 2,400원이 남아 올해 누계가 2,400원이 됐다."""
+    div = {
+        "reports": [_periodic(2025, "Q1", 0, "2025-05-15"), _periodic(2025, "H1", 0, "2025-08-14"),
+                    _periodic(2025, "Q3", 0, "2025-11-14"), _periodic(2025, "FY", 2400, "2026-03-16"),
+                    _periodic(2026, "Q1", 600, "2026-05-15"), _periodic(2026, "H1", 1200, "2026-08-14")],
+        "announcements": _anns(_ann("2026-02-11", "2026-03-31", 2400.0), _ann("2026-05-13", "2026-05-29", 600.0),
+                               _ann("2026-08-14", "2026-08-31", 600.0)),
+    }
+    assert _provisional_reports(div) == []
+    years = build_fiscal_years(to_reports(div), [])
+    assert years[2026].interim_cum_asof(D(2026, 9, 28))[0] == 1200.0
+    assert expected_dps_asof(D(2026, 9, 28), years).value == pytest.approx(1200 + 2400)
+
+
+def test_uncovered_announcements_stack_in_period_order():
+    """정기보고서가 아직 없는 두 공시(1분기 600, 반기 600)는 누계로 쌓이고, 더 늦은 기간이 최신이다
+    (예전에는 공시마다 따로 600으로 계산돼 목록 순서에 따라 하나만 남았다)."""
+    div = {"reports": [_periodic(2025, "FY", 2400, "2026-03-23")],
+           "announcements": _anns(_ann("2026-05-12", "2026-05-27", 600.0), _ann("2026-07-14", "2026-07-29", 600.0))}
+    out = [(r.period, r.cum_dps) for r in _provisional_reports(div)]
+    assert out == [("PROV_Q1", 600.0), ("PROV_H1", 1200.0)]
+    years = build_fiscal_years(to_reports(div), [])
+    cum, rec = years[2026].interim_cum_asof(D(2026, 9, 28))
+    assert (cum, rec[0]) == (1200.0, "PROV_H1")
+    assert years[2026].interim_cum_asof(D(2026, 6, 1))[0] == 600.0   # 7/14 공시 전에는 1분기분만
+
+
+def test_same_period_alternatives_dropped_once_periodic_report_reflects_one():
+    """하나금융(086790): 같은 반기에 559.48·886.26·1,155원 공시. 반기보고서(2,300 = 1,145+1,155)가 그중
+    하나를 이미 반영했으면 그 기간은 정기보고서를 믿는다(예전에는 나머지가 잠정치로 남아 💣가 붙었다)."""
+    div = {
+        "reports": [_periodic(2026, "Q1", 1145, "2026-05-15"), _periodic(2026, "H1", 2300, "2026-08-14")],
+        "announcements": _anns(_ann("2026-04-24", "2026-05-11", 1145.0), _ann("2026-07-23", "2026-08-10", 559.48),
+                               _ann("2026-07-23", "2026-08-06", 886.26), _ann("2026-07-24", "2026-08-10", 1155.0)),
+    }
+    assert _provisional_reports(div) == []
+
+
+def test_re_announcement_of_year_end_dividend_is_not_this_years_q1():
+    """HK이노엔(195940)·SKC(069960): 결산배당을 2~3월에 공시하고 4월에 같은 기준일·금액으로 다시 공시했다.
+    두 번째 공시만 보면 '4월 결정·기준일 3/31 → 1분기'로 오인되므로, 같은 기준일·금액은 가장 이른
+    결정일 하나로 합친다."""
+    div = {"reports": [_periodic(2025, "FY", 410, "2026-03-18"), _periodic(2026, "Q1", 0, "2026-05-14"),
+                       _periodic(2026, "H1", 0, "2026-08-14")],
+           "announcements": _anns(_ann("2026-03-10", "2026-03-31", 410.0), _ann("2026-04-24", "2026-03-31", 410.0))}
+    assert _provisional_reports(div) == []
+
+
+def test_lagging_reporter_provisional_is_placed_in_next_period_so_fill_is_not_doubled():
+    """SKC(069960): 작년엔 반기보고서 0, 3분기보고서 500(8월 결정분이 3분기에 실림). 올해 8/5 결정분
+    500원도 반기보고서엔 0이다. 이를 반기 잠정치로 두면 전년도 3분기 500원까지 '미확정분 대체'로
+    더해져 이중 계산된다(2,650) — 3분기 잠정치로 둬야 작년 합계와 같은 2,150이 된다."""
+    div = {
+        "reports": [_periodic(2025, "Q1", 0, "2025-05-15"), _periodic(2025, "H1", 0, "2025-08-14"),
+                    _periodic(2025, "Q3", 500, "2025-11-14"), _periodic(2025, "FY", 2150, "2026-03-18"),
+                    _periodic(2026, "Q1", 0, "2026-05-15"), _periodic(2026, "H1", 0, "2026-08-14")],
+        "announcements": _anns(_ann("2026-02-11", "2026-04-03", 1650.0), _ann("2026-08-05", "2026-09-30", 500.0)),
+    }
+    assert [(r.period, r.cum_dps) for r in _provisional_reports(div)] == [("PROV_Q3", 500.0)]
+    e = expected_dps_asof(D(2026, 9, 28), build_fiscal_years(to_reports(div), []))
+    assert e.value == pytest.approx(500 + 1650)
+
+
+def test_lag_predicted_from_last_year_before_this_years_report_arrives():
+    """아직 반기보고서가 안 나온 시점이라도, 작년에 같은 기간 보고서엔 없고 다음 기간에 실렸다면
+    처음부터 다음 기간 잠정치로 둔다(8/6~8/14 사이에 잠깐 이중 계산되는 것을 막는다)."""
+    div = {"reports": [_periodic(2025, "H1", 0, "2025-08-14"), _periodic(2025, "Q3", 1400, "2025-11-14"),
+                       _periodic(2025, "FY", 6000, "2026-03-18"), _periodic(2026, "Q1", 0, "2026-05-15")],
+           "announcements": _anns(_ann("2026-08-06", "2026-08-21", 2000.0))}
+    assert [(r.period, r.cum_dps) for r in _provisional_reports(div)] == [("PROV_Q3", 2000.0)]
+
+
+def test_later_periodic_report_outranks_older_uncovered_provisional():
+    """잠정치는 무조건 최신이 아니다: 그 뒤 기간의 정기보고서가 나오면 그 보고서를 쓴다."""
+    years = build_fiscal_years([
+        DividendReport(2026, "PROV_H1", 1200.0, D(2026, 7, 29), D(2026, 7, 14), "p"),
+        DividendReport(2026, "Q3", 1500.0, D(2026, 9, 30), D(2026, 11, 14), "q3"),
+    ], [])
+    assert years[2026].interim_cum_asof(D(2026, 10, 1))[1][0] == "PROV_H1"
+    assert years[2026].interim_cum_asof(D(2026, 11, 20))[1][0] == "Q3"
+
+
+def test_subsidiary_dividend_filings_are_excluded():
+    """CJ(001040)가 공시한 CJ제일제당 분기배당처럼 지주회사가 대신 낸 자회사 배당결정은 제외하고,
+    예전에 'ok'로 받아 둔 기록도 덮어쓴다."""
+    rows = [{"rcept_no": "20260810800001", "report_nm": "현금ㆍ현물배당결정(자회사의 주요경영사항)"},
+            {"rcept_no": "20260209800001", "report_nm": "현금ㆍ현물배당결정"}]
+    client = FakeDartClient(rows, {"20260209800001": _dvd_html()})
+    old = {"20260810800001": {"status": "ok", "fetched_at": "x", "confirmed_date": "2026-08-10",
+                              "basis_date": "2026-08-31", "amount": 1500.0, "rcept_no": "20260810800001"}}
+    new, log = fetch_dividend_announcements("00258801", 2026, old, today=D(2026, 9, 27), client=client)
+    assert log["20260810800001"]["status"] == "subsidiary"
+    assert [c[1].get("rcept_no") for c in client.calls if c[0] == "document.xml"] == ["20260209800001"]
+    assert all(r.ref != "20260810800001" for r in _provisional_reports({"reports": [], "announcements": log}))
 
 
 # ------------------------------------------------------------------ engine.expected_dps_asof + PROV
@@ -280,3 +391,16 @@ def test_analyze_stock_reflects_provisional_announcement(tmp_data, monkeypatch):
                       fetch_announcements=fake_announcements, update_us=False)
     assert r["summary"]["dps"] == pytest.approx(6600.0)
     assert any("이사회 결정" in c["label"] or c["confirmed"] == "2026-08-06" for c in r["components"])
+
+    # 판별 규칙이 바뀌어(예: 자회사 공시 제외) 이 공시가 빠지면, 종목별 새로고침 없이 일괄 재확인으로 반영된다.
+    from pipeline.cache import refresh_announcements_cached
+
+    def drop_as_subsidiary(corp_code, year, log, today=None, client=None):
+        return [], {**log, "r1": {"status": "subsidiary", "fetched_at": "x", "report_nm": "자회사"}}
+
+    master = {"005930": {"code": "005930", "name": "삼성전자", "market": "KOSPI", "corp_code": "00126380"}}
+    res = refresh_announcements_cached(master, today=_D(2026, 9, 27), fetch=drop_as_subsidiary)
+    assert res["refreshed"] == 1 and res["failed"] is None
+    import json
+    a = json.loads((C.CACHE_DIR / "005930" / "analysis.json").read_text())
+    assert a["summary"]["dps"] == pytest.approx(6000.0)   # 잠정 2,000이 빠지고 전년도 연간 DPS로
