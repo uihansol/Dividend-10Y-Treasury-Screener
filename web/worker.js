@@ -143,11 +143,14 @@ async function api(url, req, env, ctx) {
     if (running) return json({ status: "running", run: runView(running) });
     let force = false;
     try { force = !!(await req.json())?.force; } catch { /* 본문 없어도 됨 */ }
-    const r = await gh(env, `/actions/workflows/${WORKFLOW}/dispatches`, {
+    const r = await gh(env, "/dispatches", {
       method: "POST",
-      body: JSON.stringify({ ref: env.GITHUB_BRANCH || "main", inputs: { code, force: force ? "true" : "false" } }),
+      body: JSON.stringify({
+        event_type: "stock_refresh",
+        client_payload: { code, force: force ? "true" : "false" },
+      }),
     });
-    if (r.status !== 204) return json({ status: "error", error: `dispatch 실패 ${r.status}: ${await r.text()}` }, 502);
+    if (r.status !== 204) return json({ status: "error", error: `repository dispatch 실패 ${r.status}: ${await r.text()}` }, 502);
     return json({ status: "queued" });
   }
   return json({ error: "method not allowed" }, 405);
