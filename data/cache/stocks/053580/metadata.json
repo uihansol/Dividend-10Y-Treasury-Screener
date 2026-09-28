@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T18:36:41+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-09-28T21:09:55+09:00",
+ "recomputed_at": "2026-09-28T23:04:14+09:00",
  "summary": {
   "code": "053580",
   "name": "웹케시",
@@ -29,7 +29,9 @@
   "mcap": null,
   "tv": 78332710.0,
   "has_div_data": true,
-  "flags": [],
+  "flags": [
+   "interim_exceeds_annual"
+  ],
   "tags": []
  }
 }

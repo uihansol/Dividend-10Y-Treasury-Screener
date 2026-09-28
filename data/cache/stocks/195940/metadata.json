@@ -33,26 +33,30 @@
    ]
   }
  },
- "recomputed_at": "2026-09-28T21:09:56+09:00",
+ "recomputed_at": "2026-09-28T23:04:15+09:00",
  "summary": {
   "code": "195940",
   "name": "HK이노엔",
   "market": "KOSDAQ",
   "price": 38850.0,
   "price_date": "2026-09-23",
-  "dps": 410.0,
-  "yield": 1.0553,
-  "multiple": 0.2041,
+  "dps": 820.0,
+  "yield": 2.1107,
+  "multiple": 0.4083,
   "paid10": 6,
   "known10": 7,
   "paid5": 5,
-  "pct": 49.8,
+  "pct": 94.2,
   "p10": 0.0,
-  "p90": 0.2649,
+  "p90": 0.3515,
   "mcap": null,
   "tv": 2782319350.0,
   "has_div_data": true,
-  "flags": [],
-  "tags": []
+  "flags": [
+   "provisional_dividend_used"
+  ],
+  "tags": [
+   "bomb"
+  ]
  }
 }

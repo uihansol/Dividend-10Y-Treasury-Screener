@@ -28,28 +28,31 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T21:09:56+09:00",
+ "recomputed_at": "2026-09-28T23:04:15+09:00",
  "summary": {
   "code": "161890",
   "name": "한국콜마",
   "market": "KOSPI",
   "price": 148400.0,
   "price_date": "2026-09-28",
-  "dps": 864.0,
-  "yield": 0.5822,
-  "multiple": 0.1126,
+  "dps": 1728.0,
+  "yield": 1.1644,
+  "multiple": 0.2252,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 2.9,
-  "p10": 0.1278,
-  "p90": 0.5692,
+  "pct": 37.2,
+  "p10": 0.1305,
+  "p90": 0.5733,
   "mcap": null,
   "tv": 16878285950.0,
   "has_div_data": true,
-  "flags": [],
+  "flags": [
+   "provisional_dividend_used"
+  ],
   "tags": [
-   "crown"
+   "crown",
+   "bomb"
   ]
  }
 }

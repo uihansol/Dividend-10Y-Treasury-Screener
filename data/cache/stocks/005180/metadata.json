@@ -12,26 +12,30 @@
  "steps": {
   "cache": "cooldown: 네트워크 조회 생략"
  },
- "recomputed_at": "2026-09-28T21:09:54+09:00",
+ "recomputed_at": "2026-09-28T23:04:13+09:00",
  "summary": {
   "code": "005180",
   "name": "빙그레",
   "market": "KOSPI",
   "price": 88600.0,
   "price_date": "2026-09-28",
-  "dps": 3300.0,
-  "yield": 3.7246,
-  "multiple": 0.7204,
+  "dps": 6600.0,
+  "yield": 7.4492,
+  "multiple": 1.4409,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 19.1,
+  "pct": 72.3,
   "p10": 0.656,
-  "p90": 2.1875,
+  "p90": 2.2334,
   "mcap": null,
   "tv": 2413313000.0,
   "has_div_data": true,
-  "flags": [],
-  "tags": []
+  "flags": [
+   "provisional_dividend_used"
+  ],
+  "tags": [
+   "bomb"
+  ]
  }
 }

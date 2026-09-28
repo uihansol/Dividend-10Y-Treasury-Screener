@@ -33,21 +33,21 @@
    ]
   }
  },
- "recomputed_at": "2026-09-28T21:09:55+09:00",
+ "recomputed_at": "2026-09-28T23:04:13+09:00",
  "summary": {
   "code": "024110",
   "name": "기업은행",
   "market": "KOSPI",
   "price": 20400.0,
   "price_date": "2026-09-23",
-  "dps": 1258.0,
-  "yield": 6.1667,
-  "multiple": 1.1928,
+  "dps": 2096.0,
+  "yield": 10.2745,
+  "multiple": 1.9873,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 10.5,
-  "p10": 1.1817,
+  "pct": 43.8,
+  "p10": 1.2709,
   "p90": 5.8,
   "mcap": null,
   "tv": 30601138000.0,
@@ -55,6 +55,8 @@
   "flags": [
    "provisional_dividend_used"
   ],
-  "tags": []
+  "tags": [
+   "bomb"
+  ]
  }
 }
