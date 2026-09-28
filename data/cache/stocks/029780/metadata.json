@@ -2,55 +2,50 @@
  "code": "029780",
  "name": "삼성카드",
  "market": "KOSPI",
- "price_through": "2026-09-23",
+ "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T01:06:17+09:00",
- "updated_at": "2026-09-28T01:06:17+09:00",
- "last_attempt": "2026-09-28T01:06:17+09:00",
+ "updated_at": "2026-09-28T17:50:00+09:00",
+ "last_attempt": "2026-09-28T17:50:00+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2879,
-   "from": "2015-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 38
+   "mode": "incremental",
+   "added": 40
   },
   "announcements": {
    "mode": "check",
    "added": 0
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
   }
  },
- "recomputed_at": "2026-09-28T17:52:42+09:00",
+ "recomputed_at": "2026-09-28T17:54:58+09:00",
  "summary": {
   "code": "029780",
   "name": "삼성카드",
   "market": "KOSPI",
-  "price": 42450.0,
-  "price_date": "2026-09-23",
+  "price": 43350.0,
+  "price_date": "2026-09-28",
   "dps": 2800.0,
-  "yield": 6.596,
-  "multiple": 1.2758,
+  "yield": 6.4591,
+  "multiple": 1.2493,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 7.5,
-  "p10": 1.2939,
-  "p90": 4.1826,
+  "pct": 5.3,
+  "p10": 1.2937,
+  "p90": 4.1831,
   "mcap": null,
-  "tv": 4330636600.0,
+  "tv": 7056380300.0,
   "has_div_data": true,
   "flags": [],
   "tags": [
