@@ -2,46 +2,50 @@
  "code": "352090",
  "name": "스톰테크",
  "market": "KOSDAQ",
- "price_through": "2026-09-23",
- "dividend_through": "2026-09-27",
+ "price_through": "2026-09-28",
+ "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T23:15:14+09:00",
- "updated_at": "2026-09-27T23:15:14+09:00",
- "last_attempt": "2026-09-27T23:15:14+09:00",
+ "updated_at": "2026-09-28T18:33:56+09:00",
+ "last_attempt": "2026-09-28T18:33:56+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 693,
-   "from": "2016-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
+   "mode": "incremental",
    "added": 11
   },
   "announcements": {
    "mode": "check",
-   "added": 2
+   "added": 0
   }
  },
- "recomputed_at": "2026-09-28T17:55:00+09:00",
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "352090",
   "name": "스톰테크",
   "market": "KOSDAQ",
-  "price": 3640.0,
-  "price_date": "2026-09-23",
+  "price": 3625.0,
+  "price_date": "2026-09-28",
   "dps": 460.0,
-  "yield": 12.6374,
-  "multiple": 2.4444,
+  "yield": 12.6897,
+  "multiple": 2.4545,
   "paid10": 3,
   "known10": 3,
   "paid5": 3,
-  "pct": 79.1,
+  "pct": 79.0,
   "p10": 0.9289,
-  "p90": 2.7633,
+  "p90": 2.7632,
   "mcap": null,
-  "tv": 59854672.0,
+  "tv": 1855337222.0,
   "has_div_data": true,
   "flags": [
    "provisional_dividend_used"
