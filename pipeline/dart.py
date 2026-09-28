@@ -50,6 +50,13 @@ class DartError(RuntimeError):
     pass
 
 
+# 한 종목 최초 조회가 정기보고서만 최대 48회 순차 호출하다 보니, 그중 한 번만 연결이 순간적으로
+# 끊겨도(타임아웃 등) 전체 배당 이력이 통째로 빠지는 사고(예: 남화산업 111710)가 있었다.
+# 연결 단계 오류만 몇 번 재시도한다(응답은 받았지만 4xx/5xx인 경우는 재시도하지 않는다).
+DART_RETRIES = 3
+DART_RETRY_WAIT_SEC = 2.0
+
+
 class DartClient:
     def __init__(self, key: str | None = None):
         key = key if key is not None else C.DART_API_KEY
@@ -60,10 +67,17 @@ class DartClient:
 
     def get(self, path: str, **params):
         self.calls += 1
-        r = self.s.get(f"{BASE}/{path}", params={"crtfc_key": self.key, **params}, timeout=30)
-        r.raise_for_status()
-        time.sleep(0.07)
-        return r
+        for attempt in range(1, DART_RETRIES + 1):
+            try:
+                r = self.s.get(f"{BASE}/{path}", params={"crtfc_key": self.key, **params}, timeout=30)
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+                if attempt == DART_RETRIES:
+                    raise
+                time.sleep(DART_RETRY_WAIT_SEC * attempt)
+                continue
+            r.raise_for_status()
+            time.sleep(0.07)
+            return r
 
 
 def fetch_corp_codes(client: DartClient) -> dict[str, dict]:
