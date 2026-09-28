@@ -1,13 +1,13 @@
 name: Stock refresh
 # 종목 1개만 수집·계산한다. 최초 조회는 최신 90일을 먼저 표시하고 과거 가격은 백그라운드에서 보완한다.
-run-name: refresh ${{ inputs.code }}
+run-name: refresh ${{ github.event.client_payload.code }}
 
 on:
   repository_dispatch:
     types: [stock_refresh]
 
 concurrency:
-  group: analyze-${{ inputs.code }}
+  group: analyze-${{ github.event.client_payload.code }}
   cancel-in-progress: false
 
 permissions:
@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Validate code
         env:
-          CODE: ${{ inputs.code }}
+          CODE: ${{ github.event.client_payload.code }}
         run: |
           echo "$CODE" | grep -Eq '^[0-9]{6}$' || { echo "잘못된 종목코드 $CODE"; exit 1; }
 
@@ -33,8 +33,8 @@ jobs:
 
       - name: ① 가격 데이터 확인
         env:
-          CODE: ${{ inputs.code }}
-          FORCE: ${{ inputs.force }}
+          CODE: ${{ github.event.client_payload.code }}
+          FORCE: ${{ github.event.client_payload.force }}
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
         run: |
@@ -43,19 +43,19 @@ jobs:
 
       - name: ② 배당 데이터 확인
         env:
-          CODE: ${{ inputs.code }}
+          CODE: ${{ github.event.client_payload.code }}
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
         run: python -m pipeline.update stock "$CODE" --stage dividends | tee -a /tmp/out.txt
 
       - name: ③ 미국 10년물 데이터 확인
         env:
-          CODE: ${{ inputs.code }}
+          CODE: ${{ github.event.client_payload.code }}
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: python -m pipeline.update stock "$CODE" --stage us10y | tee -a /tmp/out.txt
 
       - name: ④ 분석 계산
         env:
-          CODE: ${{ inputs.code }}
+          CODE: ${{ github.event.client_payload.code }}
         run: |
           set -o pipefail
           python -m pipeline.update stock "$CODE" --stage compute | tee -a /tmp/out.txt
@@ -70,7 +70,7 @@ jobs:
       - name: Fast commit (latest data first)
         if: always()
         env:
-          CODE: ${{ inputs.code }}
+          CODE: ${{ github.event.client_payload.code }}
         run: |
           [ -d "data/cache/stocks/$CODE" ] || exit 0
           git config user.name "dividend-bot"
@@ -94,7 +94,7 @@ jobs:
       - name: Progressive historical backfill
         if: success()
         env:
-          CODE: ${{ inputs.code }}
+          CODE: ${{ github.event.client_payload.code }}
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
         run: |
