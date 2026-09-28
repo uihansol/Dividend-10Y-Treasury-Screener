@@ -72,7 +72,7 @@ export function StockPage({ code, master, onPick }: {
         const [s, runInfo] = await Promise.all([getStock(code, true), getRun(code).catch(() => ({ run: null }))]);
         if (s.status === "ready" && s.analysis.metadata?.last_attempt !== before) {
           const errs = s.analysis.metadata?.last_error;
-          const active = !!runInfo.run && runInfo.run.status !== "completed";
+          const active = !runInfo.run || runInfo.run.status !== "completed";
           // 최초 빠른 분석이 끝나면 즉시 화면을 열고, 백그라운드 과거 데이터 보완은 계속 감시한다.
           setPhase({ kind: "ready", data: s.analysis, refreshing: active,
             note: active
