@@ -1,6 +1,7 @@
 # 배당수익률 ÷ 미국 10년물 — 종목 검색형
 
-개인용. 종목을 검색하면 **그 종목만** 2016년부터 가격(KRX)·배당(DART)을 모아 계산하고, 종목별 캐시에 저장한다.
+개인용. 종목을 검색하면 **그 종목만** 가격(KRX)·배당(DART)을 모아 계산하고, 종목별 캐시에 저장한다.
+최근 90일 가격을 먼저 받아 바로 보여 주고, 2015년까지의 과거 가격은 뒤에서 1년씩 보완한다(배당은 2015 사업연도부터).
 다시 조회하면 캐시를 쓰고 새로 나온 데이터만 받는다. 전체 KOSPI/KOSDAQ을 미리 수집하지 않는다.
 
 ## 구조
@@ -11,8 +12,9 @@
   │ 종목 선택
   ▼
 Cloudflare Worker  /api/*   (web/worker.js)
-  ├ GET  /api/index               조회한 종목 목록  ← 저장소 data/cache/index.json
-  ├ GET  /api/stock/{code}        분석 결과 + stale 여부 ← data/cache/stocks/{code}/analysis.json
+  ├ GET  /api/index               조회한 종목 목록  ← 저장소 data/cache/index.json   (Workers Cache 30초)
+  ├ GET  /api/stock/{code}        분석 결과 + stale 여부 ← data/cache/stocks/{code}/analysis.json   (Workers Cache 20초, ?fresh= 는 우회)
+  ├ GET  /api/stock/{code}/meta   last_attempt·updated_at만 ← metadata.json (새로고침 폴링용, 캐시 안 함)
   ├ POST /api/stock/{code}/refresh repository_dispatch(stock_refresh) → 'Stock refresh' 실행 (같은 종목 실행 중이면 생략)
   │   body {"force": true} 이면 캐시가 최신이어도 다시 수집·계산 (화면의 "새로고침" 버튼이 씀)
   └ GET  /api/stock/{code}/run    최근 실행 상태 + 진행 단계(①~④)
@@ -23,8 +25,13 @@ GitHub Actions  stock-refresh.yml  run-name "refresh {code}"  (Python: pykrx + O
   ├ ③ 미국 10년물 확인   stock CODE --stage us10y       (오늘 성공 기록 있으면 생략)
   ├ ④ 분석 계산          stock CODE --stage compute     (engine.py, 수집 실패 시 기존 캐시)
   ├ Fast commit          최신 결과를 먼저 커밋 → Worker가 다음 요청 때 읽음
-  └ Progressive backfill backfill CODE + compute 를 1년씩 반복(최대 12회), 회차마다 커밋
+  └ Progressive backfill backfill CODE + compute 를 1년씩 반복(최대 12회), 새 행이 있는 회차만 커밋.
+                         2015년 첫 거래일에 닿거나(done) 새 행이 없으면 멈춘다
 ```
+
+Worker 앞단 캐시는 `web/wrangler.toml`의 `[cache] enabled = true`(Workers Cache, Wrangler 4.69.0 이상)가 맡고,
+응답의 `Cache-Control`(public, max-age)을 따른다. `*.workers.dev`에서는 Cache API(`caches.default`)가 동작하지 않는다.
+GitHub Contents API 조회에는 ETag(If-None-Match)를 붙여, 바뀌지 않았으면 304(rate limit 미차감)로 끝난다.
 
 pykrx(KRX 로그인)와 계산 엔진이 Python이라 Worker 안에서 직접 돌릴 수 없어, 수집·계산은 GitHub Actions가 맡는다.
 DART·KRX 비밀값은 GitHub Secrets에만 있고 Worker·브라우저에는 없다. Worker는 이 저장소 전용 토큰만 가진다.
@@ -41,7 +48,7 @@ data/stocks/aliases.json         직접 추가하는 별칭 {"삼전": "005930"}
 data/cache/index.json            조회한 종목 요약
 data/cache/stocks/{code}/
   metadata.json   price_through, dividend_through, updated_at, last_error, 요약
-  prices.csv      일별 원주가·등락률 (2016~)
+  prices.csv      일별 원주가·등락률 (2015~)
   dividends.json  DART 보고서별 누적 DPS + 조회 기록
   analysis.json   화면용 계산 결과
 data/corporate_actions_override.csv   분할 자동탐지 수동 보정
@@ -64,16 +71,35 @@ Common data 워크플로가 미국 10Y를 갱신하면 이미 조회한 종목�
 
 GitHub → Settings → Secrets and variables → Actions
 
-| Secrets | 용도 |
-|---|---|
-| `DART_API_KEY` | OpenDART |
-| `KRX_ID`, `KRX_PW` | KRX 정보데이터시스템 로그인 (90일마다 비밀번호 만료) |
-| `CLOUDFLARE_API_TOKEN` | "Edit Cloudflare Workers" 템플릿 토큰 |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare 계정 ID |
-| `WORKER_GITHUB_TOKEN` | Worker가 쓸 fine-grained 토큰: 이 저장소만, **Contents: Read**, **Actions: Read and write** |
-| `FRED_API_KEY` | 선택 |
+| Secrets | 쓰는 워크플로 | 용도 |
+|---|---|---|
+| `DART_API_KEY` | common-data, stock-refresh | OpenDART |
+| `KRX_ID`, `KRX_PW` | common-data, stock-refresh | KRX 정보데이터시스템 로그인 (아래 'KRX 로그인' 참고) |
+| `FRED_API_KEY` | common-data, stock-refresh | 선택. 없으면 FRED CSV → 미 재무부 CSV 순서로 시도 |
+| `CLOUDFLARE_API_TOKEN` | deploy | "Edit Cloudflare Workers" 템플릿 토큰. 없으면 빌드만 하고 배포는 건너뜀 |
+| `CLOUDFLARE_ACCOUNT_ID` | deploy | Cloudflare 계정 ID |
+| `WORKER_GITHUB_TOKEN` | deploy (Worker 비밀값 `GITHUB_TOKEN`으로 올림) | Worker가 쓸 fine-grained 토큰: 이 저장소만, **Contents: Read**, **Actions: Read and write**. 새로고침이 `repository dispatch 실패 403`이면 응답의 `X-Accepted-GitHub-Permissions` 헤더가 요구하는 권한을 추가 |
 
-Variables: `CLOUDFLARE_WORKER_NAME`(선택, 없으면 저장소 이름).
+| Variables | 용도 |
+|---|---|
+| `CLOUDFLARE_WORKER_NAME` | 선택. 없으면 저장소 이름 |
+
+선택 환경변수 `REFRESH_COOLDOWN_SEC`(기본 600초): 같은 종목 재요청 시 네트워크 조회를 건너뛰는 간격(`updated_at` 기준).
+워크플로에서는 설정하지 않아 기본값을 쓴다. 화면의 장중 자동 갱신 요청 간격(10분)은 이 값에 맞춰 두었다.
+
+### KRX 로그인
+
+- KRX 정보데이터시스템은 2025-12-27부터 회원제이고 2026-09부터 비로그인 요청을 거절한다. pykrx는 import 시
+  `KRX_ID`/`KRX_PW` 환경변수로 로그인하므로 두 시크릿이 없으면 가격 수집(①, 백필, master)이 실패한다.
+- **비밀번호는 90일마다 만료된다.** 만료되면 KRX 사이트에서 비밀번호를 바꾼 뒤 `KRX_PW` 시크릿도 새 값으로 갱신한다.
+  증상: 종목 화면 "일부 데이터 업데이트 실패(prices…)", `metadata.json`의 `last_error.prices`에
+  "pykrx import/KRX 로그인 실패", Stock refresh 로그의 ① 단계 오류.
+
+### 배포 버전 표시
+
+메인 제목 오른쪽의 `Build #{번호} · {커밋 7자리}`는 Deploy 워크플로가 빌드 때 주입한다
+(`VITE_APP_BUILD` = `github.run_number`, `VITE_APP_SHA` = `github.sha`; 화면에는 SHA 앞 7자리, 마우스를 올리면 전체 SHA).
+로컬 개발 빌드는 `Build #dev · local`. 날짜 등으로 하드코딩하지 않는다.
 
 ## 처음 한 번
 
