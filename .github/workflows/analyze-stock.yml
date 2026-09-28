@@ -2,7 +2,7 @@ name: Analyze stock
 # 종목 1개만 수집·계산한다. 최초 조회는 최신 90일을 먼저 표시하고 과거 가격은 백그라운드에서 보완한다.
 run-name: analyze ${{ inputs.code }}
 
-"on":
+on:
   workflow_dispatch:
     inputs:
       code:
@@ -12,7 +12,7 @@ run-name: analyze ${{ inputs.code }}
       force:
         description: "cooldown 무시"
         required: false
-        default: "false"
+        default: false
         type: boolean
 
 concurrency:
