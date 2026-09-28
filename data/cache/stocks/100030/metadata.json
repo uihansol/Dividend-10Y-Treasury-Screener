@@ -1,0 +1,53 @@
+{
+ "code": "100030",
+ "name": "인지소프트",
+ "market": "KOSDAQ",
+ "price_through": "2026-09-28",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T22:32:32+09:00",
+ "updated_at": "2026-09-28T22:32:32+09:00",
+ "last_attempt": "2026-09-28T22:32:32+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 61,
+   "from": "2026-06-30",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 27
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
+  }
+ },
+ "valuation_date": "2026-09-28",
+ "summary": {
+  "code": "100030",
+  "name": "인지소프트",
+  "market": "KOSDAQ",
+  "price": 20150.0,
+  "price_date": "2026-09-28",
+  "dps": 1126.0,
+  "yield": 5.5881,
+  "multiple": 1.0809,
+  "paid10": 3,
+  "known10": 10,
+  "paid5": 3,
+  "pct": 0.8,
+  "p10": 1.1149,
+  "p90": 1.4738,
+  "mcap": null,
+  "tv": 81489980.0,
+  "has_div_data": true,
+  "flags": [],
+  "tags": []
+ }
+}
