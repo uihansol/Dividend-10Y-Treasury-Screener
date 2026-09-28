@@ -74,36 +74,40 @@ def load_prices(code: str) -> pd.DataFrame:
 
 def update_stock_price_cache(code: str, today: date | None = None,
                              fetch: Callable | None = None) -> tuple[pd.DataFrame, dict]:
-    """가격 캐시 증분 업데이트. 반환: (전체 가격, {"mode": initial|incremental|skip, "added": n})"""
+    """가격 캐시를 증분 갱신한다.
+
+    기존 가격 이력이 있으면 과거 구간은 다시 요청하지 않는다.
+    최근 7일만 다시 조회해 당일 종가가 이미 캐시에 있어도 최신 값으로 교체할 수 있다.
+    조회 결과는 기존 이력과 병합하므로 과거 데이터는 그대로 보존한다.
+    """
     if fetch is None:
         from .krx import fetch_stock_prices as fetch
     today = today or datetime.now(KST).date()
     old = load_prices(code)
+
     if len(old):
-        oldest = date.fromisoformat(old["date"].min())
-        latest = date.fromisoformat(old["date"].max())
-        start = latest + timedelta(days=1)
         mode = "incremental"
-        # 기존 캐시도 과거 차트 기간을 확장할 수 있도록, 시작일보다 오래된 구간을 한 번만 보강한다.
-        backfill = fetch(code, C.PRICE_START, (oldest - timedelta(days=1)).isoformat()) if oldest > date.fromisoformat(C.PRICE_START) else pd.DataFrame(columns=PRICE_COLS)
+        latest = date.fromisoformat(old["date"].max())
+        # 이미 저장된 최근 날짜도 다시 받아 장중/당일 종가 변경을 반영한다.
+        # 과거 전체 이력은 절대 재조회하지 않는다.
+        recent_start = max(date.fromisoformat(C.PRICE_START), today - timedelta(days=7))
+        new = fetch(code, recent_start.isoformat(), today.isoformat()) if recent_start <= today else pd.DataFrame(columns=PRICE_COLS)
+        new = new[new["date"] >= recent_start.isoformat()] if len(new) else new
+        from_date = recent_start.isoformat()
     else:
-        start = date.fromisoformat(C.PRICE_START)
         mode = "initial"
-        backfill = pd.DataFrame(columns=PRICE_COLS)
-    if start > today:
-        new = pd.DataFrame(columns=PRICE_COLS)
-    else:
-        new = fetch(code, start.isoformat(), today.isoformat())
-    new = new[new["date"] >= start.isoformat()] if len(new) else new
-    if len(backfill):
-        backfill = backfill[backfill["date"] >= C.PRICE_START]
-    pieces = [x for x in (old, backfill, new) if len(x)]
+        start = date.fromisoformat(C.PRICE_START)
+        new = fetch(code, start.isoformat(), today.isoformat()) if start <= today else pd.DataFrame(columns=PRICE_COLS)
+        from_date = start.isoformat()
+
+    pieces = [x for x in (old, new) if len(x)]
     df = pd.concat(pieces, ignore_index=True) if pieces else old
     df = df.drop_duplicates("date", keep="last").sort_values("date").reset_index(drop=True)
-    if len(new) or len(backfill):
+    if len(new):
         stock_dir(code).mkdir(parents=True, exist_ok=True)
         df.to_csv(stock_dir(code) / "prices.csv", index=False)
-    return df, {"mode": mode, "added": int(len(new)) + int(len(backfill)), "from": (C.PRICE_START if len(backfill) else start.isoformat())}
+
+    return df, {"mode": mode, "added": int(len(new)), "from": from_date}
 
 
 # ---------------------------------------------------------------- 배당 캐시
