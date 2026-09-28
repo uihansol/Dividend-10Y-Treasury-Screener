@@ -2,46 +2,50 @@
  "code": "058630",
  "name": "엠게임",
  "market": "KOSDAQ",
- "price_through": "2026-09-23",
- "dividend_through": "2026-09-27",
+ "price_through": "2026-09-28",
+ "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T23:15:43+09:00",
- "updated_at": "2026-09-27T23:15:43+09:00",
- "last_attempt": "2026-09-27T23:15:43+09:00",
+ "updated_at": "2026-09-28T18:36:59+09:00",
+ "last_attempt": "2026-09-28T18:36:59+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2631,
-   "from": "2016-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 10
+   "mode": "incremental",
+   "added": 39
   },
   "announcements": {
    "mode": "check",
-   "added": 1
+   "added": 0
   }
  },
- "recomputed_at": "2026-09-28T17:54:59+09:00",
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "058630",
   "name": "엠게임",
   "market": "KOSDAQ",
-  "price": 3900.0,
-  "price_date": "2026-09-23",
+  "price": 3975.0,
+  "price_date": "2026-09-28",
   "dps": 332.0,
-  "yield": 8.5128,
-  "multiple": 1.6466,
+  "yield": 8.3522,
+  "multiple": 1.6155,
   "paid10": 2,
-  "known10": 3,
+  "known10": 10,
   "paid5": 2,
-  "pct": 93.9,
+  "pct": 98.2,
   "p10": 0.0,
-  "p90": 1.2434,
+  "p90": 0.6094,
   "mcap": null,
-  "tv": 56862573.0,
+  "tv": 152247597.0,
   "has_div_data": true,
   "flags": [
    "provisional_dividend_used"
