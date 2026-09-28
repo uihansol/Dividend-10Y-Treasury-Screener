@@ -2,55 +2,50 @@
  "code": "002960",
  "name": "한국쉘석유",
  "market": "KOSPI",
- "price_through": "2026-09-23",
+ "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T03:04:53+09:00",
- "updated_at": "2026-09-28T03:04:53+09:00",
- "last_attempt": "2026-09-28T03:04:53+09:00",
+ "updated_at": "2026-09-28T22:13:32+09:00",
+ "last_attempt": "2026-09-28T22:13:32+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2879,
-   "from": "2015-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 37
+   "mode": "incremental",
+   "added": 0
   },
   "announcements": {
    "mode": "check",
-   "added": 1
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
+   "added": 0
   }
  },
- "recomputed_at": "2026-09-28T21:09:54+09:00",
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "002960",
   "name": "한국쉘석유",
   "market": "KOSPI",
-  "price": 510000.0,
-  "price_date": "2026-09-23",
+  "price": 527000.0,
+  "price_date": "2026-09-28",
   "dps": 36000.0,
-  "yield": 7.0588,
-  "multiple": 1.3653,
+  "yield": 6.8311,
+  "multiple": 1.3213,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 1.2,
-  "p10": 1.5761,
-  "p90": 4.9053,
+  "pct": 0.8,
+  "p10": 1.5739,
+  "p90": 4.9171,
   "mcap": null,
-  "tv": 426617500.0,
+  "tv": 1257437000.0,
   "has_div_data": true,
   "flags": [],
   "tags": []
