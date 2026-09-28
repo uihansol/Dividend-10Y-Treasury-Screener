@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T19:44:24+09:00",
+ "recomputed_at": "2026-09-28T21:09:54+09:00",
  "summary": {
   "code": "001040",
   "name": "CJ",
@@ -51,7 +51,8 @@
    "provisional_dividend_used"
   ],
   "tags": [
-   "crown"
+   "crown",
+   "bomb"
   ]
  }
 }

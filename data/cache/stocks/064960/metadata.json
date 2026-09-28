@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T19:44:26+09:00",
+ "recomputed_at": "2026-09-28T21:09:55+09:00",
  "summary": {
   "code": "064960",
   "name": "SNT모티브",
@@ -51,7 +51,8 @@
    "prior_year_unconfirmed_periods_filled"
   ],
   "tags": [
-   "crown"
+   "crown",
+   "bomb"
   ]
  }
 }

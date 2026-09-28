@@ -33,7 +33,7 @@
    ]
   }
  },
- "recomputed_at": "2026-09-28T19:44:24+09:00",
+ "recomputed_at": "2026-09-28T21:09:54+09:00",
  "summary": {
   "code": "002380",
   "name": "KCC",
@@ -55,6 +55,8 @@
   "flags": [
    "provisional_dividend_used"
   ],
-  "tags": []
+  "tags": [
+   "bomb"
+  ]
  }
 }
