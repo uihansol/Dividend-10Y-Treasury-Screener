@@ -83,8 +83,10 @@ function isStale(meta, now = new Date()) {
   // 미국10Y 없이 계산된 결과(배수 N/A)는 30분에 한 번까지 다시 시도
   if (!meta.us10y_through && !(attempted && now - attempted < 30 * 60e3)) return true;
   const { day, cutoffIso } = lastCloseKst(now);
-  if (meta.price_through >= day) return false;
-  // 공휴일 등으로 새 데이터가 없는 경우: 마감 이후에 이미 확인했다면 다시 돌리지 않는다
+  // 마감 전(장중)에 받은 가격이 price_through=오늘로 남아 있어도, 마감 뒤 확인 전이면 종가가 아니므로 stale.
+  // price_through가 day보다 뒤면(오늘 16시 전의 장중 데이터) 아직 마감 기준일이 오지 않아 최신이다.
+  if (meta.price_through > day) return false;
+  // 기준일 데이터가 있거나 공휴일 등으로 새 데이터가 없는 경우: 마감 이후에 이미 확인했다면 다시 돌리지 않는다
   return !(attempted && attempted >= new Date(cutoffIso));
 }
 

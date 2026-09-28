@@ -361,16 +361,21 @@ def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_v
     }
 
 
-def _within_cooldown(meta: dict | None) -> bool:
-    """짧은 시간의 중복 요청은 막되, 날짜가 바뀌면 반드시 증분 갱신한다."""
+def _within_cooldown(meta: dict | None, now: datetime | None = None) -> bool:
+    """짧은 시간의 중복 요청은 막되, 날짜가 바뀌거나 장 마감 기준 시각(16:00 KST)을 넘기면 반드시 증분 갱신한다."""
     if not meta or not meta.get("updated_at") or meta.get("last_error"):
         return False
     try:
         t = datetime.fromisoformat(meta["updated_at"]).astimezone(KST)
     except (TypeError, ValueError):
         return False
-    now = datetime.now(KST)
+    now = now or datetime.now(KST)
     if t.date() != now.date():
+        return False
+    # 마감 전에 받은 장중 가격을 종가로 굳히지 않도록, 16시 전 갱신 → 16시 후 요청은 쿨다운을 적용하지 않는다
+    # (web/worker.js lastCloseKst()와 같은 기준 시각).
+    close_cutoff = now.replace(hour=16, minute=0, second=0, microsecond=0)
+    if t < close_cutoff <= now:
         return False
     return (now - t).total_seconds() < C.REFRESH_COOLDOWN_SEC
 
