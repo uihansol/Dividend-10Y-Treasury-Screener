@@ -10,30 +10,26 @@
  "last_attempt": "2026-09-28T22:39:43+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-09-28T23:09:15+09:00",
+ "recomputed_at": "2026-09-28T23:22:58+09:00",
  "summary": {
   "code": "377740",
   "name": "바이오노트",
   "market": "KOSPI",
   "price": 4660.0,
   "price_date": "2026-09-28",
-  "dps": 457.0,
-  "yield": 9.8069,
-  "multiple": 1.8969,
+  "dps": 228.0,
+  "yield": 4.8927,
+  "multiple": 0.9464,
   "paid10": 6,
   "known10": 6,
   "paid5": 5,
-  "pct": 58.2,
+  "pct": 26.9,
   "p10": 0.8611,
   "p90": 2.6069,
   "mcap": null,
   "tv": 100416165.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
-  "tags": [
-   "bomb"
-  ]
+  "flags": [],
+  "tags": []
  }
 }

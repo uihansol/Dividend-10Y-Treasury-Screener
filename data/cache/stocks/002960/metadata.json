@@ -28,30 +28,26 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T23:09:11+09:00",
+ "recomputed_at": "2026-09-28T23:22:55+09:00",
  "summary": {
   "code": "002960",
   "name": "한국쉘석유",
   "market": "KOSPI",
   "price": 527000.0,
   "price_date": "2026-09-28",
-  "dps": 68000.0,
-  "yield": 12.9032,
-  "multiple": 2.4958,
+  "dps": 36000.0,
+  "yield": 6.8311,
+  "multiple": 1.3213,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 61.6,
-  "p10": 1.6538,
+  "pct": 0.8,
+  "p10": 1.5739,
   "p90": 4.9171,
   "mcap": null,
   "tv": 1257437000.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
-  "tags": [
-   "bomb"
-  ]
+  "flags": [],
+  "tags": []
  }
 }

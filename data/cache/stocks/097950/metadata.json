@@ -28,27 +28,27 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T23:09:14+09:00",
+ "recomputed_at": "2026-09-28T23:22:57+09:00",
  "summary": {
   "code": "097950",
   "name": "CJ제일제당",
   "market": "KOSPI",
   "price": 179100.0,
   "price_date": "2026-09-28",
-  "dps": 4500.0,
-  "yield": 2.5126,
-  "multiple": 0.486,
+  "dps": 6000.0,
+  "yield": 3.3501,
+  "multiple": 0.648,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 42.4,
+  "pct": 63.7,
   "p10": 0.2918,
   "p90": 1.1045,
   "mcap": null,
   "tv": 9106230450.0,
   "has_div_data": true,
   "flags": [
-   "provisional_dividend_used"
+   "prior_year_unconfirmed_periods_filled"
   ],
   "tags": [
    "crown"

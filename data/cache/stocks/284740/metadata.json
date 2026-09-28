@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T22:38:10+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-09-28T23:09:15+09:00",
+ "recomputed_at": "2026-09-28T23:22:58+09:00",
  "summary": {
   "code": "284740",
   "name": "쿠쿠홈시스",
@@ -30,7 +30,6 @@
   "tv": 290700500.0,
   "has_div_data": true,
   "flags": [
-   "interim_exceeds_annual",
    "interim_values_treated_as_per_period"
   ],
   "tags": []

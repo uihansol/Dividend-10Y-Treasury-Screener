@@ -24,7 +24,7 @@
    "added": 2
   }
  },
- "recomputed_at": "2026-09-28T23:09:13+09:00",
+ "recomputed_at": "2026-09-28T23:22:57+09:00",
  "summary": {
   "code": "051900",
   "name": "LG생활건강",
@@ -37,15 +37,13 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 0.2,
-  "p10": 0.2041,
+  "pct": 0.7,
+  "p10": 0.2037,
   "p90": 0.6482,
   "mcap": null,
   "tv": 9463603000.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
+  "flags": [],
   "tags": []
  }
 }

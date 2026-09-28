@@ -28,27 +28,27 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T23:09:14+09:00",
+ "recomputed_at": "2026-09-28T23:22:57+09:00",
  "summary": {
   "code": "105560",
   "name": "KB금융",
   "market": "KOSPI",
   "price": 174200.0,
   "price_date": "2026-09-28",
-  "dps": 6208.0,
-  "yield": 3.5637,
-  "multiple": 0.6893,
+  "dps": 5753.0,
+  "yield": 3.3025,
+  "multiple": 0.6388,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 4.9,
-  "p10": 0.7492,
+  "pct": 4.6,
+  "p10": 0.7309,
   "p90": 2.961,
   "mcap": null,
   "tv": 144190936750.0,
   "has_div_data": true,
   "flags": [
-   "provisional_dividend_used"
+   "prior_year_unconfirmed_periods_filled"
   ],
   "tags": [
    "bomb"

@@ -33,7 +33,7 @@
    ]
   }
  },
- "recomputed_at": "2026-09-28T23:09:14+09:00",
+ "recomputed_at": "2026-09-28T23:22:58+09:00",
  "summary": {
   "code": "120110",
   "name": "코오롱인더",
@@ -46,15 +46,13 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 14.7,
-  "p10": 0.5313,
+  "pct": 15.0,
+  "p10": 0.5273,
   "p90": 1.4926,
   "mcap": null,
   "tv": 8952883950.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
+  "flags": [],
   "tags": []
  }
 }

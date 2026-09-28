@@ -10,30 +10,26 @@
  "last_attempt": "2026-09-28T18:37:16+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-09-28T23:09:13+09:00",
+ "recomputed_at": "2026-09-28T23:22:57+09:00",
  "summary": {
   "code": "072870",
   "name": "메가스터디",
   "market": "KOSDAQ",
   "price": 13280.0,
   "price_date": "2026-09-28",
-  "dps": 2640.0,
-  "yield": 19.8795,
-  "multiple": 3.8452,
+  "dps": 1320.0,
+  "yield": 9.9398,
+  "multiple": 1.9226,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 86.2,
+  "pct": 58.8,
   "p10": 0.7383,
-  "p90": 4.4193,
+  "p90": 3.4473,
   "mcap": null,
   "tv": 228154155.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
-  "tags": [
-   "bomb"
-  ]
+  "flags": [],
+  "tags": []
  }
 }

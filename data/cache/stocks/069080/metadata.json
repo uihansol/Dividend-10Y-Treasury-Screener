@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T18:34:27+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-09-28T23:09:13+09:00",
+ "recomputed_at": "2026-09-28T23:22:57+09:00",
  "summary": {
   "code": "069080",
   "name": "웹젠",
@@ -23,15 +23,13 @@
   "paid10": 4,
   "known10": 10,
   "paid5": 4,
-  "pct": 98.6,
+  "pct": 98.8,
   "p10": 0.0,
   "p90": 0.6094,
   "mcap": null,
   "tv": 1686570375.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
+  "flags": [],
   "tags": [
    "bomb"
   ]

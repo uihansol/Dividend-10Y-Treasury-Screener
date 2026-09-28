@@ -10,28 +10,26 @@
  "last_attempt": "2026-09-28T22:31:09+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-09-28T23:09:14+09:00",
+ "recomputed_at": "2026-09-28T23:22:58+09:00",
  "summary": {
   "code": "204610",
   "name": "티쓰리",
   "market": "KOSDAQ",
   "price": 2920.0,
   "price_date": "2026-09-28",
-  "dps": 180.0,
-  "yield": 6.1644,
-  "multiple": 1.1923,
+  "dps": 170.0,
+  "yield": 5.8219,
+  "multiple": 1.1261,
   "paid10": 4,
   "known10": 4,
   "paid5": 4,
-  "pct": 64.3,
+  "pct": 57.9,
   "p10": 0.7775,
-  "p90": 1.417,
+  "p90": 1.3918,
   "mcap": null,
   "tv": 106032502.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
+  "flags": [],
   "tags": [
    "bomb"
   ]

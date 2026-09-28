@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T18:37:28+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-09-28T23:09:12+09:00",
+ "recomputed_at": "2026-09-28T23:22:56+09:00",
  "summary": {
   "code": "010950",
   "name": "S-Oil",
@@ -23,15 +23,13 @@
   "paid10": 9,
   "known10": 10,
   "paid5": 5,
-  "pct": 24.3,
+  "pct": 24.4,
   "p10": 0.0244,
   "p90": 2.158,
   "mcap": null,
   "tv": 64982621600.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
+  "flags": [],
   "tags": [
    "bomb"
   ]

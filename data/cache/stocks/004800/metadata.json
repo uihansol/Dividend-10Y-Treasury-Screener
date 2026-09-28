@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T23:09:11+09:00",
+ "recomputed_at": "2026-09-28T23:22:55+09:00",
  "summary": {
   "code": "004800",
   "name": "효성",
@@ -41,15 +41,13 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 4.4,
-  "p10": 0.8371,
+  "pct": 4.8,
+  "p10": 0.8223,
   "p90": 4.4833,
   "mcap": null,
   "tv": 3137592650.0,
   "has_div_data": true,
-  "flags": [
-   "interim_exceeds_annual"
-  ],
+  "flags": [],
   "tags": []
  }
 }

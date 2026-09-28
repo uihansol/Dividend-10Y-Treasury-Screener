@@ -33,31 +33,28 @@
    ]
   }
  },
- "recomputed_at": "2026-09-28T23:09:13+09:00",
+ "recomputed_at": "2026-09-28T23:22:57+09:00",
  "summary": {
   "code": "086790",
   "name": "하나금융지주",
   "market": "KOSPI",
   "price": 133100.0,
   "price_date": "2026-09-23",
-  "dps": 6842.26,
-  "yield": 5.1407,
-  "multiple": 0.9943,
+  "dps": 4586.0,
+  "yield": 3.4455,
+  "multiple": 0.6664,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 18.4,
-  "p10": 0.8841,
+  "pct": 0.1,
+  "p10": 0.8716,
   "p90": 4.7843,
   "mcap": null,
   "tv": 86391731820.0,
   "has_div_data": true,
   "flags": [
-   "interim_values_treated_as_per_period",
-   "provisional_dividend_used"
+   "prior_year_unconfirmed_periods_filled"
   ],
-  "tags": [
-   "bomb"
-  ]
+  "tags": []
  }
 }

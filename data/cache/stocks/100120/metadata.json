@@ -33,7 +33,7 @@
    ]
   }
  },
- "recomputed_at": "2026-09-28T23:09:14+09:00",
+ "recomputed_at": "2026-09-28T23:22:57+09:00",
  "summary": {
   "code": "100120",
   "name": "뷰웍스",
@@ -52,9 +52,7 @@
   "mcap": null,
   "tv": 339187950.0,
   "has_div_data": true,
-  "flags": [
-   "interim_exceeds_annual"
-  ],
+  "flags": [],
   "tags": []
  }
 }

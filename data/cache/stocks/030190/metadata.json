@@ -33,31 +33,28 @@
    ]
   }
  },
- "recomputed_at": "2026-09-28T23:09:12+09:00",
+ "recomputed_at": "2026-09-28T23:22:56+09:00",
  "summary": {
   "code": "030190",
   "name": "NICE평가정보",
   "market": "KOSPI",
   "price": 15590.0,
   "price_date": "2026-09-23",
-  "dps": 1020.0,
-  "yield": 6.5427,
-  "multiple": 1.2655,
+  "dps": 510.0,
+  "yield": 3.2713,
+  "multiple": 0.6328,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 87.6,
+  "pct": 20.9,
   "p10": 0.5041,
-  "p90": 1.4241,
+  "p90": 1.0405,
   "mcap": null,
   "tv": 624057560.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
+  "flags": [],
   "tags": [
-   "crown",
-   "bomb"
+   "crown"
   ]
  }
 }

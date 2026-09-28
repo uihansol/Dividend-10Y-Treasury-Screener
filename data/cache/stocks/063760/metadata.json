@@ -10,28 +10,26 @@
  "last_attempt": "2026-09-28T18:42:16+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-09-28T23:09:13+09:00",
+ "recomputed_at": "2026-09-28T23:22:57+09:00",
  "summary": {
   "code": "063760",
   "name": "이엘피",
   "market": "KOSDAQ",
   "price": 2350.0,
   "price_date": "2026-09-28",
-  "dps": 220.0,
-  "yield": 9.3617,
-  "multiple": 1.8108,
+  "dps": 180.0,
+  "yield": 7.6596,
+  "multiple": 1.4815,
   "paid10": 7,
   "known10": 10,
   "paid5": 5,
-  "pct": 98.2,
+  "pct": 98.1,
   "p10": 0.0,
   "p90": 0.7299,
   "mcap": null,
   "tv": 58801025.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
+  "flags": [],
   "tags": [
    "bomb"
   ]

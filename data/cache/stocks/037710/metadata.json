@@ -28,28 +28,26 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T23:09:13+09:00",
+ "recomputed_at": "2026-09-28T23:22:56+09:00",
  "summary": {
   "code": "037710",
   "name": "광주신세계",
   "market": "KOSPI",
   "price": 34800.0,
   "price_date": "2026-09-28",
-  "dps": 4800.0,
-  "yield": 13.7931,
-  "multiple": 2.6679,
+  "dps": 3600.0,
+  "yield": 10.3448,
+  "multiple": 2.0009,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 89.4,
+  "pct": 89.3,
   "p10": 0.2126,
-  "p90": 2.7295,
+  "p90": 2.0395,
   "mcap": null,
   "tv": 569211775.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
+  "flags": [],
   "tags": [
    "crown",
    "bomb"

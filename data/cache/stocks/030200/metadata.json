@@ -33,21 +33,21 @@
    ]
   }
  },
- "recomputed_at": "2026-09-28T23:09:12+09:00",
+ "recomputed_at": "2026-09-28T23:22:56+09:00",
  "summary": {
   "code": "030200",
   "name": "KT",
   "market": "KOSPI",
   "price": 52700.0,
   "price_date": "2026-09-23",
-  "dps": 2400.0,
-  "yield": 4.5541,
-  "multiple": 0.8809,
+  "dps": 3000.0,
+  "yield": 5.6926,
+  "multiple": 1.1011,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 7.0,
-  "p10": 0.9126,
+  "pct": 26.0,
+  "p10": 0.9147,
   "p90": 3.3411,
   "mcap": null,
   "tv": 9472487350.0,
@@ -56,7 +56,8 @@
    "provisional_dividend_used"
   ],
   "tags": [
-   "crown"
+   "crown",
+   "bomb"
   ]
  }
 }

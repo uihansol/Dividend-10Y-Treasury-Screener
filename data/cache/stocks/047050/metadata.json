@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T16:48:50+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-09-28T23:09:13+09:00",
+ "recomputed_at": "2026-09-28T23:22:57+09:00",
  "summary": {
   "code": "047050",
   "name": "포스코인터내셔널",
@@ -23,15 +23,13 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 34.4,
+  "pct": 34.8,
   "p10": 0.4681,
   "p90": 2.5667,
   "mcap": null,
   "tv": 26748326350.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
+  "flags": [],
   "tags": [
    "crown",
    "bomb"

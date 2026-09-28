@@ -10,30 +10,26 @@
  "last_attempt": "2026-09-28T22:22:24+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-09-28T23:09:14+09:00",
+ "recomputed_at": "2026-09-28T23:22:58+09:00",
  "summary": {
   "code": "123890",
   "name": "한국자산신탁",
   "market": "KOSPI",
   "price": 2480.0,
   "price_date": "2026-09-28",
-  "dps": 300.0,
-  "yield": 12.0968,
-  "multiple": 2.3398,
+  "dps": 150.0,
+  "yield": 6.0484,
+  "multiple": 1.1699,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 64.2,
+  "pct": 20.6,
   "p10": 0.9846,
   "p90": 4.5585,
   "mcap": null,
   "tv": 431229930.0,
   "has_div_data": true,
-  "flags": [
-   "provisional_dividend_used"
-  ],
-  "tags": [
-   "bomb"
-  ]
+  "flags": [],
+  "tags": []
  }
 }
