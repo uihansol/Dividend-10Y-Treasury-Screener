@@ -76,9 +76,10 @@ def update_stock_price_cache(code: str, today: date | None = None,
                              fetch: Callable | None = None) -> tuple[pd.DataFrame, dict]:
     """가격 캐시를 증분 갱신한다.
 
-    기존 가격 이력이 있으면 과거 구간은 다시 요청하지 않는다.
-    최근 7일만 다시 조회해 당일 종가가 이미 캐시에 있어도 최신 값으로 교체할 수 있다.
-    조회 결과는 기존 이력과 병합하므로 과거 데이터는 그대로 보존한다.
+    기존 이력이 있으면 과거 전체를 다시 받지 않는다.
+    다만 마지막 저장일 이후의 구간이 비어 있지 않도록 오늘까지의 누락 구간을 조회하고,
+    최근 7일은 다시 조회해 당일/최근 가격 변경도 반영한다.
+    따라서 장기간 미접속한 종목도 마지막 저장일~오늘 사이의 거래일 데이터가 빠지지 않는다.
     """
     if fetch is None:
         from .krx import fetch_stock_prices as fetch
@@ -88,18 +89,28 @@ def update_stock_price_cache(code: str, today: date | None = None,
     if len(old):
         mode = "incremental"
         latest = date.fromisoformat(old["date"].max())
-        # 이미 저장된 최근 날짜도 다시 받아 장중/당일 종가 변경을 반영한다.
-        # 과거 전체 이력은 절대 재조회하지 않는다.
+        # ① 마지막 저장일 다음 날부터 오늘까지: 장기간 미접속으로 생긴 공백을 보완
+        gap_start = latest + timedelta(days=1)
+        gap = fetch(code, gap_start.isoformat(), today.isoformat()) if gap_start <= today else pd.DataFrame(columns=PRICE_COLS)
+
+        # ② 최근 7일: 이미 저장된 날짜도 다시 받아 최신 종가/거래대금을 반영
         recent_start = max(date.fromisoformat(C.PRICE_START), today - timedelta(days=7))
-        new = fetch(code, recent_start.isoformat(), today.isoformat()) if recent_start <= today else pd.DataFrame(columns=PRICE_COLS)
-        new = new[new["date"] >= recent_start.isoformat()] if len(new) else new
-        from_date = recent_start.isoformat()
+        recent = fetch(code, recent_start.isoformat(), today.isoformat()) if recent_start <= today else pd.DataFrame(columns=PRICE_COLS)
+
+        pieces_new = [x for x in (gap, recent) if len(x)]
+        new = pd.concat(pieces_new, ignore_index=True) if pieces_new else pd.DataFrame(columns=PRICE_COLS)
+        from_date = min(
+            gap_start.isoformat() if len(gap) else recent_start.isoformat(),
+            recent_start.isoformat(),
+        )
     else:
         mode = "initial"
         start = date.fromisoformat(C.PRICE_START)
         new = fetch(code, start.isoformat(), today.isoformat()) if start <= today else pd.DataFrame(columns=PRICE_COLS)
         from_date = start.isoformat()
 
+    # 기존 과거 데이터 + 누락 구간 + 최근 재조회 구간을 합친다.
+    # 같은 날짜는 new 쪽을 우선해 최신 조회 결과로 교체한다.
     pieces = [x for x in (old, new) if len(x)]
     df = pd.concat(pieces, ignore_index=True) if pieces else old
     df = df.drop_duplicates("date", keep="last").sort_values("date").reset_index(drop=True)
@@ -107,7 +118,12 @@ def update_stock_price_cache(code: str, today: date | None = None,
         stock_dir(code).mkdir(parents=True, exist_ok=True)
         df.to_csv(stock_dir(code) / "prices.csv", index=False)
 
-    return df, {"mode": mode, "added": int(len(new)), "from": from_date}
+    return df, {
+        "mode": mode,
+        "added": int(len(new)),
+        "from": from_date,
+        "gap_filled": bool(len(gap)) if len(old) else False,
+    }
 
 
 # ---------------------------------------------------------------- 배당 캐시
