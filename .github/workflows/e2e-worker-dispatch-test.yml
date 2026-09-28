@@ -16,7 +16,7 @@ jobs:
       - name: Call production Worker refresh endpoint
         run: |
           set -euo pipefail
-          BODY='{"force":true}'
+          echo "Waiting for the Worker deployment triggered by the previous commit..."\n          sleep 90\n          BODY='{"force":true}'
           RESPONSE=$(curl -sS -X POST \
             -H "content-type: application/json" \
             --data "$BODY" \
