@@ -2,50 +2,57 @@
  "code": "037710",
  "name": "광주신세계",
  "market": "KOSPI",
- "price_through": "2026-09-23",
- "dividend_through": "2026-09-27",
+ "price_through": "2026-09-28",
+ "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T23:15:17+09:00",
- "updated_at": "2026-09-27T23:15:17+09:00",
- "last_attempt": "2026-09-27T23:15:17+09:00",
+ "updated_at": "2026-09-28T18:36:43+09:00",
+ "last_attempt": "2026-09-28T18:36:43+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2631,
-   "from": "2016-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 22
+   "mode": "incremental",
+   "added": 41
   },
   "announcements": {
    "mode": "check",
-   "added": 3
+   "added": 0
   }
  },
- "recomputed_at": "2026-09-28T17:54:58+09:00",
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "037710",
   "name": "광주신세계",
   "market": "KOSPI",
-  "price": 34650.0,
-  "price_date": "2026-09-23",
-  "dps": 3000.0,
-  "yield": 8.658,
-  "multiple": 1.6747,
-  "paid10": 5,
-  "known10": 5,
-  "paid5": 2,
-  "pct": 81.1,
+  "price": 34800.0,
+  "price_date": "2026-09-28",
+  "dps": 4200.0,
+  "yield": 12.069,
+  "multiple": 2.3344,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 90.8,
   "p10": 0.2126,
-  "p90": 1.8459,
+  "p90": 2.0752,
   "mcap": null,
-  "tv": 593142025.0,
+  "tv": 562401475.0,
   "has_div_data": true,
   "flags": [
    "provisional_dividend_used"
   ],
-  "tags": []
+  "tags": [
+   "crown",
+   "bomb"
+  ]
  }
 }
