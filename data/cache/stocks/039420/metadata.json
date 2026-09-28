@@ -2,55 +2,50 @@
  "code": "039420",
  "name": "케이엘넷",
  "market": "KOSDAQ",
- "price_through": "2026-09-23",
+ "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T02:57:44+09:00",
- "updated_at": "2026-09-28T02:57:44+09:00",
- "last_attempt": "2026-09-28T02:57:44+09:00",
+ "updated_at": "2026-09-28T17:50:12+09:00",
+ "last_attempt": "2026-09-28T17:50:12+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2879,
-   "from": "2015-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 40
+   "mode": "incremental",
+   "added": 0
   },
   "announcements": {
    "mode": "check",
-   "added": 1
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
+   "added": 0
   }
  },
- "recomputed_at": "2026-09-28T17:41:06+09:00",
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "039420",
   "name": "케이엘넷",
   "market": "KOSDAQ",
-  "price": 2655.0,
-  "price_date": "2026-09-23",
+  "price": 2685.0,
+  "price_date": "2026-09-28",
   "dps": 100.0,
-  "yield": 3.7665,
-  "multiple": 0.7285,
+  "yield": 3.7244,
+  "multiple": 0.7204,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 44.1,
-  "p10": 0.2814,
-  "p90": 2.0987,
+  "pct": 42.1,
+  "p10": 0.2813,
+  "p90": 2.0988,
   "mcap": null,
-  "tv": 22267671.0,
+  "tv": 21623930.0,
   "has_div_data": true,
   "flags": [],
   "tags": [
