@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import type { CacheIndex, MasterStock } from "../lib/types";
 import { mult, pct, won, NA } from "../lib/format";
 import { loadRecent, removeRecent, removeRecentMany, type RecentEntry } from "../lib/recent";
+import { cachedLiveIndex, fetchLiveIndex, type LiveIndex } from "../lib/liveIndex";
 import { BandGauge } from "../components/BandGauge";
 import { SearchBox } from "../components/SearchBox";
 
@@ -64,6 +65,21 @@ export function Home({ master, index, indexError, onPick }: {
   const [editingRecent, setEditingRecent] = useState(false);
   const [selectedRecent, setSelectedRecent] = useState<Set<string>>(() => new Set());
   const [swipedRecent, setSwipedRecent] = useState<string | null>(null);
+  // '조회한 종목' 새로고침: KRX 전종목 잠정 시세로 주가·배당률·배수만 빠르게 덮어쓴다(역사적 위치는 확정값 유지).
+  const [live, setLive] = useState<Extract<LiveIndex, { status: "live" }> | null>(() => cachedLiveIndex());
+  const [liveLoading, setLiveLoading] = useState(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
+  const refreshLive = () => {
+    setLiveLoading(true);
+    setLiveError(null);
+    fetchLiveIndex()
+      .then((res) => {
+        if (res.status === "live") setLive(res);
+        else setLiveError(`잠정 시세를 가져오지 못했습니다 (${res.reason}).`);
+      })
+      .catch((e) => setLiveError(`잠정 시세를 가져오지 못했습니다 (${(e as Error).message}).`))
+      .finally(() => setLiveLoading(false));
+  };
   const longPressTimer = useRef<number | null>(null);
   const longPressTriggered = useRef(false);
 
@@ -102,7 +118,11 @@ export function Home({ master, index, indexError, onPick }: {
 
   const rows = useMemo(() => {
     const recentCodes = new Set(recent.map((item) => item.code));
-    const r = (index?.stocks ?? []).filter((stock) => recentCodes.has(stock.code));
+    const r = (index?.stocks ?? []).filter((stock) => recentCodes.has(stock.code)).map((stock) => {
+      const lv = live?.rows[stock.code];
+      // 확정 데이터가 더 최신이면 잠정값을 쓰지 않는다
+      return lv && lv.price_date >= stock.price_date ? { ...stock, ...lv, isLive: true } : { ...stock, isLive: false };
+    });
     const value = (row: typeof r[number], key: MetricKey): number => {
       if (key === "yield") return row.yield ?? -Infinity;
       if (key === "multiple") return row.multiple ?? -Infinity;
@@ -118,7 +138,7 @@ export function Home({ master, index, indexError, onPick }: {
       return a.name.localeCompare(b.name, "ko");
     });
     return r;
-  }, [index, sort, recent, nameSortDirection]);
+  }, [index, sort, recent, nameSortDirection, live]);
 
   const deleteRecent = (code: string) => {
     if (!window.confirm("최근 조회 목록에서 삭제할까요?")) return;
@@ -195,7 +215,13 @@ export function Home({ master, index, indexError, onPick }: {
 
       <section>
         <div className="list-head">
-          <h2>조회한 종목</h2>
+          <div className="list-title">
+            <h2>조회한 종목</h2>
+            <button type="button" className="list-refresh" onClick={refreshLive} disabled={liveLoading}
+              title="조회한 종목을 당일 주가(KRX 잠정 시세)로 빠르게 갱신합니다" aria-label={liveLoading ? "당일 주가 불러오는 중" : "당일 주가로 새로고침"}>
+              <span className={`refresh-icon${liveLoading ? " spin" : ""}`} aria-hidden>⟳</span>
+            </button>
+          </div>
           <div className="list-actions">
             <button type="button" className={`column-edit-btn${editingColumns ? " on" : ""}`} onClick={() => setEditingColumns((v) => !v)} aria-expanded={editingColumns}>
               편집
@@ -215,6 +241,12 @@ export function Home({ master, index, indexError, onPick }: {
           </div>
         </div>
         {indexError && <p className="err">목록을 불러오지 못했습니다: {indexError}</p>}
+        {liveError && <p className="err">{liveError}</p>}
+        {live && !liveError && rows.some((r) => r.isLive) && (
+          <p className="live-note">
+            {new Date(live.fetched_at).toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" })} KRX 잠정 시세({live.trade_date}) 반영 · 역사적 위치는 마지막 확정 계산 기준
+          </p>
+        )}
         {index && rows.length === 0 && <p className="empty-msg">아직 조회한 종목이 없습니다. 위에서 종목을 검색해 보세요.</p>}
         {rows.length > 0 && (
           <div className="table-wrap">
@@ -254,15 +286,15 @@ export function Home({ master, index, indexError, onPick }: {
                       <span className="code">{r.code}<span className="show-sm"> {r.market}</span></span>
                     </td>
                     <td className="hide-sm">{r.market}</td>
-                    <td className="num hide-sm">{won(r.price)}</td>
+                    <td className={`num hide-sm${r.isLive ? " prov" : ""}`}>{won(r.price)}</td>
                     <td className="num hide-sm">{r.has_div_data ? won(r.dps) : NA}</td>
                     {columns.map((key) => {
-                      if (key === "yield") return <td key={key} className="num">{pct(r.yield)}</td>;
-                      if (key === "multiple") return <td key={key} className="num key">{mult(r.multiple)}</td>;
+                      if (key === "yield") return <td key={key} className={`num${r.isLive ? " prov" : ""}`}>{pct(r.yield)}</td>;
+                      if (key === "multiple") return <td key={key} className={`num key${r.isLive ? " prov" : ""}`}>{mult(r.multiple)}</td>;
                       if (key === "paid10") return <td key={key} className="num">{r.paid10 == null ? NA : `${r.paid10}/10`}</td>;
                       return <td key={key}><BandGauge pct={r.pct} /></td>;
                     })}
-                    <td className="hide-sm num">{r.price_date}</td>
+                    <td className="hide-sm num">{r.price_date}{r.isLive && <span className="prov-tag"> 잠정</span>}</td>
                   </tr>
                 ))}
               </tbody>

@@ -119,6 +119,24 @@ export async function dailyPrices(session, isin, start, end, fetchImpl = fetch) 
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
+/** 전종목 시세(MDCSTAT01501, pykrx 전종목시세): 하루치 KOSPI·KOSDAQ 전 종목 종가를 한 번에 → Map(code → row).
+ * 휴장일이면 빈 Map. 메인 화면 목록의 빠른 잠정 갱신용. */
+export async function marketPrices(session, day, fetchImpl = fetch) {
+  const j = await getJson(session, {
+    bld: "dbms/MDC/STAT/standard/MDCSTAT01501", locale: "ko_KR",
+    mktId: "ALL", trdDd: day.replaceAll("-", ""), share: "1", money: "1",
+  }, fetchImpl);
+  if (!Array.isArray(j.OutBlock_1)) throw new KrxError("bad_response", "KRX 전종목 시세 응답에 OutBlock_1이 없습니다");
+  const out = new Map();
+  for (const r of j.OutBlock_1) {
+    const close = num(r.TDD_CLSPRC);
+    if (r.ISU_SRT_CD && close > 0) {
+      out.set(String(r.ISU_SRT_CD), { close, change_pct: num(r.FLUC_RT), trading_value: num(r.ACC_TRDVAL) });
+    }
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------- isolate 단위 세션·ISIN 캐시
 let cached = null;             // {jar, expires}
 const isinCache = new Map();   // code → ISIN (상장 중에는 바뀌지 않음)

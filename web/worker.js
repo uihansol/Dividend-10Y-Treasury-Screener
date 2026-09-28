@@ -13,8 +13,8 @@
  *
  * env: GITHUB_REPO (vars), GITHUB_BRANCH (vars, 기본 main), GITHUB_TOKEN (secret), KRX_ID·KRX_PW (secret, 선택)
  */
-import { recentPrices, KrxError } from "./krx.js";
-import { applyLive, parseUs10y } from "./live.js";
+import { recentPrices, marketPrices, withSession, KrxError } from "./krx.js";
+import { applyLive, liveIndexRows, parseUs10y } from "./live.js";
 import { krxStatus } from "./krxadmin.js";
 
 const GH = "https://api.github.com";
@@ -95,6 +95,29 @@ async function liveAnalysis(env, code) {
   return { status: "live", code, analysis: res.analysis };
 }
 
+/** 메인 목록 잠정 갱신: 오늘(휴장일이면 가장 가까운 이전 거래일) KRX 전종목 시세 1회 조회로 조회한 종목 전체를 갱신 */
+async function liveIndex(env) {
+  if (!env.KRX_ID || !env.KRX_PW) return { status: "unavailable", reason: "no_credentials" };
+  const [index, csv] = await Promise.all([
+    readRepoFile(env, "data/cache/index.json"),
+    readRepoFile(env, "data/us10y/dgs10.csv", { text: true }),
+  ]);
+  if (!index?.stocks?.length) return { status: "unavailable", reason: "no_index" };
+  if (!csv) return { status: "unavailable", reason: "no_us10y" };
+  const today = kstToday();
+  const { day, prices } = await withSession(env, async (s) => {
+    for (let back = 0; back < 7; back++) {   // 주말·공휴일은 빈 결과라 하루씩 앞으로
+      const d = addDays(today, -back);
+      const m = await marketPrices(s, d);
+      if (m.size) return { day: d, prices: m };
+    }
+    return { day: null, prices: new Map() };
+  }).catch((e) => { throw e instanceof KrxError ? e : new KrxError("krx_unreachable", String(e)); });
+  if (!day) return { status: "unavailable", reason: "no_trading_day" };
+  const res = liveIndexRows(index.stocks, prices, day, parseUs10y(csv), today);
+  return { status: "live", trade_date: day, fetched_at: new Date().toISOString(), ...res };
+}
+
 /** 한국 기준 '가장 최근 장 마감 거래일' (공휴일은 모름 → 주말만 제외) 과 그 마감 시각 */
 function lastCloseKst(now = new Date()) {
   const kst = new Date(now.getTime() + 9 * 3600e3);
@@ -160,6 +183,17 @@ async function api(url, req, env, ctx) {
   // 조회한 종목 목록: 새 종목이 생기거나 값이 바뀌어도 30초 정도는 늦게 보여도 무방하다.
   if (p === "/api/index" && req.method === "GET") {
     return cachedJson(30, async () => (await readRepoFile(env, "data/cache/index.json")) || { stocks: [] });
+  }
+
+  // 메인 화면 '조회한 종목' 새로고침: 전 종목 잠정 시세(KRX 1회 조회). 반복 요청은 Workers Cache(15초)가 받는다.
+  if (p === "/api/live/index" && req.method === "GET") {
+    try {
+      const out = await liveIndex(env);
+      return out.status === "live" ? json(out, 200, { "cache-control": "public, max-age=15" }) : json(out);
+    } catch (e) {
+      if (e instanceof KrxError) return json({ status: "unavailable", reason: e.code });
+      throw e;
+    }
   }
 
   // KRX 로그인 상태(비밀번호 만료 알림용). 로그인 시도를 줄이도록 Workers Cache에 맡긴다(쿼리를 붙이면 우회).

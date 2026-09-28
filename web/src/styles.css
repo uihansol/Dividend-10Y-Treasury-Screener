@@ -288,6 +288,15 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 @media (prefers-reduced-motion: reduce) { .refresh-icon.spin { animation: none; } }
 .list-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
 .list-head h2 { font-size: 1.05rem; margin: 0; }
+.list-title { display: flex; align-items: center; gap: 6px; }
+.list-refresh { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0;
+  border: 1px solid var(--rule); border-radius: var(--radius-s); background: transparent; color: var(--ink-2); cursor: pointer; }
+.list-refresh .refresh-icon { font-size: 1rem; }
+.list-refresh:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+.list-refresh:disabled { opacity: 0.6; cursor: default; }
+.live-note { margin: 0 0 8px; font-size: 0.78rem; color: var(--ink-2); }
+td.prov { color: var(--accent); }
+.prov-tag { font-size: 0.72rem; color: var(--ink-2); }
 .list-actions { position: relative; display: flex; align-items: center; gap: 8px; }
 .column-edit-btn { background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-s); padding: 6px 11px; min-height: 34px; color: var(--ink-2); cursor: pointer; font: inherit; font-size: 0.85rem; }
 .column-edit-btn:hover, .column-edit-btn.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }

@@ -17,6 +17,7 @@ Cloudflare Worker  /api/*   (web/worker.js)
   ├ GET  /api/stock/{code}/meta   last_attempt·updated_at만 ← metadata.json (새로고침 폴링용, 캐시 안 함)
   ├ GET  /api/stock/{code}/live   KRX를 Worker가 직접 조회해 저장 분석을 '잠정' 갱신 (Workers Cache 15초, 아래 참고)
   ├ GET  /api/krx/status          KRX 로그인 상태 (비밀번호 만료 알림용)
+  ├ GET  /api/live/index          메인 '조회한 종목' 새로고침: KRX 전종목 시세 1회로 주가·배당률·배수 잠정 갱신 (Workers Cache 15초)
   ├ POST /api/stock/{code}/refresh repository_dispatch(stock_refresh) → 'Stock refresh' 실행 (같은 종목 실행 중이면 생략)
   │   body {"force": true} 이면 캐시가 최신이어도 다시 수집·계산 (화면의 "새로고침" 버튼이 씀)
   └ GET  /api/stock/{code}/run    최근 실행 상태 + 진행 단계(①~④)
@@ -49,6 +50,14 @@ KRX 로그인·응답 문제 `login_failed`·`password_change`·`krx_unreachable
 캐시된 109종목 654경우에서 주가·수익률·배수·DPS·미국10Y·차트 마지막 점은 엔진과 같고, 저장 시계열이 소수 3자리로
 반올림돼 있어 분위수는 ±0.0005, 백분위는 최대 0.4%p 차이가 날 수 있다(확정 결과로 바로 대체됨).
 KRX 연결 점검: Actions → **KRX live check** → Run workflow (실제 KRX 로그인·시세, 배포된 /api 응답·캐시 헤더 확인).
+
+### 메인 화면 '조회한 종목' 새로고침 (속도 우선)
+
+제목 옆 ⟳ 아이콘을 누르면 Worker가 KRX 전종목 시세(MDCSTAT01501)를 **한 번** 받아(주말·휴장일이면 가장 가까운 이전 거래일)
+조회한 종목 전체의 주가·배당수익률·배당/10Y를 잠정 갱신한다. 배당은 저장된 예상 DPS, 미국10Y는 dgs10.csv 최신값을 쓴다.
+역사적 위치(백분위)는 과거 시계열이 필요해 다시 계산하지 않고 마지막 확정값을 그대로 둔다(화면에 표시).
+종목별 권리락 판정은 생략하고, 저장 주가와 2배 이상 차이 나면 분할·병합 의심으로 그 종목은 갱신하지 않는다.
+갱신된 값은 강조색·"잠정" 표시, 같은 날 30분 동안 화면 이동 후에도 유지, 확정 데이터가 더 최신이면 확정값을 쓴다.
 
 Worker 앞단 캐시는 `web/wrangler.toml`의 `[cache] enabled = true`(Workers Cache, Wrangler 4.69.0 이상)가 맡고,
 응답의 `Cache-Control`(public, max-age)을 따른다. `*.workers.dev`에서는 Cache API(`caches.default`)가 동작하지 않는다.

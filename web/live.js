@@ -154,3 +154,26 @@ export function parseUs10y(csv) {
   }
   return { dates, vals };
 }
+
+/**
+ * 메인 화면 목록의 빠른 잠정 갱신: KRX 전종목 시세 + 저장된 예상 DPS·미국10Y로 주가·배당수익률·배수만 다시 계산한다.
+ * 역사적 백분위는 과거 시계열이 필요해 계산하지 않는다(마지막 확정값 유지). 속도 우선이라 종목별 권리락 판정 대신,
+ * 저장 주가와 2배 이상 차이 나면(분할·병합 의심) 그 종목은 건너뛴다.
+ * @param rows   index.json stocks[]
+ * @param prices Map(code → {close, change_pct, trading_value})  (tradeDate 하루치)
+ */
+export function liveIndexRows(rows, prices, tradeDate, us, today) {
+  const [u] = us10yAsof(today, us.dates, us.vals);
+  const out = {};
+  for (const row of rows) {
+    const p = prices.get(row.code);
+    if (!p || (row.price_date && row.price_date > tradeDate)) continue;
+    if (row.price > 0 && (p.close / row.price > 2 || row.price / p.close > 2)) continue;
+    const y = dividendYield(row.dps, p.close);
+    out[row.code] = {
+      price: r(p.close, 2), price_date: tradeDate, change_pct: r(p.change_pct, 2),
+      yield: r(y), multiple: r(us10yMultiple(y, u)),
+    };
+  }
+  return { us10y: r(u, 3), rows: out };
+}
