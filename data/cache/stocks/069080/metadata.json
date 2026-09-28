@@ -2,48 +2,56 @@
  "code": "069080",
  "name": "웹젠",
  "market": "KOSDAQ",
- "price_through": "2026-09-23",
- "dividend_through": "2026-09-27",
+ "price_through": "2026-09-28",
+ "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T23:15:10+09:00",
- "updated_at": "2026-09-27T23:15:10+09:00",
- "last_attempt": "2026-09-27T23:15:10+09:00",
+ "updated_at": "2026-09-28T18:34:09+09:00",
+ "last_attempt": "2026-09-28T18:34:09+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2631,
-   "from": "2016-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 2
+   "mode": "incremental",
+   "added": 43
   },
   "announcements": {
    "mode": "check",
-   "added": 2
+   "added": 0
   }
  },
- "recomputed_at": "2026-09-28T17:54:59+09:00",
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "069080",
   "name": "웹젠",
   "market": "KOSDAQ",
-  "price": 11310.0,
-  "price_date": "2026-09-23",
-  "dps": 370.0,
-  "yield": 3.2714,
-  "multiple": 0.6328,
-  "paid10": 1,
-  "known10": 1,
-  "paid5": 1,
-  "pct": 59.5,
-  "p10": 0.521,
-  "p90": 0.7143,
+  "price": 11650.0,
+  "price_date": "2026-09-28",
+  "dps": 1290.0,
+  "yield": 11.073,
+  "multiple": 2.1418,
+  "paid10": 4,
+  "known10": 10,
+  "paid5": 4,
+  "pct": 98.6,
+  "p10": 0.0,
+  "p90": 0.6094,
   "mcap": null,
-  "tv": 658736080.0,
+  "tv": 1686570375.0,
   "has_div_data": true,
-  "flags": [],
-  "tags": []
+  "flags": [
+   "provisional_dividend_used"
+  ],
+  "tags": [
+   "bomb"
+  ]
  }
 }
