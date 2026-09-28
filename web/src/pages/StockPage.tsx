@@ -56,7 +56,7 @@ export function StockPage({ code, master, onPick }: {
         setPhase({ kind: "ready", data: first.analysis, refreshing: false });
         return;
       }
-      const before = first.status === "ready" ? first.analysis.metadata?.last_attempt : undefined;
+      let before = first.status === "ready" ? first.analysis.metadata?.last_attempt : undefined;
       if (first.status === "ready") setPhase({ kind: "ready", data: first.analysis, refreshing: true });
       else setPhase({ kind: "preparing", since: Date.now() });
 
@@ -72,9 +72,14 @@ export function StockPage({ code, master, onPick }: {
         const [s, runInfo] = await Promise.all([getStock(code, true), getRun(code).catch(() => ({ run: null }))]);
         if (s.status === "ready" && s.analysis.metadata?.last_attempt !== before) {
           const errs = s.analysis.metadata?.last_error;
-          setPhase({ kind: "ready", data: s.analysis, refreshing: false,
-            note: errs ? `일부 데이터 업데이트 실패(${Object.keys(errs).join(", ")}) — 기존 캐시로 계산했습니다.` : undefined });
-          return;
+          const active = !!runInfo.run && runInfo.run.status !== "completed";
+          // 최초 빠른 분석이 끝나면 즉시 화면을 열고, 백그라운드 과거 데이터 보완은 계속 감시한다.
+          setPhase({ kind: "ready", data: s.analysis, refreshing: active,
+            note: active
+              ? "최신 데이터를 먼저 반영했습니다. 과거 데이터를 차트에 순차적으로 추가하는 중…"
+              : errs ? `일부 데이터 업데이트 실패(${Object.keys(errs).join(", ")}) — 기존 캐시로 계산했습니다.` : undefined });
+          if (!active) return;
+          before = s.analysis.metadata?.last_attempt;
         }
         const failed = runInfo.run && runInfo.run.status === "completed" && runInfo.run.conclusion !== "success"
           && new Date(runInfo.run.created_at).getTime() >= started - 60_000;
