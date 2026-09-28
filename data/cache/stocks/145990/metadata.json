@@ -6,8 +6,8 @@
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T00:00:46+09:00",
- "updated_at": "2026-09-28T13:47:55+09:00",
- "last_attempt": "2026-09-28T13:47:55+09:00",
+ "updated_at": "2026-09-28T13:53:54+09:00",
+ "last_attempt": "2026-09-28T13:53:54+09:00",
  "last_error": null,
  "steps": {
   "prices": {
@@ -21,7 +21,7 @@
   },
   "dividends": {
    "mode": "incremental",
-   "added": 39
+   "added": 0
   },
   "announcements": {
    "mode": "check",
@@ -33,19 +33,19 @@
   "code": "145990",
   "name": "삼양사",
   "market": "KOSPI",
-  "price": 46050.0,
+  "price": 46150.0,
   "price_date": "2026-09-28",
   "dps": 1750.0,
-  "yield": 3.8002,
-  "multiple": 0.7351,
+  "yield": 3.792,
+  "multiple": 0.7335,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 28.8,
+  "pct": 28.3,
   "p10": 0.6259,
   "p90": 1.8683,
   "mcap": null,
-  "tv": 152831450.0,
+  "tv": 159925850.0,
   "has_div_data": true,
   "flags": []
  }
