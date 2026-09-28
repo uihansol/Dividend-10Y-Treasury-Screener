@@ -10,7 +10,7 @@
  * env: GITHUB_REPO (vars), GITHUB_BRANCH (vars, 기본 main), GITHUB_TOKEN (secret)
  */
 const GH = "https://api.github.com";
-const WORKFLOW = "368168407";
+const WORKFLOW = "stock-refresh.yml";
 const WORKER_VERSION = "2026-09-28-dispatch-fix";
 
 const json = (obj, status = 200, extra = {}) =>
