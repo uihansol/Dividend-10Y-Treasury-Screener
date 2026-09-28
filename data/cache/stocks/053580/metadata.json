@@ -1,0 +1,53 @@
+{
+ "code": "053580",
+ "name": "웹케시",
+ "market": "KOSDAQ",
+ "price_through": "2026-09-28",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T18:34:16+09:00",
+ "updated_at": "2026-09-28T18:34:16+09:00",
+ "last_attempt": "2026-09-28T18:34:16+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 61,
+   "from": "2026-06-30",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 43
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 2
+  }
+ },
+ "valuation_date": "2026-09-28",
+ "summary": {
+  "code": "053580",
+  "name": "웹케시",
+  "market": "KOSDAQ",
+  "price": 7080.0,
+  "price_date": "2026-09-28",
+  "dps": 200.0,
+  "yield": 2.8249,
+  "multiple": 0.5464,
+  "paid10": 8,
+  "known10": 10,
+  "paid5": 4,
+  "pct": 0.8,
+  "p10": 0.5799,
+  "p90": 0.7168,
+  "mcap": null,
+  "tv": 78332710.0,
+  "has_div_data": true,
+  "flags": [],
+  "tags": []
+ }
+}
