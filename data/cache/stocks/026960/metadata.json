@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T23:28:43+09:00",
+ "recomputed_at": "2026-09-28T23:31:24+09:00",
  "summary": {
   "code": "026960",
   "name": "동서",
@@ -41,7 +41,7 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 43.1,
+  "pct": 44.4,
   "p10": 0.7738,
   "p90": 2.5671,
   "mcap": null,
@@ -49,8 +49,7 @@
   "has_div_data": true,
   "flags": [
    "interim_exceeds_annual",
-   "interim_values_treated_as_per_period",
-   "provisional_dividend_used"
+   "interim_values_treated_as_per_period"
   ],
   "tags": [
    "crown",

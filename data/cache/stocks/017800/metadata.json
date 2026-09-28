@@ -28,28 +28,26 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T23:28:43+09:00",
+ "recomputed_at": "2026-09-28T23:31:23+09:00",
  "summary": {
   "code": "017800",
   "name": "현대엘리베이터",
   "market": "KOSPI",
   "price": 73900.0,
   "price_date": "2026-09-28",
-  "dps": 15010.0,
-  "yield": 20.3112,
-  "multiple": 3.9287,
+  "dps": 14010.0,
+  "yield": 18.9581,
+  "multiple": 3.6669,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 96.5,
+  "pct": 96.0,
   "p10": 0.1728,
   "p90": 2.3806,
   "mcap": null,
   "tv": 5922850550.0,
   "has_div_data": true,
-  "flags": [
-   "prior_year_unconfirmed_periods_filled"
-  ],
+  "flags": [],
   "tags": [
    "bomb"
   ]
