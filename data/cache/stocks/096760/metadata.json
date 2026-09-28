@@ -1,0 +1,58 @@
+{
+ "code": "096760",
+ "name": "JW홀딩스",
+ "market": "KOSPI",
+ "price_through": "2026-09-28",
+ "dividend_through": "2026-09-28",
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T22:36:59+09:00",
+ "updated_at": "2026-09-28T22:36:59+09:00",
+ "last_attempt": "2026-09-28T22:36:59+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 61,
+   "from": "2026-06-30",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 38
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 7
+  }
+ },
+ "valuation_date": "2026-09-28",
+ "summary": {
+  "code": "096760",
+  "name": "JW홀딩스",
+  "market": "KOSPI",
+  "price": 4355.0,
+  "price_date": "2026-09-28",
+  "dps": 335.0,
+  "yield": 7.6923,
+  "multiple": 1.4879,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 0.8,
+  "p10": 1.5749,
+  "p90": 1.9808,
+  "mcap": null,
+  "tv": 218175332.0,
+  "has_div_data": true,
+  "flags": [
+   "provisional_dividend_used"
+  ],
+  "tags": [
+   "crown",
+   "bomb"
+  ]
+ }
+}
