@@ -1,7 +1,5 @@
 name: Analyze stock
-# 종목 1개만 수집·계산한다 (Cloudflare Worker가 사용자가 고른 종목코드로 실행).
-#  캐시 없음 → 2016년부터 가격, 2015년부터 배당 최초 수집
-#  캐시 있음 → 마지막 날짜 이후 가격, 아직 안 받은 보고서만
+# 종목 1개만 수집·계산한다. 최초 조회는 최신 90일을 먼저 표시하고 과거 가격은 백그라운드에서 보완한다.
 run-name: analyze ${{ inputs.code }}
 
 on:
@@ -15,7 +13,6 @@ on:
         required: false
         default: "false"
 
-# 같은 종목은 동시에 한 번만 (중복 요청 방지). 다른 종목은 병렬 실행
 concurrency:
   group: analyze-${{ inputs.code }}
   cancel-in-progress: false
@@ -41,8 +38,6 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
 
-      # 단계마다 step을 나눠 화면에 진행 상황을 보여준다 (Worker가 step 이름의 ①~④를 읽음).
-      # 수집 단계의 실패는 .run.json에 기록되고 ④에서 기존 캐시로 계산한다.
       - name: ① 가격 데이터 확인
         env:
           CODE: ${{ inputs.code }}
@@ -73,7 +68,12 @@ jobs:
           python -m pipeline.update stock "$CODE" --stage compute | tee -a /tmp/out.txt
 
       - name: Summary
-      # 빠른 결과를 먼저 커밋한다.
+        if: always()
+        run: |
+          [ -f /tmp/out.txt ] || exit 0
+          while IFS= read -r line; do echo "::notice::${line:0:900}"; done < /tmp/out.txt
+
+      # 최근 90일 + 최신 배당/미국10Y를 먼저 커밋한다.
       - name: Fast commit (latest data first)
         if: always()
         env:
@@ -89,16 +89,13 @@ jobs:
             rm -rf "data/cache/stocks/$CODE" && mkdir -p data/cache/stocks && cp -r "/tmp/fast/$CODE" data/cache/stocks/
             if [ -f /tmp/fast/dgs10.csv ]; then mkdir -p data/us10y && cp /tmp/fast/dgs10.csv data/us10y/dgs10.csv; fi
             python -m pipeline.update index
-            git add data/cache; [ -e data/us10y ] && git add data/us10y
+            git add data/cache
+            [ -e data/us10y ] && git add data/us10y
             git diff --cached --quiet && break
             git commit -q -m "cache: $CODE latest-first"
             git push -q origin HEAD:main && break
             sleep $((RANDOM % 6 + 3))
           done
-        if: always()
-        run: |
-          [ -f /tmp/out.txt ] || exit 0
-          while IFS= read -r line; do echo "::notice::${line:0:900}"; done < /tmp/out.txt
 
       # 빠른 결과를 보여준 뒤, 가장 가까운 과거부터 1년 단위로 가격 이력을 보완한다.
       - name: Progressive historical backfill
@@ -111,10 +108,12 @@ jobs:
           for n in $(seq 1 12); do
             python -m pipeline.update backfill "$CODE" | tee -a /tmp/out.txt
             python -m pipeline.update stock "$CODE" --stage compute | tee -a /tmp/out.txt
+
             mkdir -p /tmp/backfill && rm -rf "/tmp/backfill/$CODE"
             cp -r "data/cache/stocks/$CODE" "/tmp/backfill/$CODE"
             git config user.name "dividend-bot"
             git config user.email "actions@users.noreply.github.com"
+
             for i in 1 2 3 4 5 6; do
               git fetch -q origin main && git reset -q --hard origin/main
               rm -rf "data/cache/stocks/$CODE" && mkdir -p data/cache/stocks && cp -r "/tmp/backfill/$CODE" data/cache/stocks/
@@ -125,16 +124,20 @@ jobs:
               git push -q origin HEAD:main && break
               sleep $((RANDOM % 6 + 3))
             done
-            python - <<PY
+
+            if python - <<PY
 import pandas as pd
 from pipeline import config as C
 from pathlib import Path
 p = Path("data/cache/stocks") / "${{ inputs.code }}" / "prices.csv"
-if not p.exists(): raise SystemExit(1)
+if not p.exists():
+    raise SystemExit(1)
 df = pd.read_csv(p, dtype={"date": str})
 raise SystemExit(0 if len(df) and df["date"].min() <= C.PRICE_START else 1)
 PY
-            [ "$?" -eq 0 ] && break
+            then
+              break
+            fi
           done
 
       - name: Final summary
