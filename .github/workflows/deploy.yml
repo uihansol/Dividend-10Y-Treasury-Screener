@@ -33,7 +33,11 @@ jobs:
 
       - run: npm ci
         working-directory: web
-      - run: npm run build
+      - name: 빌드 버전 주입
+        env:
+          VITE_APP_BUILD: ${{ github.run_number }}
+          VITE_APP_SHA: ${{ github.sha }}
+        run: npm run build
         working-directory: web
 
       - name: 비밀값이 번들에 없는지 확인
