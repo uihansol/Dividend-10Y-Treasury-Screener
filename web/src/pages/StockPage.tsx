@@ -13,7 +13,8 @@ type Phase =
   | { kind: "error"; message: string };
 
 const POLL_MS = 6000;
-const INTRADAY_REFRESH_MS = 45_000; // 장중 최신 가격 확인
+const INTRADAY_REFRESH_MS = 45_000; // 장중 화면 최신성 확인
+const AUTO_REFRESH_REQUEST_MS = 5 * 60_000; // 실제 서버 수집 요청은 5분에 한 번으로 제한
 const DAY_CHANGE_CHECK_MS = 30_000; // KST 날짜 변경 확인
 const MARKET_OPEN_MIN = 9 * 60;
 const MARKET_CLOSE_MIN = 15 * 60 + 30;
@@ -43,11 +44,15 @@ export function StockPage({ code, master, onPick }: {
   const name = master?.find((s) => s.code === code)?.name ?? code;
 
   /** force=true: 캐시가 최신이어도(쿨다운 무시) 다시 수집·계산을 요청한다. 새로고침 버튼이 쓴다. */
-  const run = useCallback(async (force: boolean) => {
+  const lastAutoRefreshAt = useRef(0);
+
+  const run = useCallback(async (force: boolean, autoRefresh = false) => {
     try {
       const first = await getStock(code);
       if (!alive.current) return;
-      if (!force && first.status === "ready" && !first.stale) {
+      const shouldRequestAutoRefresh = autoRefresh
+        && Date.now() - lastAutoRefreshAt.current >= AUTO_REFRESH_REQUEST_MS;
+      if (!force && !shouldRequestAutoRefresh && first.status === "ready" && !first.stale) {
         setPhase({ kind: "ready", data: first.analysis, refreshing: false });
         return;
       }
@@ -55,6 +60,7 @@ export function StockPage({ code, master, onPick }: {
       if (first.status === "ready") setPhase({ kind: "ready", data: first.analysis, refreshing: true });
       else setPhase({ kind: "preparing", since: Date.now() });
 
+      if (autoRefresh) lastAutoRefreshAt.current = Date.now();
       const r = await requestRefresh(code, force);
       if (r.status === "error") throw new Error(r.error ?? "업데이트 요청 실패");
       const started = Date.now();
@@ -138,7 +144,7 @@ export function StockPage({ code, master, onPick }: {
     // 브라우저에서 빈번하게 확인해도 과도한 전체 데이터 재수집은 하지 않는다.
     const intradayWatcher = setInterval(() => {
       if (isKstMarketHours() && alive.current) {
-        run(false);
+        run(false, true);
       }
     }, INTRADAY_REFRESH_MS);
 
