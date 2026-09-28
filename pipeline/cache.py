@@ -251,8 +251,9 @@ def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_v
     actions = [a for a in actions if a.ratio != 1.0]
     adj = adjusted_prices(dates, closes, actions)
     as_of, price = dates[-1], adj[-1]
+    valuation_date = valuation_date or datetime.now(KST).date()
 
-    cur_us, cur_us_date = us10y_asof(as_of, us_dates, us_vals)
+    cur_us, cur_us_date = us10y_asof(valuation_date, us_dates, us_vals)
     years = build_fiscal_years(to_reports(div), actions)
     exp = expected_dps_asof(valuation_date, years) if years else None
     dps = exp.value if exp else None
@@ -286,7 +287,8 @@ def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_v
         "has_div_data": bool(div["reports"]), "flags": exp.flags if exp else [],
     }
     return {
-        "code": code, "name": info["name"], "market": info["market"], "as_of": as_of.isoformat(),\n        "valuation_date": valuation_date.isoformat(),
+        "code": code, "name": info["name"], "market": info["market"], "as_of": as_of.isoformat(),
+        "valuation_date": valuation_date.isoformat(),
         # 요구사항 13의 필드 이름 (summary와 같은 값)
         "current_price": summary["price"], "current_dps": summary["dps"], "dividend_yield": summary["yield"],
         "us10y": _r(cur_us, 3), "us10y_date": cur_us_date.isoformat() if cur_us_date else None,
