@@ -63,6 +63,12 @@ export const getMeta = (code: string) =>
 /** KRX 최신 시세로 저장 분석을 잠정 갱신한 결과 (Worker가 KRX를 직접 조회). 실패하면 unavailable — 확정 결과를 기다린다. */
 export const getLive = (code: string) =>
   getJson<{ status: "live"; code: string; analysis: Detail } | { status: "unavailable"; reason: string }>(`api/stock/${code}/live`);
+export type KrxStatus = {
+  state: "ok" | "password_expired" | "login_failed" | "not_configured" | "unreachable";
+  repo?: string; checked_at?: string;
+};
+/** KRX 로그인 상태. fresh=true면 Worker 캐시를 건너뛰고 지금 다시 확인한다(교체 후 '다시 확인'). */
+export const getKrxStatus = (fresh = false) => getJson<KrxStatus>(`api/krx/status${fresh ? `?t=${Date.now()}` : ""}`);
 export const getRun = (code: string) => getJson<{ run: RunInfo | null }>(`api/stock/${code}/run`);
 
 // ---------------------------------------------------------------- 로컬 검색

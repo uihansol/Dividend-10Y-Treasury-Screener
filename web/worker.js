@@ -15,6 +15,7 @@
  */
 import { recentPrices, KrxError } from "./krx.js";
 import { applyLive, parseUs10y } from "./live.js";
+import { krxStatus } from "./krxadmin.js";
 
 const GH = "https://api.github.com";
 // 실행 상태 조회 대상. POST /refresh의 repository_dispatch(stock_refresh)를 받는 워크플로와 같아야 한다.
@@ -159,6 +160,13 @@ async function api(url, req, env, ctx) {
   // 조회한 종목 목록: 새 종목이 생기거나 값이 바뀌어도 30초 정도는 늦게 보여도 무방하다.
   if (p === "/api/index" && req.method === "GET") {
     return cachedJson(30, async () => (await readRepoFile(env, "data/cache/index.json")) || { stocks: [] });
+  }
+
+  // KRX 로그인 상태(비밀번호 만료 알림용). 로그인 시도를 줄이도록 Workers Cache에 맡긴다(쿼리를 붙이면 우회).
+  if (p === "/api/krx/status" && req.method === "GET") {
+    const st = await krxStatus(env);
+    return json({ ...st, repo: env.GITHUB_REPO, checked_at: new Date().toISOString() }, 200,
+      { "cache-control": `public, max-age=${st.state === "ok" ? 300 : 600}` });
   }
 
   const m = p.match(/^\/api\/stock\/(\d{6})(\/refresh|\/run|\/meta|\/live)?$/);

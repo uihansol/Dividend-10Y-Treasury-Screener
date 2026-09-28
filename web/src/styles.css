@@ -314,6 +314,10 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .steps .step-done .step-tag { color: var(--good, #2a7d4f); }
 .steps .step-tag { font-size: .85em; }
 .banner { background: var(--accent-soft); border: 1px solid var(--accent-soft-strong); padding: 8px 12px; margin: 0; border-radius: var(--radius-s); }
+.krx-alert { border: 1px solid var(--warn); color: var(--ink); border-radius: var(--radius-s); padding: 10px 12px; margin: 8px 0 0; font-size: 0.9rem; }
+.krx-alert strong { color: var(--warn); }
+.krx-alert ol { margin: 6px 0 8px; padding-left: 1.3em; }
+.krx-alert li { margin: 2px 0; }
 .banner.warn { background: transparent; border-color: var(--warn); color: var(--warn); }
 .err { color: var(--neg); }
 .err.big { font-size: 1.05rem; }

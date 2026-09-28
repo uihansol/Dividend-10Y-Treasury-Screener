@@ -122,12 +122,24 @@ export async function dailyPrices(session, isin, start, end, fetchImpl = fetch) 
 // ---------------------------------------------------------------- isolate 단위 세션·ISIN 캐시
 let cached = null;             // {jar, expires}
 const isinCache = new Map();   // code → ISIN (상장 중에는 바뀌지 않음)
+// 틀린 비밀번호로 로그인을 반복하면 KRX 계정이 잠길 수 있다. 실패한 비밀번호로는 일정 시간 다시 로그인하지 않는다.
+let loginBlock = null;         // {pw, code, until}
+const BLOCK_MS = { login_failed: 6 * 3600e3, password_change: 15 * 60e3 };
 
 /** 로그인 세션을 재사용하고, 응답이 이상하면(세션 만료·중복 로그인으로 끊김) 한 번만 다시 로그인한다. */
 export async function withSession(env, fn, { fetchImpl = fetch, allowLogin = () => true } = {}) {
   const fresh = async () => {
     if (!(await allowLogin())) throw new KrxError("login_deferred", "다른 KRX 수집이 진행 중이라 로그인을 미룹니다");
-    cached = await login(env.KRX_ID, env.KRX_PW, fetchImpl);
+    if (loginBlock && loginBlock.pw === env.KRX_PW && loginBlock.until > Date.now()) {
+      throw new KrxError(loginBlock.code, "최근 같은 비밀번호로 로그인에 실패해 재시도를 미룹니다");
+    }
+    try {
+      cached = await login(env.KRX_ID, env.KRX_PW, fetchImpl);
+    } catch (e) {
+      if (e instanceof KrxError && BLOCK_MS[e.code]) loginBlock = { pw: env.KRX_PW, code: e.code, until: Date.now() + BLOCK_MS[e.code] };
+      throw e;
+    }
+    loginBlock = null;
     return cached;
   };
   let s = cached && cached.expires > Date.now() ? cached : await fresh();
@@ -149,4 +161,4 @@ export async function recentPrices(env, code, start, end, opts = {}) {
   }, opts);
 }
 
-export function _resetForTest() { cached = null; isinCache.clear(); }
+export function _resetForTest() { cached = null; loginBlock = null; isinCache.clear(); }

@@ -16,6 +16,7 @@ Cloudflare Worker  /api/*   (web/worker.js)
   ├ GET  /api/stock/{code}        분석 결과 + stale 여부 ← data/cache/stocks/{code}/analysis.json   (Workers Cache 20초, ?fresh= 는 우회)
   ├ GET  /api/stock/{code}/meta   last_attempt·updated_at만 ← metadata.json (새로고침 폴링용, 캐시 안 함)
   ├ GET  /api/stock/{code}/live   KRX를 Worker가 직접 조회해 저장 분석을 '잠정' 갱신 (Workers Cache 15초, 아래 참고)
+  ├ GET  /api/krx/status          KRX 로그인 상태 (비밀번호 만료 알림용)
   ├ POST /api/stock/{code}/refresh repository_dispatch(stock_refresh) → 'Stock refresh' 실행 (같은 종목 실행 중이면 생략)
   │   body {"force": true} 이면 캐시가 최신이어도 다시 수집·계산 (화면의 "새로고침" 버튼이 씀)
   └ GET  /api/stock/{code}/run    최근 실행 상태 + 진행 단계(①~④)
@@ -114,6 +115,11 @@ GitHub → Settings → Secrets and variables → Actions
 - **비밀번호는 90일마다 만료된다.** 만료되면 KRX 사이트에서 비밀번호를 바꾼 뒤 `KRX_PW` 시크릿도 새 값으로 갱신하고,
   Worker에도 반영되도록 **Deploy를 한 번 다시 실행**한다(Actions → Deploy → Run workflow).
 - 같은 계정으로 Worker와 Actions가 동시에 로그인해도 기존 세션이 끊기지 않는 것을 확인했다(KRX live check의 중복 로그인 실험).
+- **만료 알림**: Worker가 `GET /api/krx/status`로 KRX 로그인 상태를 확인해(결과는 Workers Cache 5~10분),
+  만료(`password_expired`, KRX CD010)나 로그인 실패(`login_failed`)면 모든 화면 위에 알림을 띄운다.
+  알림에서 ① KRX 비밀번호 변경 ② GitHub 시크릿 `KRX_PW` 수정 ③ Deploy 실행 페이지를 바로 열 수 있고, "다시 확인"으로 즉시 재확인한다.
+  틀린 비밀번호로 반복 로그인해 계정이 잠기지 않도록, Worker는 실패한 같은 비밀번호로 6시간 동안 다시 로그인하지 않는다
+  (시크릿을 새 값으로 바꾸면 바로 다시 시도). 앱이 비밀번호를 직접 저장하지는 않는다.
   증상: 종목 화면 "일부 데이터 업데이트 실패(prices…)", `metadata.json`의 `last_error.prices`에
   "pykrx import/KRX 로그인 실패", Stock refresh 로그의 ① 단계 오류.
 

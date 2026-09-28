@@ -36,7 +36,8 @@ jobs:
         run: |
           B="https://dividend-10y-treasury-screener.uihansol.workers.dev"
           for p in /api/index /api/index "/api/stock/$CODE" "/api/stock/$CODE" "/api/stock/$CODE?fresh=1" \
-                   "/api/stock/$CODE/meta" "/api/stock/$CODE/run" "/api/stock/$CODE/live"; do
+                   "/api/stock/$CODE/meta" "/api/stock/$CODE/run" "/api/stock/$CODE/live" "/api/stock/$CODE/live" \
+                   /api/krx/status; do
             echo "== GET $p"
             curl -sS -m 60 -o /tmp/body -D /tmp/h -w "status=%{http_code} time=%{time_total}s size=%{size_download}\n" "$B$p" || true
             grep -iE "^(cf-cache-status|cache-control|age):" /tmp/h || true

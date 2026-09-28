@@ -3,6 +3,7 @@ import { loadIndex, loadMaster } from "./lib/data";
 import type { CacheIndex, MasterStock } from "./lib/types";
 import { Home } from "./pages/Home";
 import { StockPage } from "./pages/StockPage";
+import { KrxAlert } from "./components/KrxAlert";
 
 function useHashRoute(): string {
   const [hash, setHash] = useState(window.location.hash);
@@ -28,6 +29,11 @@ export function App() {
   }, [m?.[1]]);   // 목록 화면으로 돌아올 때마다 새로 읽음
 
   const onPick = (s: MasterStock) => { window.location.hash = `#/stock/${s.code}`; };
-  return m ? <StockPage key={m[1]} code={m[1]} master={master} onPick={onPick} />
-    : <Home master={master} index={index} indexError={indexError} onPick={onPick} />;
+  return (
+    <>
+      <KrxAlert />
+      {m ? <StockPage key={m[1]} code={m[1]} master={master} onPick={onPick} />
+        : <Home master={master} index={index} indexError={indexError} onPick={onPick} />}
+    </>
+  );
 }
