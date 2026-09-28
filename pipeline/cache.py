@@ -73,7 +73,7 @@ def load_prices(code: str) -> pd.DataFrame:
 
 
 def update_stock_price_cache(code: str, today: date | None = None,
-                             fetch: Callable | None = None) -> tuple[pd.DataFrame, dict]:
+                             fetch: Callable | None = None, quick: bool = False) -> tuple[pd.DataFrame, dict]:
     """가격 캐시를 최신 데이터 우선으로 증분 갱신한다.
 
     기존 이력이 있으면 최근 7일을 먼저 조회해 최신 가격을 최대한 빨리 확보한다.
@@ -114,7 +114,9 @@ def update_stock_price_cache(code: str, today: date | None = None,
         )
     else:
         mode = "initial"
-        start = date.fromisoformat(C.PRICE_START)
+        # 최초 조회는 최근 데이터만 먼저 받아 화면을 빠르게 만든다.
+        # 전체 과거 이력은 backfill_stock_price_cache()가 뒤에서 순차 보완한다.
+        start = max(date.fromisoformat(C.PRICE_START), today - timedelta(days=90)) if quick else date.fromisoformat(C.PRICE_START)
         new = fetch(code, start.isoformat(), today.isoformat()) if start <= today else empty
         from_date = start.isoformat()
 
@@ -133,8 +135,47 @@ def update_stock_price_cache(code: str, today: date | None = None,
         "from": from_date,
         "recent_first": True,
         "recent_days": 7,
+        "quick_initial": bool(quick and mode == "initial"),
         "gap_filled": bool(len(gap)) if len(old) else False,
     }
+
+# ---------------------------------------------------------------- 과거 가격 백필
+def backfill_stock_price_cache(code: str, today: date | None = None,
+                               fetch: Callable | None = None, chunk_days: int = 365) -> dict:
+    """최근 데이터가 먼저 표시된 뒤, 가장 가까운 과거 구간부터 한 청크씩 보완한다.
+
+    한 번에 2015년까지 모두 받지 않고 최근 캐시의 바로 앞 구간부터 최대 chunk_days만
+    조회한다. 호출할 때마다 prices.csv를 저장하므로 UI가 중간 결과를 읽을 수 있다.
+    """
+    if fetch is None:
+        from .krx import fetch_stock_prices as fetch
+    today = today or datetime.now(KST).date()
+    old = load_prices(code)
+    if old.empty:
+        return {"done": False, "added": 0, "reason": "no_cache"}
+
+    earliest = date.fromisoformat(old["date"].min())
+    floor = date.fromisoformat(C.PRICE_START)
+    if earliest <= floor:
+        return {"done": True, "added": 0, "from": floor.isoformat(),
+                "to": (earliest - timedelta(days=1)).isoformat()}
+
+    end = earliest - timedelta(days=1)
+    start = max(floor, end - timedelta(days=chunk_days - 1))
+    new = fetch(code, start.isoformat(), end.isoformat()) if start <= end else pd.DataFrame(columns=PRICE_COLS)
+    if len(new):
+        df = pd.concat([old, new], ignore_index=True)
+        df = df.drop_duplicates("date", keep="last").sort_values("date").reset_index(drop=True)
+        stock_dir(code).mkdir(parents=True, exist_ok=True)
+        df.to_csv(stock_dir(code) / "prices.csv", index=False)
+    return {
+        "done": start == floor,
+        "added": int(len(new)),
+        "from": start.isoformat(),
+        "to": end.isoformat(),
+        "remaining_before": earliest.isoformat(),
+    }
+
 
 # ---------------------------------------------------------------- 배당 캐시
 def load_dividends(code: str) -> dict:
@@ -338,14 +379,14 @@ def _run_file(code: str):
 
 
 def _run_stage(code: str, stage: str, state: dict, info: dict, today, fetch_prices, fetch_dividends,
-               update_us: bool, fetch_announcements=None) -> None:
+               update_us: bool, fetch_announcements=None, quick: bool = False) -> None:
     steps, errors = state["steps"], state["errors"]
     if state["skip"]:
         steps["cache"] = "cooldown: 네트워크 조회 생략"
         return
     try:
         if stage == "prices":
-            steps["prices"] = update_stock_price_cache(code, today, fetch_prices)[1]
+            steps["prices"] = update_stock_price_cache(code, today, fetch_prices, quick=quick)[1]
         elif stage == "dividends":
             steps["dividends"] = update_stock_dividend_cache(code, info["corp_code"], today, fetch_dividends)[1]
             # 정기보고서보다 먼저 나오는 '현금·현물배당결정' 수시공시 확인 (실패해도 정기보고서 결과는 유지)
@@ -370,7 +411,7 @@ def _run_stage(code: str, stage: str, state: dict, info: dict, today, fetch_pric
 def analyze_stock(code: str, *, force: bool = False, master: dict | None = None, today: date | None = None,
                   fetch_prices: Callable | None = None, fetch_dividends: Callable | None = None,
                   fetch_announcements: Callable | None = None,
-                  update_us: bool = True, stage: str | None = None) -> dict:
+                  update_us: bool = True, stage: str | None = None, quick: bool = False) -> dict:
     """종목 1개: 캐시 확인 → (필요하면) 가격·배당·미국10Y 업데이트 → engine 계산 → 캐시 저장.
 
     stage=None 이면 전부 한 번에. stage='prices'|'dividends'|'us10y' 는 그 단계만 실행하고
@@ -392,7 +433,7 @@ def analyze_stock(code: str, *, force: bool = False, master: dict | None = None,
         else:
             state = read_json(_run_file(code)) or {"skip": True, "steps": {}, "errors": {}}
         for s in (STAGES if stage is None else [x for x in STAGES if x == stage]):
-            _run_stage(code, s, state, info, today, fetch_prices, fetch_dividends, update_us, fetch_announcements)
+            _run_stage(code, s, state, info, today, fetch_prices, fetch_dividends, update_us, fetch_announcements, quick=quick)
         if stage in STAGES:
             write_json(_run_file(code), state)
             return state
