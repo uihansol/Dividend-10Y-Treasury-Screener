@@ -74,43 +74,52 @@ def load_prices(code: str) -> pd.DataFrame:
 
 def update_stock_price_cache(code: str, today: date | None = None,
                              fetch: Callable | None = None) -> tuple[pd.DataFrame, dict]:
-    """가격 캐시를 증분 갱신한다.
+    """가격 캐시를 최신 데이터 우선으로 증분 갱신한다.
 
-    기존 이력이 있으면 과거 전체를 다시 받지 않는다.
-    다만 마지막 저장일 이후의 구간이 비어 있지 않도록 오늘까지의 누락 구간을 조회하고,
-    최근 7일은 다시 조회해 당일/최근 가격 변경도 반영한다.
-    따라서 장기간 미접속한 종목도 마지막 저장일~오늘 사이의 거래일 데이터가 빠지지 않는다.
+    기존 이력이 있으면 최근 7일을 먼저 조회해 최신 가격을 최대한 빨리 확보한다.
+    그 다음 마지막 저장일과 최근 7일 사이에 생긴 과거 누락 구간만 보완한다.
+    따라서 새로고침 시 최신 날짜가 먼저 캐시에 반영되고, 장기간 미접속한 종목도
+    마지막 저장일 이후의 거래일 데이터가 빠지지 않는다.
     """
     if fetch is None:
         from .krx import fetch_stock_prices as fetch
     today = today or datetime.now(KST).date()
     old = load_prices(code)
+    empty = pd.DataFrame(columns=PRICE_COLS)
 
     if len(old):
         mode = "incremental"
         latest = date.fromisoformat(old["date"].max())
-        # ① 마지막 저장일 다음 날부터 오늘까지: 장기간 미접속으로 생긴 공백을 보완
-        gap_start = latest + timedelta(days=1)
-        gap = fetch(code, gap_start.isoformat(), today.isoformat()) if gap_start <= today else pd.DataFrame(columns=PRICE_COLS)
 
-        # ② 최근 7일: 이미 저장된 날짜도 다시 받아 최신 종가/거래대금을 반영
+        # ① 최신 7일을 먼저 조회한다.
+        # 이미 저장된 날짜도 다시 받아 당일/최근 종가·거래대금을 갱신한다.
         recent_start = max(date.fromisoformat(C.PRICE_START), today - timedelta(days=7))
-        recent = fetch(code, recent_start.isoformat(), today.isoformat()) if recent_start <= today else pd.DataFrame(columns=PRICE_COLS)
+        recent = fetch(code, recent_start.isoformat(), today.isoformat()) if recent_start <= today else empty
 
-        pieces_new = [x for x in (gap, recent) if len(x)]
-        new = pd.concat(pieces_new, ignore_index=True) if pieces_new else pd.DataFrame(columns=PRICE_COLS)
+        # ② 최신 구간을 확보한 뒤, 그보다 과거에 생긴 누락분만 보완한다.
+        # 최근 7일과 겹치지 않게 범위를 잘라 중복 KRX 호출을 줄인다.
+        gap_end = recent_start - timedelta(days=1)
+        gap_start = latest + timedelta(days=1)
+        gap = (
+            fetch(code, gap_start.isoformat(), gap_end.isoformat())
+            if gap_start <= gap_end and gap_start <= today
+            else empty
+        )
+
+        pieces_new = [x for x in (recent, gap) if len(x)]
+        new = pd.concat(pieces_new, ignore_index=True) if pieces_new else empty
         from_date = min(
-            gap_start.isoformat() if len(gap) else recent_start.isoformat(),
             recent_start.isoformat(),
+            gap_start.isoformat() if len(gap) else recent_start.isoformat(),
         )
     else:
         mode = "initial"
         start = date.fromisoformat(C.PRICE_START)
-        new = fetch(code, start.isoformat(), today.isoformat()) if start <= today else pd.DataFrame(columns=PRICE_COLS)
+        new = fetch(code, start.isoformat(), today.isoformat()) if start <= today else empty
         from_date = start.isoformat()
 
-    # 기존 과거 데이터 + 누락 구간 + 최근 재조회 구간을 합친다.
-    # 같은 날짜는 new 쪽을 우선해 최신 조회 결과로 교체한다.
+    # 기존 과거 데이터 + 최신 갱신 구간 + 과거 누락 구간을 합친다.
+    # 같은 날짜는 최신 조회 결과를 우선해 교체한다.
     pieces = [x for x in (old, new) if len(x)]
     df = pd.concat(pieces, ignore_index=True) if pieces else old
     df = df.drop_duplicates("date", keep="last").sort_values("date").reset_index(drop=True)
@@ -122,9 +131,10 @@ def update_stock_price_cache(code: str, today: date | None = None,
         "mode": mode,
         "added": int(len(new)),
         "from": from_date,
+        "recent_first": True,
+        "recent_days": 7,
         "gap_filled": bool(len(gap)) if len(old) else False,
     }
-
 
 # ---------------------------------------------------------------- 배당 캐시
 def load_dividends(code: str) -> dict:
@@ -224,7 +234,7 @@ def load_us10y():
     return list(us["date"]), [float(v) for v in us["us10y"]]
 
 
-def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_vals) -> dict:
+def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_vals, valuation_date: date | None = None) -> dict:
     """engine.py로 현재·역사 지표 계산. (기존 build.py의 종목 1개 계산부를 그대로 옮김)"""
     code = info["code"]
     prices = prices[prices["close"] > 0].sort_values("date")
@@ -244,11 +254,11 @@ def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_v
 
     cur_us, cur_us_date = us10y_asof(as_of, us_dates, us_vals)
     years = build_fiscal_years(to_reports(div), actions)
-    exp = expected_dps_asof(as_of, years) if years else None
+    exp = expected_dps_asof(valuation_date, years) if years else None
     dps = exp.value if exp else None
     y = dividend_yield(dps, price)
     m = us10y_multiple(y, cur_us, C.MIN_US10Y_FOR_MULTIPLE)
-    pers = persistence(years, as_of, dps) if years else None
+    pers = persistence(years, valuation_date, dps) if years else None
 
     hist = yhist = None
     series = []
@@ -276,7 +286,7 @@ def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_v
         "has_div_data": bool(div["reports"]), "flags": exp.flags if exp else [],
     }
     return {
-        "code": code, "name": info["name"], "market": info["market"], "as_of": as_of.isoformat(),
+        "code": code, "name": info["name"], "market": info["market"], "as_of": as_of.isoformat(),\n        "valuation_date": valuation_date.isoformat(),
         # 요구사항 13의 필드 이름 (summary와 같은 값)
         "current_price": summary["price"], "current_dps": summary["dps"], "dividend_yield": summary["yield"],
         "us10y": _r(cur_us, 3), "us10y_date": cur_us_date.isoformat() if cur_us_date else None,
@@ -395,7 +405,7 @@ def analyze_stock(code: str, *, force: bool = False, master: dict | None = None,
             raise DataUnavailable(f"{info['name']} 데이터를 가져오지 못했습니다: {errors}")
 
         analysis = _save_analysis(code, info, prices, div, meta, {
-            "updated_at": now_kst() if not errors else (meta or {}).get("updated_at", now_kst()),
+            "updated_at": now_kst() if not errors else (meta or {}).get("updated_at", now_kst()),\n            "valuation_date": (today or datetime.now(KST).date()).isoformat(),
             "last_attempt": now_kst(), "last_error": errors or None, "steps": steps,
         })
     rebuild_index()
@@ -404,7 +414,7 @@ def analyze_stock(code: str, *, force: bool = False, master: dict | None = None,
 
 def _save_analysis(code: str, info: dict, prices: pd.DataFrame, div: dict, meta: dict | None, extra: dict) -> dict:
     us_dates, us_vals = load_us10y()
-    analysis = compute_analysis(info, prices, div, us_dates, us_vals)
+    analysis = compute_analysis(info, prices, div, us_dates, us_vals,\n                                 valuation_date=date.fromisoformat(extra["valuation_date"]) if extra.get("valuation_date") else None)
     new_meta = {
         "code": code, "name": info["name"], "market": info["market"],
         "price_through": prices["date"].max(),
