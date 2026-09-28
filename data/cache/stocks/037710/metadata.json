@@ -6,11 +6,29 @@
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T23:15:17+09:00",
- "updated_at": "2026-09-28T18:37:04+09:00",
- "last_attempt": "2026-09-28T18:37:04+09:00",
+ "updated_at": "2026-09-28T22:57:40+09:00",
+ "last_attempt": "2026-09-28T22:57:40+09:00",
  "last_error": null,
- "steps": {},
- "recomputed_at": "2026-09-28T21:09:55+09:00",
+ "steps": {
+  "prices": {
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "incremental",
+   "added": 0
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
+  }
+ },
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "037710",
   "name": "광주신세계",
@@ -27,7 +45,7 @@
   "p10": 0.2126,
   "p90": 2.0752,
   "mcap": null,
-  "tv": 562401475.0,
+  "tv": 569211775.0,
   "has_div_data": true,
   "flags": [
    "provisional_dividend_used"
