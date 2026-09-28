@@ -252,6 +252,54 @@ def test_annual_chart_expected_dps_matches_bomb_tag_basis():
     assert tags["bomb"] is True             # 그 예상 DPS가 실제로 태그 기준을 넘긴다는 것도 같이 확인
 
 
+def test_annual_chart_shows_expected_dps_even_without_this_years_interim_data():
+    """메가스터디(072870)처럼 올해 확정된 분기보고서가 모두 0(공시된 배당이 아직 없음)이면
+    annual_breakdown()은 그 해 행을 아예 안 만든다 — 그러면 홈 화면 태그·배당수익률이 쓰는 예상
+    DPS(이 경우 '올해 확정분 없음'으로 전년도 연간 DPS를 그대로 씀)가 차트엔 전혀 안 보인다.
+    그 해 행이 없으면 실적 0·예상치만 있는 행을 새로 붙여야 한다."""
+    from pipeline.cache import _with_expected_dps
+    from pipeline.engine import DividendReport as R
+    from pipeline.engine import annual_breakdown, build_fiscal_years, expected_dps_asof
+
+    rows = [
+        R(2024, "FY", 800, date(2024, 12, 31), date(2025, 3, 20), ""),
+        R(2025, "FY", 1320, date(2025, 12, 31), date(2026, 3, 19), ""),
+        R(2026, "Q1", 0, date(2026, 3, 31), date(2026, 5, 15), ""),
+        R(2026, "H1", 0, date(2026, 6, 30), date(2026, 8, 14), ""),
+    ]
+    yrs = build_fiscal_years(rows, [])
+    asof = date(2026, 9, 28)
+    exp = expected_dps_asof(asof, yrs)
+    base = annual_breakdown(yrs, asof)
+    assert [r["year"] for r in base] == [2024, 2025]   # 기존 로직은 2026 행을 만들지 않는다
+
+    annual = _with_expected_dps(base, exp)
+    assert [r["year"] for r in annual] == [2024, 2025, 2026]
+    cur = annual[-1]
+    assert cur["provisional"] is True and cur["total"] == 0.0
+    assert cur["expected"] == exp.value == 1320.0   # 전년도 연간 DPS를 그대로 예상치로
+
+
+def test_annual_chart_no_duplicate_row_once_target_year_itself_is_confirmed():
+    """exp가 가리키는 해(latest_fy + 1)가 이미 사업보고서로 확정돼 확정 목록에 들어가 있으면
+    (예: as_of/valuation_date가 갈라진 드문 경우) 잠정·예상치 행을 따로 덧붙이지 않는다."""
+    from pipeline.cache import _with_expected_dps
+    from pipeline.engine import DividendReport as R
+    from pipeline.engine import annual_breakdown, build_fiscal_years, expected_dps_asof
+
+    rows = [R(2024, "FY", 800, date(2024, 12, 31), date(2025, 3, 20), ""),
+           R(2025, "FY", 1320, date(2025, 12, 31), date(2026, 3, 19), "")]
+    yrs = build_fiscal_years(rows, [])
+    asof = date(2026, 4, 1)
+    base = annual_breakdown(yrs, asof)
+    # exp가 latest_fy=2024로 보게(2025 확정 전 시점) 만들어 target=2025가 base엔 이미 확정 상태로 있게 한다
+    exp = expected_dps_asof(date(2026, 1, 1), yrs)
+    assert exp.latest_fy == 2024
+    annual = _with_expected_dps(base, exp)
+    assert [r["year"] for r in annual] == [2024, 2025]   # 2025가 이미 확정 행 — 추가로 안 붙음
+    assert annual[-1]["provisional"] is False and annual[-1]["expected"] is None
+
+
 def test_recompute_cached_is_offline_and_only_cached(tmp_data):
     from pipeline.cache import analyze_stock, recompute_cached
     analyze_stock("005930", master=MASTER, fetch_prices=FakeKrx(date(2026, 9, 25)),

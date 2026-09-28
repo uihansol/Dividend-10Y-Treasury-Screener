@@ -455,12 +455,18 @@ export function DetailPage({ d }: { d: Detail }) {
         <p className="note">
           사업연도 귀속 기준. 분할·무상증자 등이 있으면 과거 DPS를 현재 1주 기준으로 환산했습니다.
           {d.annual.length > 0 && d.annual[d.annual.length - 1].provisional && (
-            <> 빗금 친 <strong>{d.annual[d.annual.length - 1].year}년</strong> 막대는 사업보고서 확정 전 잠정치입니다
-            (그때까지 공시된 중간·분기배당 및 배당결정 누계, {d.annual[d.annual.length - 1].confirmed ?? NA} 기준. 기말배당 미확정).
-            {d.annual[d.annual.length - 1].expected != null && (
-              <> 위에 덧붙은 빨간 부분은 <strong>예상 DPS</strong>로, 아직 확정 안 된 나머지를 전년도 같은 기간 값으로
-              대체해 추정한 연간 합계입니다(홈 화면 💣 태그가 판단하는 값과 같습니다).</>
-            )}</>
+            d.annual[d.annual.length - 1].total > 0 ? (
+              <> 빗금 친 <strong>{d.annual[d.annual.length - 1].year}년</strong> 막대는 사업보고서 확정 전 잠정치입니다
+              (그때까지 공시된 중간·분기배당 및 배당결정 누계, {d.annual[d.annual.length - 1].confirmed ?? NA} 기준. 기말배당 미확정).
+              {d.annual[d.annual.length - 1].expected != null && (
+                <> 위에 덧붙은 빨간 부분은 <strong>예상 DPS</strong>로, 아직 확정 안 된 나머지를 전년도 같은 기간 값으로
+                대체해 추정한 연간 합계입니다(홈 화면 💣 태그가 판단하는 값과 같습니다).</>
+              )}</>
+            ) : d.annual[d.annual.length - 1].expected != null && (
+              <> <strong>{d.annual[d.annual.length - 1].year}년</strong> 막대(빨간 부분)는 아직 올해 공시된 배당이
+              없어 <strong>예상 DPS</strong>를 전년도 실제 연간 배당금 그대로 표시했습니다(홈 화면 💣 태그가
+              판단하는 값과 같습니다). 배당이 공시되면 그 값으로 바뀝니다.</>
+            )
           )}
         </p>
       </section>
