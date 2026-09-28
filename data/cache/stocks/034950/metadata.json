@@ -2,46 +2,50 @@
  "code": "034950",
  "name": "한국기업평가",
  "market": "KOSDAQ",
- "price_through": "2026-09-23",
- "dividend_through": "2026-09-27",
+ "price_through": "2026-09-28",
+ "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T23:16:04+09:00",
- "updated_at": "2026-09-27T23:16:04+09:00",
- "last_attempt": "2026-09-27T23:16:04+09:00",
+ "updated_at": "2026-09-28T18:37:11+09:00",
+ "last_attempt": "2026-09-28T18:37:11+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2631,
-   "from": "2016-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
+   "mode": "incremental",
    "added": 43
   },
   "announcements": {
    "mode": "check",
-   "added": 1
+   "added": 0
   }
  },
- "recomputed_at": "2026-09-28T17:54:58+09:00",
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "034950",
   "name": "한국기업평가",
   "market": "KOSDAQ",
-  "price": 104000.0,
-  "price_date": "2026-09-23",
+  "price": 103500.0,
+  "price_date": "2026-09-28",
   "dps": 8009.0,
-  "yield": 7.701,
-  "multiple": 1.4895,
+  "yield": 7.7382,
+  "multiple": 1.4967,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 28.6,
-  "p10": 1.0949,
-  "p90": 4.7957,
+  "pct": 29.0,
+  "p10": 1.0912,
+  "p90": 4.8026,
   "mcap": null,
-  "tv": 57854000.0,
+  "tv": 91150800.0,
   "has_div_data": true,
   "flags": [],
   "tags": []
