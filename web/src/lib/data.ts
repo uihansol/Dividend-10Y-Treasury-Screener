@@ -34,17 +34,21 @@ export type StockResponse =
 // 같은 세션에서 방금 본 종목은 메모리에 잠깐 담아 둔다(탭 전환·뒤로가기 등에서 네트워크 왕복 자체를
 // 건너뜀). Worker의 엣지 캐시(20초)보다 앞단이라 히트하면 요청이 아예 안 나간다.
 const STOCK_MEM_TTL = 60_000;
-const stockMemCache = new Map<string, { at: number; data: StockResponse }>();
+const stockMemCache = new Map<string, { at: number; day: string; data: StockResponse }>();
+const kstDayKey = () => new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul",
+  year: "numeric", month: "2-digit", day: "2-digit",
+}).format(new Date());
 
 /** fresh=true: 메모리·엣지 캐시를 모두 건너뛰고 항상 최신을 받는다 (새로고침 진행 중 폴링에 쓴다).
  * 일반 조회는 fresh 없이 호출해 반복 방문·여러 사용자가 같은 종목을 볼 때 캐시 이득을 본다. */
 export async function getStock(code: string, fresh = false): Promise<StockResponse> {
   if (!fresh) {
     const hit = stockMemCache.get(code);
-    if (hit && Date.now() - hit.at < STOCK_MEM_TTL) return hit.data;
+    if (hit && hit.day === kstDayKey() && Date.now() - hit.at < STOCK_MEM_TTL) return hit.data;
   }
   const data = await getJson<StockResponse>(`api/stock/${code}${fresh ? `?fresh=${Date.now()}` : ""}`);
-  stockMemCache.set(code, { at: Date.now(), data });
+  stockMemCache.set(code, { at: Date.now(), day: kstDayKey(), data });
   return data;
 }
 /** force=true: 최신 여부와 상관없이(캐시 쿨다운 무시) 다시 수집·계산한다. 사용자가 "새로고침"을 눌렀을 때 쓴다. */
