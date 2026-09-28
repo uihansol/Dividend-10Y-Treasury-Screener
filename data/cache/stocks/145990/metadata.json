@@ -2,54 +2,50 @@
  "code": "145990",
  "name": "삼양사",
  "market": "KOSPI",
- "price_through": "2026-09-23",
+ "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T00:00:46+09:00",
- "updated_at": "2026-09-28T00:00:46+09:00",
- "last_attempt": "2026-09-28T00:00:46+09:00",
+ "updated_at": "2026-09-28T13:47:55+09:00",
+ "last_attempt": "2026-09-28T13:47:55+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2879,
-   "from": "2015-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
+   "mode": "incremental",
    "added": 39
   },
   "announcements": {
    "mode": "check",
-   "added": 1
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
+   "added": 0
   }
  },
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "145990",
   "name": "삼양사",
   "market": "KOSPI",
-  "price": 45600.0,
-  "price_date": "2026-09-23",
+  "price": 46050.0,
+  "price_date": "2026-09-28",
   "dps": 1750.0,
-  "yield": 3.8377,
-  "multiple": 0.7737,
+  "yield": 3.8002,
+  "multiple": 0.7351,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 34.5,
+  "pct": 28.8,
   "p10": 0.6259,
-  "p90": 1.8675,
+  "p90": 1.8683,
   "mcap": null,
-  "tv": 196653900.0,
+  "tv": 152831450.0,
   "has_div_data": true,
   "flags": []
  }
