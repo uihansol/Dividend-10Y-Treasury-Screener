@@ -1,0 +1,28 @@
+name: E2E Worker dispatch test
+
+on:
+  push:
+    paths:
+      - ".github/workflows/e2e-worker-dispatch-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call production Worker refresh endpoint
+        run: |
+          set -euo pipefail
+          BODY='{"force":true}'
+          RESPONSE=$(curl -sS -X POST \
+            -H "content-type: application/json" \
+            --data "$BODY" \
+            -w '\nHTTP_STATUS:%{http_code}' \
+            "https://dividend-10y-treasury-screener.uihansol.workers.dev/api/stock/145990/refresh")
+          echo "$RESPONSE"
+          STATUS=$(printf '%s' "$RESPONSE" | sed -n 's/^HTTP_STATUS://p')
+          BODY_OUT=$(printf '%s' "$RESPONSE" | sed '/^HTTP_STATUS:/d')
+          test "$STATUS" = "200"
+          printf '%s' "$BODY_OUT" | grep -Eq '"status":"(queued|running)"'
