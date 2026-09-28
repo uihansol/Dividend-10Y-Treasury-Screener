@@ -224,6 +224,34 @@ def test_recompute_only_call_preserves_prior_fetch_error(tmp_data):
     assert "dividends" in r2["metadata"]["last_error"]
 
 
+def test_annual_chart_expected_dps_matches_bomb_tag_basis():
+    """배당 탭 차트의 마지막(잠정) 막대에 붙는 '예상 DPS'는 폭탄 태그가 쓰는 값(exp.value)과
+    같아야 한다 — 태그와 차트가 다른 값을 보여주면 일관된 판단을 할 수 없다(광주신세계 037710:
+    예년엔 기말배당만 있다가 올해 처음 중간배당이 생긴 경우)."""
+    from pipeline.cache import _with_expected_dps
+    from pipeline.engine import DividendReport as R
+    from pipeline.engine import annual_breakdown, build_fiscal_years, dividend_tags, expected_dps_asof
+
+    rows = [
+        R(2024, "FY", 2200, date(2024, 12, 31), date(2025, 3, 12), ""),
+        R(2025, "FY", 2400, date(2025, 12, 31), date(2026, 3, 16), ""),
+        R(2026, "H1", 1800, date(2026, 6, 30), date(2026, 8, 14), ""),
+    ]
+    yrs = build_fiscal_years(rows, [])
+    asof = date(2026, 9, 28)
+    exp = expected_dps_asof(asof, yrs)
+    annual = _with_expected_dps(annual_breakdown(yrs, asof), exp)
+
+    cur = annual[-1]
+    assert cur["year"] == 2026 and cur["provisional"] is True
+    assert cur["total"] == 1800            # 실제 확정된 중간배당(잠정, 빗금 막대)
+    assert cur["expected"] == exp.value == 4200.0   # 폭탄 태그가 쓰는 값과 동일한 막대 추가분
+    assert all(r["expected"] is None for r in annual[:-1])
+
+    tags = dividend_tags(yrs, asof, exp)
+    assert tags["bomb"] is True             # 그 예상 DPS가 실제로 태그 기준을 넘긴다는 것도 같이 확인
+
+
 def test_recompute_cached_is_offline_and_only_cached(tmp_data):
     from pipeline.cache import analyze_stock, recompute_cached
     analyze_stock("005930", master=MASTER, fetch_prices=FakeKrx(date(2026, 9, 25)),
