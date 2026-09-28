@@ -1,0 +1,47 @@
+{
+ "code": "111710",
+ "name": "남화산업",
+ "market": "KOSDAQ",
+ "price_through": "2026-09-28",
+ "dividend_through": null,
+ "us10y_through": "2026-09-25",
+ "created_at": "2026-09-28T22:18:39+09:00",
+ "updated_at": "2026-09-28T22:18:39+09:00",
+ "last_attempt": "2026-09-28T22:18:39+09:00",
+ "last_error": {
+  "dividends": "ConnectTimeout(MaxRetryError(\"HTTPSConnectionPool(host='opendart.fss.or.kr', port=443): Max retries exceeded with url: /api/alotMatter.json?crtfc_key=ec6c957ff8f9b45d3b178a078f1a48264aa8a565&corp_code=00245694&bsns_year=2026&reprt_code=11012 (Caused by ConnectTimeoutError(<HTTPSConnection(host='open"
+ },
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 61,
+   "from": "2026-06-30",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  }
+ },
+ "valuation_date": "2026-09-28",
+ "summary": {
+  "code": "111710",
+  "name": "남화산업",
+  "market": "KOSDAQ",
+  "price": 3255.0,
+  "price_date": "2026-09-28",
+  "dps": null,
+  "yield": null,
+  "multiple": null,
+  "paid10": null,
+  "known10": null,
+  "paid5": null,
+  "pct": null,
+  "p10": null,
+  "p90": null,
+  "mcap": null,
+  "tv": 408905605.0,
+  "has_div_data": false,
+  "flags": [],
+  "tags": []
+ }
+}
