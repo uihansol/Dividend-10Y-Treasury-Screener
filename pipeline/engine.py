@@ -421,14 +421,28 @@ def persistence(years: dict[int, FiscalYear], asof: date, current_dps: Optional[
     }
 
 
+BOMB_BASELINE_YEARS = 3     # 폭탄 기준선(최근 N년 중앙값)에 쓰는 과거 연도 수
+BOMB_BASELINE_MIN_YEARS = 2  # 기준선 계산에 필요한 최소 확정 연도 수
+
+
+def _median(values: Sequence[float]) -> float:
+    s = sorted(values)
+    n = len(s)
+    mid = n // 2
+    return s[mid] if n % 2 else (s[mid - 1] + s[mid]) / 2.0
+
+
 def dividend_tags(years: dict[int, FiscalYear], asof: date, exp: Optional[ExpectedDps]) -> dict:
     """메인 목록 태그.
 
     crown(왕관): asof까지 확정된 최근 10개 사업연도 데이터가 전부 있고(연속 10년), 그 10년 모두
                 배당을 지급했으며(0원인 해 없음), 10년 안에서 전년 대비 감소가 한 번도 없었던 경우.
-    bomb(폭탄):  '올해' = asof가 속한 연도. 올해 예상(보통 아직 확정 전이라 잠정) DPS(exp.value)가
-                전년도(asof.year - 1) 확정 DPS 대비 50% 이상 늘어난 경우. 전년도가 아직 확정되지
-                않았다면(주로 1~3월, 전년도 사업보고서 제출 전) 비교할 수 없어 폭탄이 아니다.
+    bomb(폭탄):  매년 비슷한 금액을 배당하는 기업과, 어느 한 해 1회성으로 크게 배당해 배당수익률이
+                왜곡된 기업을 구분하기 위한 태그. '올해'(asof가 속한 연도) 자체의 새 배당 정보(중간·
+                분기·수시공시)가 있어야 하고, 올해 예상(잠정 포함) DPS(exp.value)가 최근 BOMB_BASELINE_YEARS개
+                확정 사업연도 DPS의 중앙값(그 회사의 '평소' 수준, 최소 BOMB_BASELINE_MIN_YEARS개 필요)보다
+                50% 이상 높은 경우. 직전 1년치만 보지 않고 여러 해의 중앙값과 비교해, 마침 전년도 자체가
+                낮았거나(휴배당 등) 높았던(마찬가지로 1회성) 경우에 잘못 판정하지 않는다.
     """
     annual = {fy.year: fy.fy_total for fy in years.values()
               if fy.fy_total is not None and fy.fy_confirmed and fy.fy_confirmed <= asof}
@@ -440,10 +454,14 @@ def dividend_tags(years: dict[int, FiscalYear], asof: date, exp: Optional[Expect
             crown = all(annual[win10[i]] >= annual[win10[i - 1]] for i in range(1, len(win10)))
 
     bomb = False
-    if exp is not None:
-        base = annual.get(asof.year - 1)
-        if base and base > 0:
-            bomb = (exp.value / base - 1.0) >= 0.50
+    cur = years.get(asof.year)
+    has_this_year_data = cur is not None and cur.interim_cum_asof(asof)[0] > 0
+    if exp is not None and has_this_year_data:
+        base_years = [annual[y] for y in range(asof.year - BOMB_BASELINE_YEARS, asof.year) if y in annual]
+        if len(base_years) >= BOMB_BASELINE_MIN_YEARS:
+            baseline = _median(base_years)
+            if baseline > 0:
+                bomb = (exp.value / baseline - 1.0) >= 0.50
 
     return {"crown": crown, "bomb": bomb}
 

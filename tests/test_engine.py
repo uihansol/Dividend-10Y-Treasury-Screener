@@ -200,66 +200,101 @@ def test_crown_flat_dps_allowed():
     assert dividend_tags(yrs, asof, exp)["crown"] is True
 
 
-def test_bomb_provisional_increase_mid_year():
-    """'올해' = asof가 속한 연도(2026). 올해 1분기까지 확정 금액만으로도 예상 DPS가
-    전년(2025) 총액 대비 50% 이상이면 폭탄(잠정 포함)."""
+def test_bomb_provisional_spike_vs_median_baseline():
+    """'올해' = asof가 속한 연도(2026). 올해 예상 DPS가 최근 3개 확정 연도(2023~2025) 중앙값
+    대비 50% 이상 높으면 폭탄(잠정 포함). 중앙값{100,100,100}=100, 올해 190 → +90%."""
     rows = [
+        R(2023, "FY", 100, D(2023, 12, 31), D(2024, 3, 10)),
+        R(2024, "FY", 100, D(2024, 12, 31), D(2025, 3, 12)),
         R(2025, "FY", 100, D(2025, 12, 31), D(2026, 3, 13)),
-        R(2026, "Q1", 90, D(2026, 3, 31), D(2026, 5, 15)),   # 1분기만으로 이미 전년 총액 근접
+        R(2026, "Q1", 90, D(2026, 3, 31), D(2026, 5, 15)),   # 1분기만으로 이미 중앙값 근접
     ]
     yrs = build_fiscal_years(rows, [])
     asof = D(2026, 6, 1)
     exp = expected_dps_asof(asof, yrs)
-    # exp.value = 올해 Q1 확정분(90) + 전년도 Q1 이후분 대체(전년 기말 100, 중간 없음) = 190
+    # exp.value = 올해 Q1 확정분(90) + 전년도(2025) 기말 대체(100) = 190
     assert exp.value == pytest.approx(190)
     assert dividend_tags(yrs, asof, exp)["bomb"] is True
 
 
-def test_bomb_false_under_threshold_with_this_year_data():
-    """올해 데이터가 있어도 전년 대비 증가폭이 50% 미만이면 폭탄이 아니다."""
+def test_bomb_false_under_threshold_vs_median_baseline():
+    """올해 데이터가 있어도 최근 3년 중앙값 대비 증가폭이 50% 미만이면 폭탄이 아니다."""
     rows = [
+        R(2023, "FY", 1000, D(2023, 12, 31), D(2024, 3, 1)),
+        R(2024, "FY", 1000, D(2024, 12, 31), D(2025, 3, 1)),
         R(2025, "FY", 1000, D(2025, 12, 31), D(2026, 3, 1)),
         R(2026, "Q1", 100, D(2026, 3, 31), D(2026, 4, 15)),
     ]
     yrs = build_fiscal_years(rows, [])
     asof = D(2026, 5, 1)
     exp = expected_dps_asof(asof, yrs)
-    # exp.value = 100(올해 Q1) + 1000(전년 기말, 전년은 중간배당 없음) = 1100 → 전년(1000) 대비 +10%
+    # exp.value = 100(올해 Q1) + 1000(전년 기말) = 1100 → 중앙값(1000) 대비 +10%
     assert exp.value == pytest.approx(1100)
     assert dividend_tags(yrs, asof, exp)["bomb"] is False
 
 
 def test_bomb_false_right_after_annual_report_with_no_new_year_data():
     """사업보고서가 막 나와 전년도 총액이 크게 늘었어도, '올해'(asof.year) 자체의 정보가
-    아직 하나도 없으면(같은 값을 그대로 이어받은 상태) 폭탄으로 보지 않는다 — 전년도 자기 자신과
-    비교하는 셈이 되기 때문. 올해 첫 분기 공시가 나와야 비교할 수 있다."""
-    rows = _annual({2024: 100, 2025: 150})  # 2025 사업연도(+50%) 보고서가 2026-03-13 접수
+    아직 하나도 없으면 폭탄으로 보지 않는다 — 아직 아무 비교도 할 수 없기 때문.
+    올해 첫 분기 공시나 배당결정 공시가 나와야 비교할 수 있다."""
+    rows = _annual({2023: 100, 2024: 100, 2025: 150})  # 2025 사업연도(+50%) 보고서가 2026-03-13 접수
     yrs = build_fiscal_years(rows, [])
-    asof = D(2026, 4, 1)   # 올해(2026) 분기 공시는 아직 없음
+    asof = D(2026, 4, 1)   # 올해(2026) 분기·수시공시는 아직 없음
     exp = expected_dps_asof(asof, yrs)
     assert exp.value == 150     # 올해 정보가 없어 전년(2025) 확정치를 그대로 예상치로 사용
     assert dividend_tags(yrs, asof, exp)["bomb"] is False
 
 
-def test_bomb_false_prior_year_not_yet_confirmed():
-    """1~3월 등 전년도 사업보고서가 아직 나오지 않아 비교할 전년도 확정치가 없으면 폭탄이 아니다."""
-    rows = _annual({2024: 100, 2025: 150})
+def test_bomb_false_not_enough_baseline_years():
+    """기준선을 계산할 확정 연도가 1개뿐이면(그 회사의 '평소' 수준을 판단할 수 없으므로) 폭탄이 아니다."""
+    rows = [
+        R(2025, "FY", 100, D(2025, 12, 31), D(2026, 3, 13)),
+        R(2026, "Q1", 90, D(2026, 3, 31), D(2026, 5, 15)),
+    ]
     yrs = build_fiscal_years(rows, [])
-    asof = D(2026, 2, 1)  # 2025 사업보고서(3/13 접수) 전: 전년도(2025) 미확정
+    asof = D(2026, 6, 1)
+    exp = expected_dps_asof(asof, yrs)
+    assert dividend_tags(yrs, asof, exp)["bomb"] is False
+
+
+def test_bomb_false_prior_year_not_yet_confirmed():
+    """1~3월 등 전년도 사업보고서가 아직 나오지 않아 올해 자체 정보도 없으면 폭탄이 아니다."""
+    rows = _annual({2023: 100, 2024: 100, 2025: 150})
+    yrs = build_fiscal_years(rows, [])
+    asof = D(2026, 2, 1)  # 2025 사업보고서(3/13 접수) 전
     exp = expected_dps_asof(asof, yrs)
     assert dividend_tags(yrs, asof, exp)["bomb"] is False
 
 
 def test_bomb_false_zero_baseline():
-    """전년도 확정 배당이 0이면(무배당→배당) 비율이 무의미하므로 폭탄으로 보지 않는다."""
+    """최근 연도 확정 배당이 모두 0이면(무배당→배당) 중앙값이 0이라 비율이 무의미하므로 폭탄으로 보지 않는다."""
     rows = [
-        R(2025, "FY", 0, D(2025, 12, 31), D(2026, 3, 1)),      # 전년도(2025) 무배당
+        R(2023, "FY", 0, D(2023, 12, 31), D(2024, 3, 1)),
+        R(2024, "FY", 0, D(2024, 12, 31), D(2025, 3, 1)),
+        R(2025, "FY", 0, D(2025, 12, 31), D(2026, 3, 1)),
         R(2026, "Q1", 50, D(2026, 3, 31), D(2026, 4, 15)),     # 올해 배당 시작
     ]
     yrs = build_fiscal_years(rows, [])
     asof = D(2026, 5, 1)
     exp = expected_dps_asof(asof, yrs)
     assert exp.value == pytest.approx(50)
+    assert dividend_tags(yrs, asof, exp)["bomb"] is False
+
+
+def test_bomb_median_ignores_single_low_outlier_year():
+    """기준선 3년 중 한 해가 유독 낮아도(배당 중단 등) 중앙값은 나머지 두 해 수준을 따른다.
+    100,0,100 → 중앙값 100(평균이었다면 66.7). exp.value = 올해 Q1(20) + 전년 기말(100) = 120,
+    중앙값(100) 대비 +20%로 임계값 미만 — 평균 기준이었다면 +80%로 잘못 폭탄 처리됐을 것이다."""
+    rows = [
+        R(2023, "FY", 100, D(2023, 12, 31), D(2024, 3, 1)),
+        R(2024, "FY", 0, D(2024, 12, 31), D(2025, 3, 1)),
+        R(2025, "FY", 100, D(2025, 12, 31), D(2026, 3, 1)),
+        R(2026, "Q1", 20, D(2026, 3, 31), D(2026, 4, 15)),
+    ]
+    yrs = build_fiscal_years(rows, [])
+    asof = D(2026, 5, 1)
+    exp = expected_dps_asof(asof, yrs)
+    assert exp.value == pytest.approx(120)
     assert dividend_tags(yrs, asof, exp)["bomb"] is False
 
 
