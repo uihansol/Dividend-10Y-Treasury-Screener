@@ -1,0 +1,72 @@
+name: Debug stock (temporary)
+# 진단용 임시 워크플로. 캐시에 커밋하지 않고 pipeline 각 단계 결과/오류만 출력한다.
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "종목코드"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: prices
+        env:
+          CODE: ${{ github.event.inputs.code }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
+        run: python -m pipeline.update stock "$CODE" --stage prices --quick || true
+
+      - name: dividends
+        env:
+          CODE: ${{ github.event.inputs.code }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: python -m pipeline.update stock "$CODE" --stage dividends || true
+
+      - name: raw DART probe
+        env:
+          CODE: ${{ github.event.inputs.code }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pipeline import config as C
+          from pipeline.master import load_master
+          from pipeline.dart import DartClient
+          code = os.environ["CODE"]
+          m = load_master()
+          s = m.get(code)
+          print("master entry:", s)
+          if not s:
+              raise SystemExit(0)
+          client = DartClient()
+          j = client.get("alotMatter.json", corp_code=s["corp_code"], bsns_year="2024", reprt_code=C.REPRT_CODES["FY"]).json()
+          print("alotMatter 2024 FY status:", j.get("status"), j.get("message"))
+          print("rows:", json.dumps(j.get("list", [])[:20], ensure_ascii=False, indent=2))
+          PY
+
+      - name: compute
+        env:
+          CODE: ${{ github.event.inputs.code }}
+        run: python -m pipeline.update stock "$CODE" --stage compute || true
+
+      - name: dump analysis.json (no commit)
+        env:
+          CODE: ${{ github.event.inputs.code }}
+        run: |
+          F="data/cache/stocks/$CODE/analysis.json"
+          [ -f "$F" ] && cat "$F" | head -c 4000 || echo "no analysis.json"
+          echo
+          D="data/cache/stocks/$CODE/dividends.json"
+          [ -f "$D" ] && cat "$D" | head -c 4000 || echo "no dividends.json"
