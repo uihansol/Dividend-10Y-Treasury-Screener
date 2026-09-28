@@ -283,10 +283,17 @@ def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_v
 
 
 def _within_cooldown(meta: dict | None) -> bool:
+    """짧은 시간의 중복 요청은 막되, 날짜가 바뀌면 반드시 증분 갱신한다."""
     if not meta or not meta.get("updated_at") or meta.get("last_error"):
         return False
-    t = datetime.fromisoformat(meta["updated_at"])
-    return (datetime.now(KST) - t).total_seconds() < C.REFRESH_COOLDOWN_SEC
+    try:
+        t = datetime.fromisoformat(meta["updated_at"]).astimezone(KST)
+    except (TypeError, ValueError):
+        return False
+    now = datetime.now(KST)
+    if t.date() != now.date():
+        return False
+    return (now - t).total_seconds() < C.REFRESH_COOLDOWN_SEC
 
 
 # 수집 단계. GitHub Actions에서는 단계마다 별도 step으로 실행해 화면에 진행 상황(①~④)을 보여준다.
