@@ -156,6 +156,37 @@ def test_provisional_report_dropped_once_periodic_report_supersedes_it():
     assert _provisional_reports(div) == []
 
 
+def test_provisional_report_kept_when_periodic_report_covers_period_but_shows_zero():
+    """서호전기(065710) 사고: 반기보고서(결산기준일 6/30)가 중간배당 공시(배당기준일도 6/30) 이틀
+    뒤에 나왔지만, 그 표의 누계가 아직 0이다(공시 금액이 반영 안 됨). 결산기준일만 보고 '반영됨'으로
+    치면 잠정치가 사라지고 그 해가 통째로 화면에서 안 보인다 — 표의 누계가 실제로 공시 금액만큼
+    늘어났을 때만 '반영됨'으로 봐야 한다."""
+    div = {
+        "reports": [_periodic(2026, "Q1", 0, "2026-05-15"),
+                   _periodic(2026, "H1", 0, "2026-08-14")],  # 결산기준일 6/30, 누계 여전히 0
+        "announcements": {"r1": {"status": "ok", "confirmed_date": "2026-08-12",
+                                "basis_date": "2026-06-30", "amount": 2000.0, "rcept_no": "r1"}},
+    }
+    out = _provisional_reports(div)
+    assert len(out) == 1
+    assert (out[0].fiscal_year, out[0].period, out[0].cum_dps) == (2026, "PROV", 2000.0)
+
+
+def test_provisional_report_uses_basis_year_not_confirmed_year():
+    """서호전기(065710) 사고 ②: 전년도(2025) 기말배당 공시는 배당기준일이 2025-12-31이지만 보통
+    다음 해 2~3월에 '접수'된다. 접수일(2026년) 기준으로 사업연도를 정하면 이 2025년 배당이 올해
+    (2026년) 중간배당 잠정치와 같은 연도로 뒤섞여 잘못된 값이 된다 — 배당기준일(2025년) 기준으로
+    분류해야 이미 확정된 2025년 정기보고서(FY)로 정상적으로 덮인다."""
+    div = {
+        "reports": [_periodic(2025, "FY", 6000, "2026-03-19")],   # 2025년 사업보고서로 이미 확정
+        "announcements": {
+            "fy2025": {"status": "ok", "confirmed_date": "2026-02-27",
+                      "basis_date": "2025-12-31", "amount": 4000.0, "rcept_no": "fy2025"},
+        },
+    }
+    assert _provisional_reports(div) == []   # 2025년로 분류되어 이미 정기보고서가 덮은 것으로 처리
+
+
 def test_to_reports_includes_provisional_alongside_periodic():
     div = {
         "reports": [_periodic(2025, "FY", 6000, "2026-03-18"), _periodic(2026, "Q1", 0, "2026-05-15")],
