@@ -14,7 +14,10 @@ type Phase =
 
 const POLL_MS = 6000;
 const INTRADAY_REFRESH_MS = 45_000; // 장중 화면 최신성 확인
-const AUTO_REFRESH_REQUEST_MS = 5 * 60_000; // 실제 서버 수집 요청은 5분에 한 번으로 제한
+// 장중 자동 수집 요청 간격. 서버 쿨다운(pipeline/config.py REFRESH_COOLDOWN_SEC 기본 600초)은
+// metadata.updated_at(실행 끝 무렵) 기준이라, 그보다 자주 요청하면 네트워크 조회 없는 빈 Actions 실행만 생긴다.
+const SERVER_COOLDOWN_MS = 600_000;
+const AUTO_REFRESH_REQUEST_MS = SERVER_COOLDOWN_MS;
 const DAY_CHANGE_CHECK_MS = 30_000; // KST 날짜 변경 확인
 const MARKET_OPEN_MIN = 9 * 60;
 const MARKET_CLOSE_MIN = 15 * 60 + 30;
@@ -45,13 +48,20 @@ export function StockPage({ code, master, onPick }: {
 
   /** force=true: 캐시가 최신이어도(쿨다운 무시) 다시 수집·계산을 요청한다. 새로고침 버튼이 쓴다. */
   const lastAutoRefreshAt = useRef(0);
+  // 진행 중인 run()(최대 10분 폴링)이 있으면 타이머의 새 호출을 무시한다. 두 번째 호출이
+  // refreshing:false로 상태를 덮어써 진행 배너가 사라지고 버튼이 다시 켜지는 경합을 막는다.
+  const inFlight = useRef(false);
 
   const run = useCallback(async (force: boolean, autoRefresh = false) => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     try {
       const first = await getStock(code);
       if (!alive.current) return;
+      const updatedAt = first.status === "ready" ? Date.parse(first.analysis.metadata?.updated_at ?? "") : NaN;
       const shouldRequestAutoRefresh = autoRefresh
-        && Date.now() - lastAutoRefreshAt.current >= AUTO_REFRESH_REQUEST_MS;
+        && Date.now() - lastAutoRefreshAt.current >= AUTO_REFRESH_REQUEST_MS
+        && !(Date.now() - updatedAt < SERVER_COOLDOWN_MS);   // 서버 쿨다운 안이면 요청해도 빈 실행
       if (!force && !shouldRequestAutoRefresh && first.status === "ready" && !first.stale) {
         setPhase({ kind: "ready", data: first.analysis, refreshing: false });
         return;
@@ -99,6 +109,8 @@ export function StockPage({ code, master, onPick }: {
       }
     } catch (e) {
       if (alive.current) setPhase({ kind: "error", message: `서버에 연결하지 못했습니다 (${(e as Error).message}).` });
+    } finally {
+      inFlight.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code]);
@@ -138,7 +150,8 @@ export function StockPage({ code, master, onPick }: {
     // KST 날짜 변경: 하루가 바뀌면 배당·가격·미국10Y의 증분 갱신을 한 번 확인한다.
     const dayWatcher = setInterval(() => {
       const currentDay = dayKey();
-      if (currentDay !== lastDay) {
+      // 다른 run()이 진행 중이면 lastDay를 그대로 두어, 끝난 뒤 다음 확인 때 다시 시도한다.
+      if (currentDay !== lastDay && !inFlight.current) {
         lastDay = currentDay;
         run(false);
       }
