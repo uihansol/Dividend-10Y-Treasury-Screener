@@ -6,11 +6,9 @@
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T01:05:52+09:00",
- "updated_at": "2026-09-28T10:59:58+09:00",
- "last_attempt": "2026-09-28T14:45:56+09:00",
- "last_error": {
-  "announcements": "ConnectTimeout(MaxRetryError(\"HTTPSConnectionPool(host='opendart.fss.or.kr', port=443): Max retries exceeded with url: /api/list.json?crtfc_key=ec6c957ff8f9b45d3b178a078f1a48264aa8a565&corp_code=00144395&bgn_de=20260101&end_de=20260928&page_count=100 (Caused by ConnectTimeoutError(<HTTPSConnection(h"
- },
+ "updated_at": "2026-09-28T16:54:25+09:00",
+ "last_attempt": "2026-09-28T16:54:25+09:00",
+ "last_error": null,
  "steps": {
   "prices": {
    "mode": "incremental",
@@ -24,6 +22,10 @@
   "dividends": {
    "mode": "incremental",
    "added": 0
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
   }
  },
  "valuation_date": "2026-09-28",
@@ -31,19 +33,19 @@
   "code": "026960",
   "name": "동서",
   "market": "KOSPI",
-  "price": 25650.0,
+  "price": 25800.0,
   "price_date": "2026-09-28",
   "dps": 2780.0,
-  "yield": 10.8382,
-  "multiple": 2.0964,
+  "yield": 10.7752,
+  "multiple": 2.0842,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 80.0,
+  "pct": 79.9,
   "p10": 0.7738,
   "p90": 2.5671,
   "mcap": null,
-  "tv": 878345400.0,
+  "tv": 1138648500.0,
   "has_div_data": true,
   "flags": [
    "interim_exceeds_annual",
