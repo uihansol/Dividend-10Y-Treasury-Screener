@@ -9,7 +9,7 @@ from datetime import date as D
 import pytest
 
 from pipeline.engine import (
-    CorpAction, DividendReport, build_fiscal_years, daily_series, detect_corp_actions,
+    CorpAction, DividendReport, annual_breakdown, build_fiscal_years, daily_series, detect_corp_actions,
     dividend_tags, dividend_yield, expected_dps_asof, history_stats, persistence, round_ratio,
     us10y_asof, us10y_multiple, adjusted_prices,
 )
@@ -265,6 +265,51 @@ def test_bomb_false_zero_baseline():
 
 def test_tags_empty_without_dividend_history():
     assert dividend_tags({}, D(2026, 9, 1), None) == {"crown": False, "bomb": False}
+
+
+# --- 배당 차트의 올해 잠정 행 (annual_breakdown provisional row) -----------------------------
+def test_annual_breakdown_appends_provisional_current_year():
+    rows = [
+        R(2025, "FY", 100, D(2025, 12, 31), D(2026, 3, 13)),
+        R(2026, "Q1", 40, D(2026, 3, 31), D(2026, 5, 15)),
+        R(2026, "H1", 90, D(2026, 6, 30), D(2026, 8, 14)),
+    ]
+    yrs = build_fiscal_years(rows, [])
+    out = annual_breakdown(yrs, D(2026, 9, 1))
+    assert [r["year"] for r in out] == [2025, 2026]
+    assert out[0]["provisional"] is False and out[0]["total"] == 100
+    cur = out[1]
+    assert cur["provisional"] is True
+    assert cur["interim"] == 90 and cur["final"] == 0.0 and cur["total"] == 90
+    assert cur["confirmed"] == "2026-08-14"
+
+
+def test_annual_breakdown_no_provisional_row_without_this_year_data():
+    """올해 아직 아무 공시도 없으면(예: 1월) 잠정 행을 붙이지 않는다."""
+    rows = _annual({2024: 100, 2025: 150})
+    yrs = build_fiscal_years(rows, [])
+    out = annual_breakdown(yrs, D(2026, 2, 1))
+    assert [r["year"] for r in out] == [2024]   # 2025는 아직 미확정(3/15 접수), 2026은 데이터 없음
+
+
+def test_annual_breakdown_no_duplicate_once_annual_report_filed():
+    """올해 사업보고서가 이미 나왔으면(확정 목록에 이미 있으면) 잠정 행을 따로 붙이지 않는다."""
+    rows = _annual({2024: 100, 2025: 150})
+    yrs = build_fiscal_years(rows, [])
+    out = annual_breakdown(yrs, D(2026, 4, 1))
+    assert [r["year"] for r in out] == [2024, 2025]
+    assert all(r["provisional"] is False for r in out)
+
+
+def test_annual_breakdown_respects_lookahead():
+    """asof 이후에 확정된 공시는(아직 미래 정보이므로) 잠정 행에 포함하지 않는다."""
+    rows = [
+        R(2025, "FY", 100, D(2025, 12, 31), D(2026, 3, 13)),
+        R(2026, "Q1", 40, D(2026, 3, 31), D(2026, 5, 15)),
+    ]
+    yrs = build_fiscal_years(rows, [])
+    out = annual_breakdown(yrs, D(2026, 4, 1))  # Q1 접수(5/15) 전
+    assert [r["year"] for r in out] == [2025]
 
 
 # --- 가상 기업 E: 액면분할 (⑦) ---------------------------------------------------------

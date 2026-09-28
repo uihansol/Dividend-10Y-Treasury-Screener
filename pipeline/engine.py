@@ -449,7 +449,13 @@ def dividend_tags(years: dict[int, FiscalYear], asof: date, exp: Optional[Expect
 
 
 def annual_breakdown(years: dict[int, FiscalYear], asof: date) -> list[dict]:
-    """상세 페이지 연도별 막대그래프용: 사업연도별 중간·분기 / 기말 / 합계 (현재 기준)."""
+    """상세 페이지 연도별 막대그래프용: 사업연도별 중간·분기 / 기말 / 합계 (현재 기준).
+
+    asof가 속한 사업연도의 사업보고서가 아직 안 나왔다면(그래서 위 확정 목록에 없다면),
+    그때까지 확정된 중간·분기배당 및 '현금·현물배당결정' 수시공시(PROV) 누계만으로
+    마지막에 provisional=True 행을 덧붙인다(기말배당은 아직 모르므로 0). 사업보고서가
+    나오면 그 해는 위 확정 목록에 들어가 이 잠정 행은 자연히 사라진다.
+    """
     rows = []
     for y in sorted(years):
         fy = years[y]
@@ -463,7 +469,23 @@ def annual_breakdown(years: dict[int, FiscalYear], asof: date) -> list[dict]:
             "quarterly": fy.is_quarterly(),
             "confirmed": fy.fy_confirmed.isoformat(),
             "flags": fy.flags,
+            "provisional": False,
         })
+
+    cur = years.get(asof.year)
+    if cur is not None and not any(r["year"] == asof.year for r in rows):
+        cum, rec = cur.interim_cum_asof(asof)
+        if cum > 0:
+            rows.append({
+                "year": asof.year,
+                "interim": cum,
+                "final": 0.0,
+                "total": cum,
+                "quarterly": any(p in ("Q1", "Q3") for p, v, c, _ in cur.interims if v > 0 and c <= asof),
+                "confirmed": rec[2].isoformat() if rec else None,
+                "flags": cur.flags,
+                "provisional": True,
+            })
     return rows
 
 
