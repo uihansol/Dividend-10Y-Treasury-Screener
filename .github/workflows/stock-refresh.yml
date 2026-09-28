@@ -128,17 +128,7 @@ jobs:
               sleep $((RANDOM % 6 + 3))
             done
 
-            if python - <<'PY'
-import os
-import pandas as pd
-from pipeline import config as C
-from pathlib import Path
-p = Path("data/cache/stocks") / os.environ["CODE"] / "prices.csv"
-if not p.exists():
-    raise SystemExit(1)
-df = pd.read_csv(p, dtype={"date": str})
-raise SystemExit(0 if len(df) and df["date"].min() <= C.PRICE_START else 1)
-PY
+            if python -c 'import os,pandas as pd; from pipeline import config as C; from pathlib import Path; p=Path("data/cache/stocks")/os.environ["CODE"]/"prices.csv"; df=pd.read_csv(p,dtype={"date":str}) if p.exists() else None; raise SystemExit(0 if df is not None and len(df) and df["date"].min() <= C.PRICE_START else 1)'
             then
               break
             fi
