@@ -103,6 +103,10 @@ jobs:
           done
 
       - name: Progressive historical backfill
+        env:
+          CODE: ${{ inputs.code }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
         run: |
           for n in $(seq 1 12); do
             python -m pipeline.update backfill "$CODE" | tee -a /tmp/out.txt
@@ -124,11 +128,12 @@ jobs:
               sleep $((RANDOM % 6 + 3))
             done
 
-            if python - <<PY
+            if python - <<'PY'
+import os
 import pandas as pd
 from pipeline import config as C
 from pathlib import Path
-p = Path("data/cache/stocks") / "${{ inputs.code }}" / "prices.csv"
+p = Path("data/cache/stocks") / os.environ["CODE"] / "prices.csv"
 if not p.exists():
     raise SystemExit(1)
 df = pd.read_csv(p, dtype={"date": str})
