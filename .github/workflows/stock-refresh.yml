@@ -78,26 +78,27 @@ jobs:
           [ -f /tmp/out.txt ] || exit 0
           while IFS= read -r line; do echo "::notice::${line:0:900}"; done < /tmp/out.txt
 
-      - name: Commit cache (다른 종목 작업과 겹쳐도 안전하게 재시도)
+      # 최근 90일 + 최신 배당/미국10Y를 먼저 커밋한다.
+      - name: Fast commit (latest data first)
         if: always()
         env:
           CODE: ${{ inputs.code }}
         run: |
-          [ -d "data/cache/stocks/$CODE" ] || { echo "저장할 캐시 없음"; exit 0; }
+          [ -d "data/cache/stocks/$CODE" ] || exit 0
           git config user.name "dividend-bot"
           git config user.email "actions@users.noreply.github.com"
-          mkdir -p /tmp/keep && cp -r "data/cache/stocks/$CODE" /tmp/keep/
-          cp data/us10y/dgs10.csv /tmp/keep/dgs10.csv 2>/dev/null || true
+          mkdir -p /tmp/fast && cp -r "data/cache/stocks/$CODE" /tmp/fast/
+          cp data/us10y/dgs10.csv /tmp/fast/dgs10.csv 2>/dev/null || true
           for i in 1 2 3 4 5 6; do
             git fetch -q origin main && git reset -q --hard origin/main
-            rm -rf "data/cache/stocks/$CODE" && mkdir -p data/cache/stocks && cp -r "/tmp/keep/$CODE" data/cache/stocks/
-            if [ -f /tmp/keep/dgs10.csv ] && [ "$(wc -l < /tmp/keep/dgs10.csv)" -gt "$(wc -l < data/us10y/dgs10.csv 2>/dev/null || echo 0)" ]; then
-              mkdir -p data/us10y && cp /tmp/keep/dgs10.csv data/us10y/dgs10.csv; fi
+            rm -rf "data/cache/stocks/$CODE" && mkdir -p data/cache/stocks && cp -r "/tmp/fast/$CODE" data/cache/stocks/
+            if [ -f /tmp/fast/dgs10.csv ]; then mkdir -p data/us10y && cp /tmp/fast/dgs10.csv data/us10y/dgs10.csv; fi
             python -m pipeline.update index
-            git add data/cache; [ -e data/us10y ] && git add data/us10y
-            git diff --cached --quiet && { echo "변경 없음"; exit 0; }
-            git commit -q -m "cache: $CODE $(date -u +%FT%H:%M)"
-            git push -q origin HEAD:main && exit 0
+            git add data/cache
+            [ -e data/us10y ] && git add data/us10y
+            git diff --cached --quiet && break
+            git commit -q -m "cache: $CODE latest-first"
+            git push -q origin HEAD:main && break
             sleep $((RANDOM % 6 + 3))
           done
-          exit 1
+
