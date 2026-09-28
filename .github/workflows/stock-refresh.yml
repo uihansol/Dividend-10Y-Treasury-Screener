@@ -103,7 +103,11 @@ jobs:
           done
 
       - name: Progressive historical backfill
-        run: echo "backfill placeholder"
+        run: |
+          for n in $(seq 1 12); do
+            python -m pipeline.update backfill "$CODE" | tee -a /tmp/out.txt
+            python -m pipeline.update stock "$CODE" --stage compute | tee -a /tmp/out.txt
+          done
 
       - name: Final summary
         if: always()
