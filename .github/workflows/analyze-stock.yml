@@ -51,7 +51,7 @@ jobs:
           KRX_PW: ${{ secrets.KRX_PW }}
         run: |
           ARGS=""; [ "$FORCE" = "true" ] && ARGS="--force"
-          python -m pipeline.update stock "$CODE" --stage prices $ARGS | tee -a /tmp/out.txt
+          python -m pipeline.update stock "$CODE" --stage prices --quick $ARGS | tee -a /tmp/out.txt
 
       - name: ② 배당 데이터 확인
         env:
@@ -73,31 +73,72 @@ jobs:
           python -m pipeline.update stock "$CODE" --stage compute | tee -a /tmp/out.txt
 
       - name: Summary
+      # 빠른 결과를 먼저 커밋한다.
+      - name: Fast commit (latest data first)
+        if: always()
+        env:
+          CODE: ${{ inputs.code }}
+        run: |
+          [ -d "data/cache/stocks/$CODE" ] || exit 0
+          git config user.name "dividend-bot"
+          git config user.email "actions@users.noreply.github.com"
+          mkdir -p /tmp/fast && cp -r "data/cache/stocks/$CODE" /tmp/fast/
+          cp data/us10y/dgs10.csv /tmp/fast/dgs10.csv 2>/dev/null || true
+          for i in 1 2 3 4 5 6; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            rm -rf "data/cache/stocks/$CODE" && mkdir -p data/cache/stocks && cp -r "/tmp/fast/$CODE" data/cache/stocks/
+            if [ -f /tmp/fast/dgs10.csv ]; then mkdir -p data/us10y && cp /tmp/fast/dgs10.csv data/us10y/dgs10.csv; fi
+            python -m pipeline.update index
+            git add data/cache; [ -e data/us10y ] && git add data/us10y
+            git diff --cached --quiet && break
+            git commit -q -m "cache: $CODE latest-first"
+            git push -q origin HEAD:main && break
+            sleep $((RANDOM % 6 + 3))
+          done
         if: always()
         run: |
           [ -f /tmp/out.txt ] || exit 0
           while IFS= read -r line; do echo "::notice::${line:0:900}"; done < /tmp/out.txt
 
-      - name: Commit cache (다른 종목 작업과 겹쳐도 안전하게 재시도)
-        if: always()
+      # 빠른 결과를 보여준 뒤, 가장 가까운 과거부터 1년 단위로 가격 이력을 보완한다.
+      - name: Progressive historical backfill
+        if: success()
         env:
           CODE: ${{ inputs.code }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
         run: |
-          [ -d "data/cache/stocks/$CODE" ] || { echo "저장할 캐시 없음"; exit 0; }
-          git config user.name "dividend-bot"
-          git config user.email "actions@users.noreply.github.com"
-          mkdir -p /tmp/keep && cp -r "data/cache/stocks/$CODE" /tmp/keep/
-          cp data/us10y/dgs10.csv /tmp/keep/dgs10.csv 2>/dev/null || true
-          for i in 1 2 3 4 5 6; do
-            git fetch -q origin main && git reset -q --hard origin/main
-            rm -rf "data/cache/stocks/$CODE" && mkdir -p data/cache/stocks && cp -r "/tmp/keep/$CODE" data/cache/stocks/
-            if [ -f /tmp/keep/dgs10.csv ] && [ "$(wc -l < /tmp/keep/dgs10.csv)" -gt "$(wc -l < data/us10y/dgs10.csv 2>/dev/null || echo 0)" ]; then
-              mkdir -p data/us10y && cp /tmp/keep/dgs10.csv data/us10y/dgs10.csv; fi
-            python -m pipeline.update index
-            git add data/cache; [ -e data/us10y ] && git add data/us10y
-            git diff --cached --quiet && { echo "변경 없음"; exit 0; }
-            git commit -q -m "cache: $CODE $(date -u +%FT%H:%M)"
-            git push -q origin HEAD:main && exit 0
-            sleep $((RANDOM % 6 + 3))
+          for n in $(seq 1 12); do
+            python -m pipeline.update backfill "$CODE" | tee -a /tmp/out.txt
+            python -m pipeline.update stock "$CODE" --stage compute | tee -a /tmp/out.txt
+            mkdir -p /tmp/backfill && rm -rf "/tmp/backfill/$CODE"
+            cp -r "data/cache/stocks/$CODE" "/tmp/backfill/$CODE"
+            git config user.name "dividend-bot"
+            git config user.email "actions@users.noreply.github.com"
+            for i in 1 2 3 4 5 6; do
+              git fetch -q origin main && git reset -q --hard origin/main
+              rm -rf "data/cache/stocks/$CODE" && mkdir -p data/cache/stocks && cp -r "/tmp/backfill/$CODE" data/cache/stocks/
+              python -m pipeline.update index
+              git add data/cache
+              git diff --cached --quiet && break
+              git commit -q -m "cache: $CODE historical backfill $n"
+              git push -q origin HEAD:main && break
+              sleep $((RANDOM % 6 + 3))
+            done
+            python - <<PY
+import pandas as pd
+from pipeline import config as C
+from pathlib import Path
+p = Path("data/cache/stocks") / "${{ inputs.code }}" / "prices.csv"
+if not p.exists(): raise SystemExit(1)
+df = pd.read_csv(p, dtype={"date": str})
+raise SystemExit(0 if len(df) and df["date"].min() <= C.PRICE_START else 1)
+PY
+            [ "$?" -eq 0 ] && break
           done
-          exit 1
+
+      - name: Final summary
+        if: always()
+        run: |
+          [ -f /tmp/out.txt ] || exit 0
+          while IFS= read -r line; do echo "::notice::${line:0:900}"; done < /tmp/out.txt
