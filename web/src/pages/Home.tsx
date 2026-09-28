@@ -161,7 +161,7 @@ export function Home({ master, index, indexError, onPick }: {
   return (
     <main className="page">
       <header className="masthead">
-        <div className="masthead-title"><h1>배당수익률 ÷ 미국 10년물</h1></div>
+        <div className="masthead-title"><h1>배당수익률 ÷ 미국 10년물</h1><span className="app-version" title="현재 배포 버전">v2026.09.28</span></div>
       </header>
 
       <section className="search-wrap">
