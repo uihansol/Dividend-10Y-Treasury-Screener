@@ -10,6 +10,11 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = ["/api/*"]
 
+# Workers Cache: Worker 앞단 캐시(*.workers.dev에서도 동작, Wrangler 4.69.0 이상 필요).
+# 응답의 Cache-Control을 따른다: /api/index 30초, /api/stock/{code} 20초. no-store·POST는 캐시하지 않는다.
+[cache]
+enabled = true
+
 [vars]
 GITHUB_REPO = "uihansol/Dividend-10Y-Treasury-Screener"
 GITHUB_BRANCH = "main"

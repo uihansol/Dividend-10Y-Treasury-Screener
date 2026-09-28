@@ -21,19 +21,13 @@ const json = (obj, status = 200, extra = {}) =>
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...extra },
   });
 
-/** Cloudflare 엣지 캐시(Cache API). GitHub Contents API 호출을 줄인다.
- * 캐시 키는 요청 URL 그대로라, 화면이 새로고침 폴링 중 붙이는 ?fresh=... 는 매번 다른 키가 되어
- * 자동으로 캐시를 건너뛴다(폴링은 항상 최신 데이터를 봐야 하므로). ctx.waitUntil로 응답 후 기록해
- * 캐시 쓰기가 응답 시간에 영향을 주지 않는다. */
-async function cachedJson(req, ctx, ttlSeconds, compute) {
-  const cache = caches.default;
-  const cacheKey = new Request(req.url, { method: "GET" });
-  const hit = await cache.match(cacheKey);
-  if (hit) return hit;
-  const data = await compute();
-  const res = json(data, 200, { "cache-control": `public, max-age=${ttlSeconds}` });
-  ctx.waitUntil(cache.put(cacheKey, res.clone()));
-  return res;
+/** 캐시 가능한 JSON 응답. 실제 캐시는 wrangler.toml의 [cache] enabled(Workers Cache)가 Worker 앞단에서
+ * 이 응답의 Cache-Control(public, max-age)을 보고 처리한다 — 히트하면 Worker·GitHub API 호출이 아예 없다.
+ * (이전의 Cache API(caches.default)는 *.workers.dev 배포에서는 아무 효과가 없어 제거했다.)
+ * 캐시 키에 쿼리스트링이 포함되므로, 새로고침 폴링이 붙이는 ?fresh=... 는 매번 다른 키가 되어 캐시를 건너뛴다.
+ * POST(/refresh)는 캐시되지 않고, no-store 응답(/run, 오류)도 캐시되지 않는다. */
+async function cachedJson(ttlSeconds, compute) {
+  return json(await compute(), 200, { "cache-control": `public, max-age=${ttlSeconds}` });
 }
 
 function gh(env, path, init = {}) {
@@ -119,7 +113,7 @@ async function api(url, req, env, ctx) {
 
   // 조회한 종목 목록: 새 종목이 생기거나 값이 바뀌어도 30초 정도는 늦게 보여도 무방하다.
   if (p === "/api/index" && req.method === "GET") {
-    return cachedJson(req, ctx, 30, async () => (await readRepoFile(env, "data/cache/index.json")) || { stocks: [] });
+    return cachedJson(30, async () => (await readRepoFile(env, "data/cache/index.json")) || { stocks: [] });
   }
 
   const m = p.match(/^\/api\/stock\/(\d{6})(\/refresh|\/run)?$/);
@@ -127,7 +121,7 @@ async function api(url, req, env, ctx) {
   const [, code, sub] = m;
 
   if (!sub && req.method === "GET") {
-    return cachedJson(req, ctx, 20, async () => {
+    return cachedJson(20, async () => {
       const analysis = await readRepoFile(env, `data/cache/stocks/${code}/analysis.json`);
       if (!analysis) return { status: "missing", code };
       return { status: "ready", code, stale: isStale(analysis.metadata), analysis };
