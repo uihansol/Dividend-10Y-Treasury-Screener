@@ -25,6 +25,7 @@
    "added": 0
   }
  },
+ "recomputed_at": "2026-09-28T17:41:05+09:00",
  "summary": {
   "code": "004370",
   "name": "농심",
@@ -43,6 +44,9 @@
   "mcap": null,
   "tv": 3613955000.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": [
+   "crown"
+  ]
  }
 }

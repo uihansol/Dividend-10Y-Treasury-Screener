@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T16:37:46+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-09-28",
+ "recomputed_at": "2026-09-28T17:41:07+09:00",
  "summary": {
   "code": "187220",
   "name": "디티앤씨",
@@ -29,6 +29,7 @@
   "mcap": null,
   "tv": 41884556.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

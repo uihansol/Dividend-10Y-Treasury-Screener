@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T16:30:42+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-09-28",
+ "recomputed_at": "2026-09-28T17:41:07+09:00",
  "summary": {
   "code": "119610",
   "name": "인터로조",
@@ -29,6 +29,9 @@
   "mcap": null,
   "tv": 430407290.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": [
+   "bomb"
+  ]
  }
 }

@@ -33,6 +33,7 @@
    ]
   }
  },
+ "recomputed_at": "2026-09-28T17:41:04+09:00",
  "summary": {
   "code": "000080",
   "name": "하이트진로",
@@ -41,16 +42,17 @@
   "price_date": "2026-09-23",
   "dps": 700.0,
   "yield": 4.6574,
-  "multiple": 0.939,
+  "multiple": 0.9008,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 20.2,
+  "pct": 14.8,
   "p10": 0.853,
   "p90": 2.3523,
   "mcap": null,
   "tv": 1011607350.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

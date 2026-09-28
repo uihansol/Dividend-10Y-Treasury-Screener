@@ -33,6 +33,7 @@
    ]
   }
  },
+ "recomputed_at": "2026-09-28T17:41:06+09:00",
  "summary": {
   "code": "030000",
   "name": "제일기획",
@@ -41,16 +42,17 @@
   "price_date": "2026-09-23",
   "dps": 1230.0,
   "yield": 6.957,
-  "multiple": 1.4026,
+  "multiple": 1.3457,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 47.4,
+  "pct": 39.4,
   "p10": 0.6975,
   "p90": 3.0012,
   "mcap": null,
   "tv": 3146334480.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

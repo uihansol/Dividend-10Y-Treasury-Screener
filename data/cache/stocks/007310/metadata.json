@@ -20,7 +20,7 @@
    "added": 26
   }
  },
- "recomputed_at": "2026-09-27T19:43:25+09:00",
+ "recomputed_at": "2026-09-28T17:41:05+09:00",
  "summary": {
   "code": "007310",
   "name": "오뚜기",
@@ -29,16 +29,17 @@
   "price_date": "2026-09-23",
   "dps": 9000.0,
   "yield": 2.8892,
-  "multiple": 0.5825,
+  "multiple": 0.5588,
   "paid10": 7,
   "known10": 7,
   "paid5": 4,
-  "pct": 54.1,
+  "pct": 44.4,
   "p10": 0.3796,
   "p90": 1.1592,
   "mcap": null,
   "tv": 841246250.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

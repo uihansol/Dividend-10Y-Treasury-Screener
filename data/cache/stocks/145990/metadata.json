@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T13:56:23+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-09-28",
+ "recomputed_at": "2026-09-28T17:41:07+09:00",
  "summary": {
   "code": "145990",
   "name": "삼양사",
@@ -29,6 +29,7 @@
   "mcap": null,
   "tv": 159925850.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

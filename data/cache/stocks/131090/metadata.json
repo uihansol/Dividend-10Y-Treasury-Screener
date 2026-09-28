@@ -24,6 +24,7 @@
    "added": 0
   }
  },
+ "recomputed_at": "2026-09-28T17:41:07+09:00",
  "summary": {
   "code": "131090",
   "name": "시큐브",
@@ -32,16 +33,19 @@
   "price_date": "2026-09-23",
   "dps": 150.0,
   "yield": 3.4722,
-  "multiple": 0.7,
+  "multiple": 0.6716,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 49.3,
+  "pct": 44.3,
   "p10": 0.4134,
   "p90": 1.0715,
   "mcap": null,
   "tv": 106643105.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": [
+   "crown"
+  ]
  }
 }

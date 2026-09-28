@@ -25,6 +25,7 @@
    "added": 0
   }
  },
+ "recomputed_at": "2026-09-28T17:41:06+09:00",
  "summary": {
   "code": "033920",
   "name": "무학",
@@ -45,6 +46,7 @@
   "has_div_data": true,
   "flags": [
    "interim_values_treated_as_per_period"
-  ]
+  ],
+  "tags": []
  }
 }

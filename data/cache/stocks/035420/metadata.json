@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "valuation_date": "2026-09-28",
+ "recomputed_at": "2026-09-28T17:41:06+09:00",
  "summary": {
   "code": "035420",
   "name": "NAVER",
@@ -47,6 +47,9 @@
   "mcap": null,
   "tv": 127174952950.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": [
+   "bomb"
+  ]
  }
 }

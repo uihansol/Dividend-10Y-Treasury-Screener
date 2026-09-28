@@ -20,7 +20,7 @@
    "added": 16
   }
  },
- "recomputed_at": "2026-09-27T19:43:26+09:00",
+ "recomputed_at": "2026-09-28T17:41:08+09:00",
  "summary": {
   "code": "363280",
   "name": "티와이홀딩스",
@@ -39,6 +39,7 @@
   "mcap": null,
   "tv": 29071509.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

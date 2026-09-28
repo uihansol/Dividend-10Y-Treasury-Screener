@@ -24,6 +24,7 @@
    "added": 0
   }
  },
+ "recomputed_at": "2026-09-28T17:41:05+09:00",
  "summary": {
   "code": "002920",
   "name": "유성기업",
@@ -42,6 +43,7 @@
   "mcap": null,
   "tv": 232091622.0,
   "has_div_data": false,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

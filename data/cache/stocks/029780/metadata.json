@@ -33,6 +33,7 @@
    ]
   }
  },
+ "recomputed_at": "2026-09-28T17:41:05+09:00",
  "summary": {
   "code": "029780",
   "name": "삼성카드",
@@ -41,16 +42,19 @@
   "price_date": "2026-09-23",
   "dps": 2800.0,
   "yield": 6.596,
-  "multiple": 1.3298,
+  "multiple": 1.2758,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 13.4,
+  "pct": 7.5,
   "p10": 1.2939,
   "p90": 4.1826,
   "mcap": null,
   "tv": 4330636600.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": [
+   "crown"
+  ]
  }
 }

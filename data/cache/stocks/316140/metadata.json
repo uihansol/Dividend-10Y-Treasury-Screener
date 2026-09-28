@@ -27,6 +27,7 @@
    ]
   }
  },
+ "recomputed_at": "2026-09-28T17:41:08+09:00",
  "summary": {
   "code": "316140",
   "name": "우리금융지주",
@@ -45,6 +46,7 @@
   "mcap": null,
   "tv": 49731421325.0,
   "has_div_data": false,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

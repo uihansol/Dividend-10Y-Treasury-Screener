@@ -33,6 +33,7 @@
    ]
   }
  },
+ "recomputed_at": "2026-09-28T17:41:06+09:00",
  "summary": {
   "code": "030190",
   "name": "NICE평가정보",
@@ -41,16 +42,19 @@
   "price_date": "2026-09-23",
   "dps": 510.0,
   "yield": 3.2713,
-  "multiple": 0.6595,
+  "multiple": 0.6328,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 26.4,
+  "pct": 20.9,
   "p10": 0.5041,
   "p90": 1.0405,
   "mcap": null,
   "tv": 624057560.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": [
+   "crown"
+  ]
  }
 }

@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "valuation_date": "2026-09-28",
+ "recomputed_at": "2026-09-28T17:41:07+09:00",
  "summary": {
   "code": "161890",
   "name": "한국콜마",
@@ -47,6 +47,9 @@
   "mcap": null,
   "tv": 16878285950.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": [
+   "crown"
+  ]
  }
 }

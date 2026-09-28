@@ -20,7 +20,7 @@
    "added": 23
   }
  },
- "recomputed_at": "2026-09-27T19:43:26+09:00",
+ "recomputed_at": "2026-09-28T17:41:07+09:00",
  "summary": {
   "code": "251370",
   "name": "와이엠티",
@@ -39,6 +39,7 @@
   "mcap": null,
   "tv": 494648685.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

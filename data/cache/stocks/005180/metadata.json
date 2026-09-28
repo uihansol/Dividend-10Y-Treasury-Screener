@@ -12,6 +12,7 @@
  "steps": {
   "cache": "cooldown: 네트워크 조회 생략"
  },
+ "recomputed_at": "2026-09-28T17:41:05+09:00",
  "summary": {
   "code": "005180",
   "name": "빙그레",
@@ -30,6 +31,7 @@
   "mcap": null,
   "tv": 2413313000.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

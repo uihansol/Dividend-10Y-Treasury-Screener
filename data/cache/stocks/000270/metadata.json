@@ -33,6 +33,7 @@
    ]
   }
  },
+ "recomputed_at": "2026-09-28T17:41:04+09:00",
  "summary": {
   "code": "000270",
   "name": "기아",
@@ -41,16 +42,17 @@
   "price_date": "2026-09-23",
   "dps": 6800.0,
   "yield": 5.8925,
-  "multiple": 1.188,
+  "multiple": 1.1398,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 54.4,
+  "pct": 49.1,
   "p10": 0.8956,
   "p90": 1.5036,
   "mcap": null,
   "tv": 92692855900.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

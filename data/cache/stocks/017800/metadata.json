@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "valuation_date": "2026-09-28",
+ "recomputed_at": "2026-09-28T17:41:05+09:00",
  "summary": {
   "code": "017800",
   "name": "현대엘리베이터",
@@ -49,6 +49,7 @@
   "has_div_data": true,
   "flags": [
    "provisional_dividend_used"
-  ]
+  ],
+  "tags": []
  }
 }

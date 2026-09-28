@@ -33,6 +33,7 @@
    ]
   }
  },
+ "recomputed_at": "2026-09-28T17:41:05+09:00",
  "summary": {
   "code": "002380",
   "name": "KCC",
@@ -41,11 +42,11 @@
   "price_date": "2026-09-23",
   "dps": 15000.0,
   "yield": 3.1513,
-  "multiple": 0.6353,
+  "multiple": 0.6095,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 9.9,
+  "pct": 7.0,
   "p10": 0.6358,
   "p90": 2.897,
   "mcap": null,
@@ -53,6 +54,7 @@
   "has_div_data": true,
   "flags": [
    "provisional_dividend_used"
-  ]
+  ],
+  "tags": []
  }
 }

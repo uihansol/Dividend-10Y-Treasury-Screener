@@ -20,7 +20,7 @@
    "added": 34
   }
  },
- "recomputed_at": "2026-09-27T19:43:25+09:00",
+ "recomputed_at": "2026-09-28T17:41:07+09:00",
  "summary": {
   "code": "189980",
   "name": "흥국에프엔비",
@@ -29,16 +29,19 @@
   "price_date": "2026-09-23",
   "dps": 130.0,
   "yield": 11.0169,
-  "multiple": 2.2212,
+  "multiple": 2.1309,
   "paid10": 8,
   "known10": 8,
   "paid5": 5,
-  "pct": 87.6,
+  "pct": 87.0,
   "p10": 0.312,
   "p90": 2.4282,
   "mcap": null,
   "tv": 40809509.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": [
+   "bomb"
+  ]
  }
 }

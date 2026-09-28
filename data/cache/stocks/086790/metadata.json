@@ -33,6 +33,7 @@
    ]
   }
  },
+ "recomputed_at": "2026-09-28T17:41:07+09:00",
  "summary": {
   "code": "086790",
   "name": "하나금융지주",
@@ -41,11 +42,11 @@
   "price_date": "2026-09-23",
   "dps": 6842.26,
   "yield": 5.1407,
-  "multiple": 1.0364,
+  "multiple": 0.9943,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 21.9,
+  "pct": 18.4,
   "p10": 0.8841,
   "p90": 4.7843,
   "mcap": null,
@@ -54,6 +55,9 @@
   "flags": [
    "interim_values_treated_as_per_period",
    "provisional_dividend_used"
+  ],
+  "tags": [
+   "bomb"
   ]
  }
 }

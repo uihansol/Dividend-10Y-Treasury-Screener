@@ -33,6 +33,7 @@
    ]
   }
  },
+ "recomputed_at": "2026-09-28T17:41:05+09:00",
  "summary": {
   "code": "005940",
   "name": "NH투자증권",
@@ -41,16 +42,17 @@
   "price_date": "2026-09-23",
   "dps": 1300.0,
   "yield": 5.0,
-  "multiple": 1.0081,
+  "multiple": 0.9671,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 8.7,
+  "pct": 6.1,
   "p10": 1.0328,
   "p90": 4.2735,
   "mcap": null,
   "tv": 10220637700.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

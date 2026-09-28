@@ -20,7 +20,7 @@
    "added": 28
   }
  },
- "recomputed_at": "2026-09-27T19:43:25+09:00",
+ "recomputed_at": "2026-09-28T17:41:07+09:00",
  "summary": {
   "code": "086980",
   "name": "쇼박스",
@@ -39,6 +39,7 @@
   "mcap": null,
   "tv": 89395724.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

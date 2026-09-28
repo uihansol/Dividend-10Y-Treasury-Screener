@@ -24,6 +24,7 @@
    "added": 1
   }
  },
+ "recomputed_at": "2026-09-28T17:41:07+09:00",
  "summary": {
   "code": "189690",
   "name": "포시에스",
@@ -32,11 +33,11 @@
   "price_date": "2026-09-23",
   "dps": 165.0,
   "yield": 11.0073,
-  "multiple": 2.2192,
+  "multiple": 2.1291,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 97.5,
+  "pct": 96.5,
   "p10": 0.3968,
   "p90": 1.1945,
   "mcap": null,
@@ -44,6 +45,9 @@
   "has_div_data": true,
   "flags": [
    "provisional_dividend_used"
+  ],
+  "tags": [
+   "bomb"
   ]
  }
 }

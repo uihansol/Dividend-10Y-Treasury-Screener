@@ -33,6 +33,7 @@
    ]
   }
  },
+ "recomputed_at": "2026-09-28T17:41:08+09:00",
  "summary": {
   "code": "298020",
   "name": "효성티앤씨",
@@ -41,16 +42,17 @@
   "price_date": "2026-09-23",
   "dps": 10100.0,
   "yield": 3.2424,
-  "multiple": 0.6537,
+  "multiple": 0.6272,
   "paid10": 7,
   "known10": 7,
   "paid5": 5,
-  "pct": 41.4,
+  "pct": 37.6,
   "p10": 0.3579,
   "p90": 3.9384,
   "mcap": null,
   "tv": 2320601000.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }

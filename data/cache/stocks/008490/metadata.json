@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T14:22:31+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-09-28",
+ "recomputed_at": "2026-09-28T17:41:05+09:00",
  "summary": {
   "code": "008490",
   "name": "서흥",
@@ -29,6 +29,9 @@
   "mcap": null,
   "tv": 306808720.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": [
+   "bomb"
+  ]
  }
 }

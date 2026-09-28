@@ -20,7 +20,7 @@
    "added": 37
   }
  },
- "recomputed_at": "2026-09-27T19:43:25+09:00",
+ "recomputed_at": "2026-09-28T17:41:06+09:00",
  "summary": {
   "code": "065710",
   "name": "서호전기",
@@ -29,16 +29,19 @@
   "price_date": "2026-09-23",
   "dps": 6000.0,
   "yield": 13.4078,
-  "multiple": 2.7032,
+  "multiple": 2.5934,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 73.3,
+  "pct": 68.7,
   "p10": 1.3945,
   "p90": 3.7949,
   "mcap": null,
   "tv": 310906100.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": [
+   "bomb"
+  ]
  }
 }

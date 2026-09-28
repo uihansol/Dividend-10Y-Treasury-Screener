@@ -33,6 +33,7 @@
    ]
   }
  },
+ "recomputed_at": "2026-09-28T17:41:06+09:00",
  "summary": {
   "code": "032640",
   "name": "LG유플러스",
@@ -41,16 +42,17 @@
   "price_date": "2026-09-23",
   "dps": 550.0,
   "yield": 3.7568,
-  "multiple": 0.7574,
+  "multiple": 0.7267,
   "paid10": 7,
   "known10": 7,
   "paid5": 5,
-  "pct": 2.3,
+  "pct": 1.0,
   "p10": 0.8287,
   "p90": 3.1585,
   "mcap": null,
   "tv": 12396818692.0,
   "has_div_data": true,
-  "flags": []
+  "flags": [],
+  "tags": []
  }
 }
