@@ -160,6 +160,7 @@ function Tabs({ active, onChange }: { active: Tab; onChange: (t: Tab) => void })
 
 /** 종목 상세 (analysis.json 한 개를 그대로 그린다). 데이터 조회·갱신은 StockPage가 담당 */
 export function DetailPage({ d }: { d: Detail }) {
+  const valuationDate = "valuation_date" in d && typeof d.valuation_date === "string" ? d.valuation_date : d.as_of;
   const series = useMemo(() => {
     const s = d.series;
     return s.d.map((date, i) => ({ date, m: s.m[i], y: s.y[i], u: s.u[i], dps: s.dps[i], px: s.px[i] }));
@@ -268,7 +269,7 @@ export function DetailPage({ d }: { d: Detail }) {
       <section className="cards">
         <Card label="현재 주가" value={won(s.price)} sub={`${s.price_date} 종가`} />
         <Card label="예상 DPS" value={won(s.dps)} sub="현재까지 확정된 배당" />
-        <Card label="배당수익률" value={pct(s.yield)} sub={`${d.valuation_date} 조회일 기준`} />
+        <Card label="배당수익률" value={pct(s.yield)} sub={`${valuationDate} 조회일 기준`} />
         <Card label="미국 10년물" value={pct(d.us10y)} sub={d.us10y_date ? `${d.us10y_date} 값` : undefined} />
         <Card label="배당/10Y" value={mult(s.multiple)} strong />
         <Card label="역사적 백분위" value={st ? `${st.percentile.toFixed(0)}%` : NA} sub="최근 10년 일별 배수 중" />
@@ -482,7 +483,7 @@ export function DetailPage({ d }: { d: Detail }) {
           <li>미국 10년물: FRED DGS10 {d.us10y_date ?? NA} 값 (기준일보다 앞선 가장 최근 값)</li>
           <li>배당: DART 정기보고서 {d.components.map((c) => `${c.confirmed} 접수`).join(", ") || NA}</li>
           <li>주식 수 변동 이벤트: {d.actions.length ? d.actions.map((a) => `${a.date} ×${a.ratio}`).join(", ") : "없음"}</li>
-          <li>가격 기준일 {d.as_of} · 배당수익률 조회일 {d.valuation_date}{d.metadata?.updated_at ? ` · 캐시 갱신 ${d.metadata.updated_at.replace("T", " ").slice(0, 16)}` : ""}</li>
+          <li>가격 기준일 {d.as_of} · 배당수익률 조회일 {valuationDate}{d.metadata?.updated_at ? ` · 캐시 갱신 ${d.metadata.updated_at.replace("T", " ").slice(0, 16)}` : ""}</li>
         </ul>
       </section>
     </main>
