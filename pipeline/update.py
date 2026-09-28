@@ -26,15 +26,16 @@ except ImportError:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("step", choices=["init", "us10y", "master", "stock", "search", "index", "recompute",
+    ap.add_argument("step", choices=["init", "us10y", "master", "stock", "backfill", "search", "index", "recompute",
                                      "rawdiv", "disclist", "rawdoc"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("extra", nargs="*")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--stage", choices=["prices", "dividends", "us10y", "compute"])
+    ap.add_argument("--quick", action="store_true", help="최초 가격 조회 시 최근 90일만 먼저 수집")
     a = ap.parse_args(argv)
 
-    from .cache import DataUnavailable, StockNotFound, analyze_stock, rebuild_index, recompute_cached
+    from .cache import DataUnavailable, StockNotFound, analyze_stock, backfill_stock_price_cache, rebuild_index, recompute_cached
     from .fred import update_us10y
     from .master import build_master, search
 
@@ -82,11 +83,22 @@ def main(argv=None) -> int:
         for name in zf.namelist():
             text = zf.read(name).decode("utf-8", errors="replace")
             out("rawdoc", {"name": name, "len": len(text), "head": text[:12000]})
+    if a.step == "backfill":
+        if not a.arg:
+            ap.error("종목코드가 필요합니다")
+        try:
+            r = backfill_stock_price_cache(a.arg)
+        except Exception as e:
+            out("backfill", {"ok": False, "error": repr(e)})
+            return 3
+        out("backfill", {"ok": True, **r})
+        return 0
+
     if a.step == "stock":
         if not a.arg:
             ap.error("종목코드가 필요합니다")
         try:
-            r = analyze_stock(a.arg, force=a.force, stage=a.stage)
+            r = analyze_stock(a.arg, force=a.force, stage=a.stage, quick=a.quick)
         except StockNotFound:
             out("stock", {"ok": False, "error": f"master에 없는 종목코드: {a.arg}"})
             return 2
