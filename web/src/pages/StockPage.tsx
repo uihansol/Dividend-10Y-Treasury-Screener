@@ -12,7 +12,7 @@ type Phase =
   | { kind: "ready"; data: Detail; refreshing: boolean; note?: string }
   | { kind: "error"; message: string };
 
-const POLL_MS = 6000;
+const POLL_MS = 3000; // 폴링은 /meta(1KB 미만)만 읽으므로 짧게 둬도 가볍다 — 완료 감지 지연을 줄인다
 const INTRADAY_REFRESH_MS = 45_000; // 장중 화면 최신성 확인
 // 장중 자동 수집 요청 간격. 서버 쿨다운(pipeline/config.py REFRESH_COOLDOWN_SEC 기본 600초)은
 // metadata.updated_at(실행 끝 무렵) 기준이라, 그보다 자주 요청하면 네트워크 조회 없는 빈 Actions 실행만 생긴다.

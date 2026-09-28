@@ -26,10 +26,18 @@ jobs:
 
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+        id: py
         with:
           python-version: "3.12"
-          cache: pip
-      - run: pip install -r requirements.txt
+      # 설치된 패키지(pandas·pykrx 등) 전체를 캐시해 매 새로고침의 pip install(약 16~18초)을 건너뛴다.
+      # requirements.txt나 파이썬 패치 버전이 바뀌면 키가 달라져 한 번 새로 설치·저장한다.
+      - uses: actions/cache@v4
+        id: pydeps
+        with:
+          path: ${{ env.pythonLocation }}
+          key: pydeps-${{ runner.os }}-${{ steps.py.outputs.python-version }}-${{ hashFiles('requirements.txt') }}
+      - if: steps.pydeps.outputs.cache-hit != 'true'
+        run: pip install -r requirements.txt
 
       - name: ① 가격 데이터 확인
         env:
