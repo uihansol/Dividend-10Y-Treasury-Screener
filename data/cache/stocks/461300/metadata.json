@@ -2,46 +2,50 @@
  "code": "461300",
  "name": "아이스크림미디어",
  "market": "KOSDAQ",
- "price_through": "2026-09-23",
- "dividend_through": "2026-09-27",
+ "price_through": "2026-09-28",
+ "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T23:14:45+09:00",
- "updated_at": "2026-09-27T23:14:45+09:00",
- "last_attempt": "2026-09-27T23:14:45+09:00",
+ "updated_at": "2026-09-28T18:33:58+09:00",
+ "last_attempt": "2026-09-28T18:33:58+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 501,
-   "from": "2016-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 7
+   "mode": "incremental",
+   "added": 8
   },
   "announcements": {
    "mode": "check",
-   "added": 1
+   "added": 0
   }
  },
- "recomputed_at": "2026-09-28T17:55:00+09:00",
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "461300",
   "name": "아이스크림미디어",
   "market": "KOSDAQ",
-  "price": 18580.0,
-  "price_date": "2026-09-23",
+  "price": 18960.0,
+  "price_date": "2026-09-28",
   "dps": 2269.0,
-  "yield": 12.2121,
-  "multiple": 2.3621,
+  "yield": 11.9673,
+  "multiple": 2.3148,
   "paid10": 2,
   "known10": 2,
   "paid5": 2,
-  "pct": 69.9,
+  "pct": 69.0,
   "p10": 0.8555,
-  "p90": 3.2944,
+  "p90": 3.2919,
   "mcap": null,
-  "tv": 314852560.0,
+  "tv": 569365645.0,
   "has_div_data": true,
   "flags": [
    "prior_year_unconfirmed_periods_filled"
