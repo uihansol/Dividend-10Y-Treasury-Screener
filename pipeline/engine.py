@@ -116,9 +116,11 @@ class FiscalYear:
     flags: list[str] = field(default_factory=list)
 
     def interim_cum_asof(self, t: date) -> tuple[float, Optional[tuple[str, float, date, str]]]:
+        """t까지 알려진 가장 큰 누계와 그 기록. 누계는 해가 가며 줄지 않으므로, 반영이 늦은 정기보고서
+        (0으로 남은 반기보고서 등)보다 더 많이 알려 주는 기록을 최신으로 본다. 같으면 더 늦은 기간."""
         best = None
         for rec in self.interims:
-            if rec[2] <= t and (best is None or PERIOD_ORDER[rec[0]] > PERIOD_ORDER[best[0]]):
+            if rec[2] <= t and (best is None or (rec[1], PERIOD_ORDER[rec[0]]) > (best[1], PERIOD_ORDER[best[0]])):
                 best = rec
         return (best[1] if best else 0.0), best
 
@@ -186,28 +188,6 @@ def build_fiscal_years(reports: Iterable[DividendReport],
 # ---------------------------------------------------------------------------
 # 예상 연간 DPS (현재·역사 공통)
 # ---------------------------------------------------------------------------
-def _period_amounts(fy: FiscalYear) -> dict[str, float]:
-    """사업연도 내 중간·분기 누적값을 실제 기간별 배당으로 변환한다."""
-    recs = sorted(fy.interims, key=lambda x: PERIOD_ORDER[x[0]])
-    out: dict[str, float] = {}
-    prev = 0.0
-    for period, cumulative, _, _ in recs:
-        out[period] = max(cumulative - prev, 0.0)
-        prev = max(prev, cumulative)
-    return out
-
-
-def _cum_at(fy: Optional[FiscalYear], period: str) -> float:
-    """fy 사업연도의 period 시점까지 누적 중간·분기배당 (그 기간 보고서가 없으면 직전 기간 값)."""
-    if fy is None:
-        return 0.0
-    best = 0.0
-    for p, v, _, _ in fy.interims:
-        if PERIOD_ORDER[p] <= PERIOD_ORDER[period]:
-            best = max(best, v)
-    return best
-
-
 _PERIOD_LABEL = {"Q1": "1분기", "H1": "반기", "Q3": "3분기",
                  "PROV_Q1": "1분기 배당 결정", "PROV_H1": "반기 배당 결정", "PROV_Q3": "3분기 배당 결정"}
 
@@ -241,24 +221,86 @@ def _interim_components(fy: FiscalYear, *, upto: Optional[str] = None, after: Op
     return out
 
 
+def _raw_increments(fy: Optional[FiscalYear], t: Optional[date] = None) -> list[tuple[str, float, date, str]]:
+    """보고서(기간)별 누계 증분. 누계가 늘어난 기록만, 기간 순."""
+    if fy is None:
+        return []
+    recs = sorted((r for r in fy.interims if t is None or r[2] <= t), key=lambda r: PERIOD_ORDER[r[0]])
+    out, prev = [], 0.0
+    for p, cum, confirmed, ref in recs:
+        if cum > prev + 1e-6:
+            out.append((p, cum - prev, confirmed, ref))
+            prev = cum
+    return out
+
+
+def dividend_events(fy: Optional[FiscalYear], t: Optional[date] = None) -> list[tuple[str, float, date, str]]:
+    """사업연도의 중간·분기 배당을 '배당 1회' 단위로 나눈 목록(기간 순, t까지 확정분).
+
+    보고서 누계의 증분이 곧 배당 1회다. 단, 앞 기간 보고서에 아무 증분이 없는데 다음 보고서에 두 번이
+    묶여 실리는 경우가 있다(1분기 배당이 반기보고서에 함께 실림 — 122900 2021년: 1분기 0 → 반기 300
+    = 150 × 2 / 정정으로 반기보고서 접수일이 늦어져 3분기 증분이 두 분기분 — KB금융 2024년).
+    그 해 가장 작은 1회분의 정수배(2배 이상)이고, 바로 앞 기간들이 비어 있어 묶였을 수 있는 만큼만
+    나눈다. 앞 기간에 이미 배당이 있으면 큰 증분은 한 번의 큰 배당으로 본다(SNT모티브 2025년 반기 600)."""
+    raw = _raw_increments(fy, t)
+    if not raw:
+        return []
+    pos = {"Q1": 1, "H1": 2, "Q3": 3}
+    paid = {pos[p.replace("PROV_", "")] for p, *_ in raw}
+    unit = min(a for _, a, _, _ in raw)
+    out = []
+    for p, a, confirmed, ref in raw:
+        here = pos[p.replace("PROV_", "")]
+        room = 1
+        while here - room >= 1 and here - room not in paid:
+            room += 1
+        k = round(a / unit)
+        split = 2 <= k <= room and abs(a / unit - k) < 0.15
+        out += [(p, a / k, confirmed, ref)] * k if split else [(p, a, confirmed, ref)]
+    return out
+
+
+def _event_components(fy: FiscalYear, events: list[tuple[str, float, date, str]], suffix: str = "") -> list[DpsComponent]:
+    """배당 1회 단위 목록을 화면 표시용으로 보고서(기간·접수번호)별 한 줄로 묶는다."""
+    out: list[DpsComponent] = []
+    for p, a, confirmed, ref in events:
+        if out and out[-1].ref == ref and out[-1].confirmed_date == confirmed and out[-1].fiscal_year == fy.year \
+                and out[-1].label.startswith(f"{fy.year}년 {_PERIOD_LABEL[p]}"):
+            out[-1] = DpsComponent(out[-1].label, out[-1].kind, fy.year, out[-1].dps + a, confirmed, ref)
+            continue
+        prov = is_provisional_period(p)
+        label = f"{fy.year}년 {_PERIOD_LABEL[p]}" + (" (수시공시, 정기보고서 확정 전)" if prov else suffix)
+        out.append(DpsComponent(label, "provisional" if prov else "interim", fy.year, a, confirmed, ref))
+    return out
+
+
 def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "substitute") -> Optional[ExpectedDps]:
     """날짜 t에 알 수 있었던 정보만으로 계산한 예상 연간 DPS (현재 기준).
 
     F = t까지 연간 DPS(사업보고서)가 확정된 가장 최근 사업연도 (= '전년도')
-    O = F + 1 (진행 중 사업연도 = '현재 연도')
-    p = O에서 t까지 확정된 가장 늦은 보고 기간 (Q1 / H1 / Q3)
+    O = F + 1 (진행 중 사업연도 = '올해')
 
-    예상 DPS = O의 p까지 확정 누계 (1분기·반기·3분기 중 실제 확정된 보고서마다 한 줄씩)
-             + F의 p 이후 중간·분기배당 (아직 확정 안 된 O의 같은 기간을 전년도 값으로 대체,
-               역시 어떤 분기·반기 보고서에서 왔는지 각각 표시)
-             + F의 기말배당
+    예상 DPS = 올해 지금까지 확정된 중간·분기 배당 (정기보고서 + 수시공시 잠정치)
+             + 전년도 중간·분기 배당 중 '아직 올해 대응분이 안 나온' 나머지 (횟수로 맞춘다)
+             + 전년도 기말배당
+
+    '나머지'는 보고 기간이 아니라 배당 횟수로 맞춘다. 올해 k번 받았으면 전년도 (k+1)번째부터만
+    대체한다. 2024년 배당절차 개선 이후 결정 뒤 기준일을 잡는 회사는 같은 배당이 한 보고서 앞당겨
+    실려서(현대엘리베이터 017800: 2025년엔 반기·3분기, 2026년엔 1분기·반기에 각 1,000원) 기간으로
+    맞추면 이미 받은 배당을 또 더한다(1,000 + 1,000 + 전년도 3분기 1,000 + 기말 12,010 = 15,010).
+    횟수로 맞추면 2,000 + 기말 12,010 = 14,010.
+
+    2017~2025년 조회 종목 전체의 실제 연간 DPS로 되짚어 본 결과(분기·반기보고서가 나온 시점마다
+    2,327건), 기간 기준보다 정확히 맞힌 건이 많고(625 vs 620) 20% 넘게 과대추정한 건이 적었다
+    (298 vs 301). 두 방식이 다른 22건의 오차 합은 1.60 vs 7.04. 틀리는 쪽은 올해 배당 횟수를 늘린
+    회사(분기배당 도입)로, 이때는 과소추정이 된다.
 
     예) 전년도 Q1·Q2·Q3·기말 = 300씩
-        올해 Q1만 확정(400)   → 400 + 300 + 300 + 300 = 1,300
-        올해 H1까지 확정(800) → 800 + 300 + 300 = 1,400
-        올해 Q3까지 확정      → 올해 Q1~Q3 누계 + 전년도 기말
+        올해 1회(400)         → 400 + 300 + 300 + 300 = 1,300
+        올해 2회(누계 800)    → 800 + 300 + 300 = 1,400
         올해 확정분이 없음    → 전년도 연간 DPS (중간+기말)
         사업보고서 제출 시    → F가 올해로 바뀌어 올해 실제 연간 DPS
+    전년도 중간·분기 누계가 연간 DPS보다 큰(원 데이터가 맞지 않는) 해는 나머지를 대체하지 않는다.
     mode는 이전 호출부 호환용 인자이며 계산에 쓰지 않는다.
     """
     confirmed = [fy for fy in years.values()
@@ -271,20 +313,20 @@ def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "substi
     comps: list[DpsComponent] = []
 
     O = years.get(F.year + 1)
-    cum_o, rec = (O.interim_cum_asof(t) if O else (0.0, None))
-
-    if rec is not None and cum_o > 0:
-        p = rec[0]
-        fill = max(F.interim_total() - _cum_at(F, p), 0.0)
-        comps.extend(_interim_components(O, upto=p))
-        if fill > 0:
-            comps.extend(_interim_components(F, after=p, suffix=" (미확정분 대체)"))
+    o_events = dividend_events(O, t)
+    if o_events:
+        cum_o = O.interim_cum_asof(t)[0]
+        f_events = [] if "interim_exceeds_annual" in F.flags else dividend_events(F)
+        rest = f_events[len(o_events):]
+        comps.extend(_event_components(O, _raw_increments(O, t)))
+        if rest:
+            comps.extend(_event_components(F, rest, suffix=" (미확정분 대체)"))
             flags.append("prior_year_unconfirmed_periods_filled")
         comps.append(DpsComponent(f"{F.year}년 기말배당", "final", F.year, final, F.fy_confirmed, F.fy_ref))
         flags += list(O.flags)
-        if is_provisional_period(p):
+        if any(is_provisional_period(p) for p, *_ in o_events):
             flags.append("provisional_dividend_used")
-        value = cum_o + fill + final
+        value = cum_o + sum(a for _, a, _, _ in rest) + final
     else:
         if F.has_interim():
             comps.extend(_interim_components(F))

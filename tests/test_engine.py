@@ -483,3 +483,75 @@ def test_zero_increment_period_is_not_shown():
     e = expected_dps_asof(D(2026, 9, 1), yrs)
     assert [c.kind for c in e.components] == ["interim", "final"]
     assert e.components[0].dps == pytest.approx(300)
+
+
+# --- 예상 DPS: 전년도 대체분을 '기간'이 아니라 '배당 횟수'로 맞춘다 ------------------------------
+def test_expected_dps_matches_by_count_when_reports_shift_a_period_earlier():
+    """현대엘리베이터(017800): 2025년엔 반기·3분기보고서에 각 1,000원, 2026년엔 결정 뒤 기준일로
+    바뀌어 1분기·반기보고서에 각 1,000원. 올해 이미 2회를 받았으니 전년도 2회는 모두 대응분이 있다
+    → 2,000 + 전년도 기말 12,010 = 14,010 (기간으로 맞추면 전년도 3분기 1,000을 또 더해 15,010)."""
+    rows = [
+        R(2025, "H1", 1000, D(2025, 6, 30), D(2025, 8, 13)),
+        R(2025, "Q3", 2000, D(2025, 9, 30), D(2025, 11, 14)),
+        R(2025, "FY", 14010, D(2025, 12, 31), D(2026, 3, 18)),
+        R(2026, "Q1", 1000, D(2026, 3, 31), D(2026, 5, 15)),
+        R(2026, "H1", 2000, D(2026, 6, 30), D(2026, 8, 14)),
+    ]
+    yrs = build_fiscal_years(rows, [])
+    assert expected_dps_asof(D(2026, 9, 28), yrs).value == pytest.approx(14010)
+    # 1회만 받았을 때는 전년도 두 번째(3분기) 1,000원을 대체한다
+    assert expected_dps_asof(D(2026, 6, 1), yrs).value == pytest.approx(1000 + 1000 + 12010)
+
+
+def test_expected_dps_splits_a_report_that_bundles_two_dividends():
+    """분기배당 150원 회사(122900 패턴): 전년도 1분기보고서엔 0, 반기보고서에 300(=150×2)이 함께 실렸다.
+    이를 1회로 세면 올해 2회(1분기·반기 150씩) 후 전년도 3분기 150을 빠뜨린다."""
+    rows = [
+        R(2021, "Q1", 0, D(2021, 3, 31), D(2021, 5, 17)),
+        R(2021, "H1", 300, D(2021, 6, 30), D(2021, 8, 17)),
+        R(2021, "Q3", 450, D(2021, 9, 30), D(2021, 11, 15)),
+        R(2021, "FY", 600, D(2021, 12, 31), D(2022, 3, 15)),
+        R(2022, "Q1", 150, D(2022, 3, 31), D(2022, 5, 16)),
+        R(2022, "H1", 300, D(2022, 6, 30), D(2022, 8, 16)),
+    ]
+    yrs = build_fiscal_years(rows, [])
+    assert expected_dps_asof(D(2022, 9, 1), yrs).value == pytest.approx(300 + 150 + 150)
+
+
+def test_expected_dps_does_not_substitute_from_inconsistent_prior_year():
+    """전년도 중간·분기 누계가 연간 DPS보다 큰(원 데이터가 맞지 않는) 해는 나머지를 대체하지 않는다
+    (유한양행 000100 2020년 원 데이터: 반기 누계 1,677 > 연간 350)."""
+    rows = [
+        R(2020, "Q1", 335, D(2020, 3, 31), D(2020, 5, 15)),
+        R(2020, "H1", 1677, D(2020, 6, 30), D(2020, 8, 14)),
+        R(2020, "FY", 350, D(2020, 12, 31), D(2021, 3, 15)),
+        R(2021, "Q1", 350, D(2021, 3, 31), D(2021, 5, 17)),
+    ]
+    yrs = build_fiscal_years(rows, [])
+    assert expected_dps_asof(D(2021, 9, 1), yrs).value == pytest.approx(350)
+
+
+def test_expected_dps_components_show_remaining_prior_year_dividends():
+    rows = [R(2025, p, v, D(2025, *e), D(2025 if p != "FY" else 2026, *c)) for p, v, e, c in [
+        ("Q1", 300, (3, 31), (5, 15)), ("H1", 600, (6, 30), (8, 14)), ("Q3", 900, (9, 30), (11, 14)),
+        ("FY", 1200, (12, 31), (3, 15))]] + [R(2026, "Q1", 400, D(2026, 3, 31), D(2026, 5, 15))]
+    e = expected_dps_asof(D(2026, 6, 1), build_fiscal_years(rows, []))
+    assert e.value == pytest.approx(1300)
+    assert [(c.label, c.dps) for c in e.components] == [
+        ("2026년 1분기", 400), ("2025년 반기 (미확정분 대체)", 300), ("2025년 3분기 (미확정분 대체)", 300),
+        ("2025년 기말배당", 300)]
+
+
+def test_expected_dps_does_not_split_a_larger_dividend_after_a_paid_period():
+    """SNT모티브(064960) 2025년: 1분기 300, 반기 누계 900(+600), 3분기 누계 1,300(+400). 1분기에 이미
+    배당이 있었으므로 반기 +600은 묶인 두 번이 아니라 한 번의 큰 배당이다. 올해 1분기·반기 400씩 2회
+    → 800 + 전년도 3분기 400 + 기말 400 = 1,600 (600을 둘로 나누면 1,900으로 과대추정)."""
+    rows = [
+        R(2025, "Q1", 300, D(2025, 3, 31), D(2025, 5, 12)),
+        R(2025, "H1", 900, D(2025, 6, 30), D(2025, 8, 14)),
+        R(2025, "Q3", 1300, D(2025, 9, 30), D(2025, 11, 12)),
+        R(2025, "FY", 1700, D(2025, 12, 31), D(2026, 2, 19)),
+        R(2026, "Q1", 400, D(2026, 3, 31), D(2026, 5, 12)),
+        R(2026, "H1", 800, D(2026, 6, 30), D(2026, 8, 18)),
+    ]
+    assert expected_dps_asof(D(2026, 9, 28), build_fiscal_years(rows, [])).value == pytest.approx(1600)
