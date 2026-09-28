@@ -2,42 +2,46 @@
  "code": "004370",
  "name": "농심",
  "market": "KOSPI",
- "price_through": "2026-09-23",
- "dividend_through": "2026-09-27",
+ "price_through": "2026-09-28",
+ "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T19:26:20+09:00",
- "updated_at": "2026-09-27T19:26:20+09:00",
- "last_attempt": "2026-09-27T19:26:20+09:00",
+ "updated_at": "2026-09-28T12:29:43+09:00",
+ "last_attempt": "2026-09-28T12:29:43+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2631,
-   "from": "2016-01-01"
+   "mode": "incremental",
+   "added": 5,
+   "from": "2026-09-21",
+   "gap_filled": true
   },
   "dividends": {
-   "mode": "initial",
-   "added": 36
+   "mode": "incremental",
+   "added": 43
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 1
   }
  },
- "recomputed_at": "2026-09-27T19:43:25+09:00",
  "summary": {
   "code": "004370",
   "name": "농심",
   "market": "KOSPI",
-  "price": 390000.0,
-  "price_date": "2026-09-23",
+  "price": 397000.0,
+  "price_date": "2026-09-28",
   "dps": 6000.0,
-  "yield": 1.5385,
-  "multiple": 0.3102,
-  "paid10": 9,
-  "known10": 9,
-  "paid5": 4,
-  "pct": 26.2,
-  "p10": 0.263,
-  "p90": 1.1386,
+  "yield": 1.5113,
+  "multiple": 0.2923,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 15.7,
+  "p10": 0.2803,
+  "p90": 1.139,
   "mcap": null,
-  "tv": 5992949250.0,
+  "tv": 3309273250.0,
   "has_div_data": true,
   "flags": []
  }
