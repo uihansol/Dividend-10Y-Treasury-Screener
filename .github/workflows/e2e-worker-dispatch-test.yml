@@ -1,5 +1,5 @@
 name: E2E Worker dispatch test
-# run restored known-good workflow
+# verify full stock refresh after heredoc fix
 
 on:
   push:
