@@ -123,6 +123,20 @@ jobs:
               git push -q origin HEAD:main && break
               sleep $((RANDOM % 6 + 3))
             done
+
+            if python - <<PY
+import pandas as pd
+from pipeline import config as C
+from pathlib import Path
+p = Path("data/cache/stocks") / "${{ inputs.code }}" / "prices.csv"
+if not p.exists():
+    raise SystemExit(1)
+df = pd.read_csv(p, dtype={"date": str})
+raise SystemExit(0 if len(df) and df["date"].min() <= C.PRICE_START else 1)
+PY
+            then
+              break
+            fi
           done
 
       - name: Final summary
