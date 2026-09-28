@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { getMeta, getRun, getStock, requestRefresh } from "../lib/data";
+import { getLive, getMeta, getRun, getStock, requestRefresh } from "../lib/data";
 import type { Detail, MasterStock, RunInfo } from "../lib/types";
 import { pushRecent } from "../lib/recent";
 import { SearchBox } from "../components/SearchBox";
@@ -63,12 +63,26 @@ export function StockPage({ code, master, onPick }: {
         && Date.now() - lastAutoRefreshAt.current >= AUTO_REFRESH_REQUEST_MS
         && !(Date.now() - updatedAt < SERVER_COOLDOWN_MS);   // 서버 쿨다운 안이면 요청해도 빈 실행
       if (!force && !shouldRequestAutoRefresh && first.status === "ready" && !first.stale) {
-        setPhase({ kind: "ready", data: first.analysis, refreshing: false });
+        // 장중 자동 확인: Actions 수집 없이 Worker가 KRX에서 받은 최신 시세로 잠정 갱신만 한다.
+        const lv = autoRefresh ? await getLive(code).catch(() => null) : null;
+        if (!alive.current) return;
+        setPhase({ kind: "ready", data: lv?.status === "live" ? lv.analysis : first.analysis, refreshing: false });
         return;
       }
       let before = first.status === "ready" ? first.analysis.metadata?.last_attempt : undefined;
-      if (first.status === "ready") setPhase({ kind: "ready", data: first.analysis, refreshing: true });
-      else setPhase({ kind: "preparing", since: Date.now() });
+      if (first.status === "ready") {
+        // 같은 확정 결과를 바탕으로 한 잠정값을 이미 보고 있으면(장중 자동 확인) 그대로 두어 깜빡임을 막는다.
+        setPhase((p) => (p.kind === "ready" && p.data.live && p.data.metadata?.last_attempt === before
+          ? { ...p, refreshing: true } : { kind: "ready", data: first.analysis, refreshing: true }));
+        // Actions 확정 계산(수십 초)을 기다리는 동안 KRX 최신 시세로 잠정 결과를 먼저 보여 준다.
+        // 확정 결과가 이미 도착했으면(last_attempt가 바뀜) 덮어쓰지 않는다.
+        const base = before;
+        getLive(code).then((lv) => {
+          if (!alive.current || lv.status !== "live") return;
+          setPhase((p) => (p.kind === "ready" && p.refreshing && p.data.metadata?.last_attempt === base
+            ? { ...p, data: lv.analysis, note: "KRX 최신 시세로 먼저 반영했습니다(잠정). 확정 계산 중…" } : p));
+        }).catch(() => { /* 잠정 반영 실패는 무시 — 확정 결과를 기다린다 */ });
+      } else setPhase({ kind: "preparing", since: Date.now() });
 
       if (autoRefresh) lastAutoRefreshAt.current = Date.now();
       const r = await requestRefresh(code, force);
@@ -99,7 +113,9 @@ export function StockPage({ code, master, onPick }: {
           setPhase((p) => {
             const data = s?.status === "ready" ? s.analysis : p.kind === "ready" ? p.data : null;
             return data
-              ? { kind: "ready", data, refreshing: false, note: "최신 데이터 확인에 실패해 저장된 데이터를 보여줍니다." }
+              ? { kind: "ready", data, refreshing: false, note: data.live
+                ? "확정 계산에 실패해 KRX 잠정 시세로 계산한 값을 보여줍니다."
+                : "최신 데이터 확인에 실패해 저장된 데이터를 보여줍니다." }
               : { kind: "error", message: `${name} 데이터를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.` };
           });
           return;
@@ -227,8 +243,8 @@ export function StockPage({ code, master, onPick }: {
       {phase.kind === "ready" && (
         <>
           {(phase.refreshing || phase.note) && (
-            <div className="page"><p className={`banner${phase.note ? " warn" : ""}`} aria-live="polite">
-              {phase.refreshing ? `${name} 최신 데이터 확인 중…` : phase.note}
+            <div className="page"><p className={`banner${phase.note && !phase.refreshing ? " warn" : ""}`} aria-live="polite">
+              {phase.refreshing ? (phase.note ?? `${name} 최신 데이터 확인 중…`) : phase.note}
             </p></div>
           )}
           <Suspense fallback={<main className="page"><StockSkeleton chartOnly /></main>}>

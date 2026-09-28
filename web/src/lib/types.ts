@@ -72,6 +72,8 @@ export interface Detail {
     updated_at?: string; last_attempt?: string; last_error?: Record<string, string> | null;
     steps?: Record<string, unknown>;
   };
+  /** Worker가 KRX 최신 시세로 잠정 갱신한 결과일 때만 있다. 확정 계산(Actions)이 끝나면 사라진다. */
+  live?: { provisional: boolean; source: string; fetched_at: string; base_as_of: string };
   series: { d: string[]; px: number[]; dps: (number | null)[]; y: (number | null)[]; u: (number | null)[]; m: (number | null)[] };
 }
 

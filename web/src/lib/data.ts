@@ -60,6 +60,9 @@ export const requestRefresh = (code: string, force = false) =>
 export const getMeta = (code: string) =>
   getJson<{ status: "missing"; code: string } | { status: "ready"; code: string; last_attempt: string | null; updated_at: string | null }>(
     `api/stock/${code}/meta`);
+/** KRX 최신 시세로 저장 분석을 잠정 갱신한 결과 (Worker가 KRX를 직접 조회). 실패하면 unavailable — 확정 결과를 기다린다. */
+export const getLive = (code: string) =>
+  getJson<{ status: "live"; code: string; analysis: Detail } | { status: "unavailable"; reason: string }>(`api/stock/${code}/live`);
 export const getRun = (code: string) => getJson<{ run: RunInfo | null }>(`api/stock/${code}/run`);
 
 // ---------------------------------------------------------------- 로컬 검색

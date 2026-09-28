@@ -264,10 +264,11 @@ export function DetailPage({ d }: { d: Detail }) {
       <header className="detail-head">
         <h1>{d.name}</h1>
         <span className="code">{d.code} {d.market}</span>
+        {d.live && <span className="badge-prov" title={`KRX 시세(${new Date(d.live.fetched_at).toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" })} 조회)로 잠정 계산한 값입니다. 확정 계산이 끝나면 바뀔 수 있습니다.`}>잠정</span>}
       </header>
 
       <section className="cards">
-        <Card label="현재 주가" value={won(s.price)} sub={`${s.price_date} 종가`} />
+        <Card label="현재 주가" value={won(s.price)} sub={d.live ? `${s.price_date} KRX 시세 · 잠정` : `${s.price_date} 종가`} />
         <Card label="예상 DPS" value={won(s.dps)} sub="현재까지 확정된 배당" />
         <Card label="배당수익률" value={pct(s.yield)} sub={`${valuationDate} 조회일 기준`} />
         <Card label="미국 10년물" value={pct(d.us10y)} sub={d.us10y_date ? `${d.us10y_date} 값` : undefined} />

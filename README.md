@@ -15,6 +15,7 @@ Cloudflare Worker  /api/*   (web/worker.js)
   ├ GET  /api/index               조회한 종목 목록  ← 저장소 data/cache/index.json   (Workers Cache 30초)
   ├ GET  /api/stock/{code}        분석 결과 + stale 여부 ← data/cache/stocks/{code}/analysis.json   (Workers Cache 20초, ?fresh= 는 우회)
   ├ GET  /api/stock/{code}/meta   last_attempt·updated_at만 ← metadata.json (새로고침 폴링용, 캐시 안 함)
+  ├ GET  /api/stock/{code}/live   KRX를 Worker가 직접 조회해 저장 분석을 '잠정' 갱신 (Workers Cache 15초, 아래 참고)
   ├ POST /api/stock/{code}/refresh repository_dispatch(stock_refresh) → 'Stock refresh' 실행 (같은 종목 실행 중이면 생략)
   │   body {"force": true} 이면 캐시가 최신이어도 다시 수집·계산 (화면의 "새로고침" 버튼이 씀)
   └ GET  /api/stock/{code}/run    최근 실행 상태 + 진행 단계(①~④)
@@ -28,6 +29,25 @@ GitHub Actions  stock-refresh.yml  run-name "refresh {code}"  (Python: pykrx + O
   └ Progressive backfill backfill CODE + compute 를 1년씩 반복(최대 12회), 새 행이 있는 회차만 커밋.
                          2015년 첫 거래일에 닿거나(done) 새 행이 없으면 멈춘다
 ```
+
+### 새로고침: KRX 잠정 반영 → Actions 확정 계산
+
+새로고침(버튼·stale·장중 10분 주기)을 누르면 화면은 두 가지를 동시에 요청한다.
+
+1. `GET /live` — Worker가 KRX에 로그인해(`web/krx.js`, pykrx와 같은 방식) 저장 기준일 이후 일별 시세를 받고,
+   저장된 analysis.json을 `web/live.js`로 **잠정** 갱신한다(보통 1초 안팎, Worker 인스턴스가 새로 뜨면 로그인·ISIN 조회로 약 5초).
+   가격에만 의존하는 값(주가·배당수익률·배당/10Y·역사적 백분위·차트 마지막 구간)을 engine.py와 같은 공식으로 계산한다.
+   화면에는 "잠정" 배지를 붙인다. 장중 45초 확인도 Actions 없이 이 경로로 가격만 갱신한다.
+2. `POST /refresh` — 지금처럼 Actions가 가격·배당·미국10Y를 수집하고 engine.py로 **확정** 계산해 커밋한다.
+   확정 결과가 도착하면 잠정 값을 대체한다(잠정 값은 저장하지 않는다).
+
+잠정 계산은 가정이 깨지면 하지 않는다(`{"status":"unavailable","reason":...}`): 저장 이후 권리락(분할·병합·무상증자) 의심
+`corp_action`, 저장 종가와 KRX 불일치 `mismatch`, 저장 이후 배당 확정일 경과 `dps_changed`, 연도 변경 `year_changed`,
+KRX 로그인·응답 문제 `login_failed`·`password_change`·`krx_unreachable` 등. 이때는 확정 결과만 기다린다.
+검증: `python web/scripts/live_parity.py /tmp/p.json && node web/scripts/live-parity.mjs /tmp/p.json` —
+캐시된 109종목 654경우에서 주가·수익률·배수·DPS·미국10Y·차트 마지막 점은 엔진과 같고, 저장 시계열이 소수 3자리로
+반올림돼 있어 분위수는 ±0.0005, 백분위는 최대 0.4%p 차이가 날 수 있다(확정 결과로 바로 대체됨).
+KRX 연결 점검: Actions → **KRX live check** → Run workflow (실제 KRX 로그인·시세, 배포된 /api 응답·캐시 헤더 확인).
 
 Worker 앞단 캐시는 `web/wrangler.toml`의 `[cache] enabled = true`(Workers Cache, Wrangler 4.69.0 이상)가 맡고,
 응답의 `Cache-Control`(public, max-age)을 따른다. `*.workers.dev`에서는 Cache API(`caches.default`)가 동작하지 않는다.
@@ -74,7 +94,7 @@ GitHub → Settings → Secrets and variables → Actions
 | Secrets | 쓰는 워크플로 | 용도 |
 |---|---|---|
 | `DART_API_KEY` | common-data, stock-refresh | OpenDART |
-| `KRX_ID`, `KRX_PW` | common-data, stock-refresh | KRX 정보데이터시스템 로그인 (아래 'KRX 로그인' 참고) |
+| `KRX_ID`, `KRX_PW` | common-data, stock-refresh, krx-live-check, deploy (Worker 비밀값으로도 올림) | KRX 정보데이터시스템 로그인 (아래 'KRX 로그인' 참고). Worker는 `/live` 잠정 반영에만 쓰고, 없으면 `/live`만 꺼진다 |
 | `FRED_API_KEY` | common-data, stock-refresh | 선택. 없으면 FRED CSV → 미 재무부 CSV 순서로 시도 |
 | `CLOUDFLARE_API_TOKEN` | deploy | "Edit Cloudflare Workers" 템플릿 토큰. 없으면 빌드만 하고 배포는 건너뜀 |
 | `CLOUDFLARE_ACCOUNT_ID` | deploy | Cloudflare 계정 ID |
@@ -91,7 +111,9 @@ GitHub → Settings → Secrets and variables → Actions
 
 - KRX 정보데이터시스템은 2025-12-27부터 회원제이고 2026-09부터 비로그인 요청을 거절한다. pykrx는 import 시
   `KRX_ID`/`KRX_PW` 환경변수로 로그인하므로 두 시크릿이 없으면 가격 수집(①, 백필, master)이 실패한다.
-- **비밀번호는 90일마다 만료된다.** 만료되면 KRX 사이트에서 비밀번호를 바꾼 뒤 `KRX_PW` 시크릿도 새 값으로 갱신한다.
+- **비밀번호는 90일마다 만료된다.** 만료되면 KRX 사이트에서 비밀번호를 바꾼 뒤 `KRX_PW` 시크릿도 새 값으로 갱신하고,
+  Worker에도 반영되도록 **Deploy를 한 번 다시 실행**한다(Actions → Deploy → Run workflow).
+- 같은 계정으로 Worker와 Actions가 동시에 로그인해도 기존 세션이 끊기지 않는 것을 확인했다(KRX live check의 중복 로그인 실험).
   증상: 종목 화면 "일부 데이터 업데이트 실패(prices…)", `metadata.json`의 `last_error.prices`에
   "pykrx import/KRX 로그인 실패", Stock refresh 로그의 ① 단계 오류.
 

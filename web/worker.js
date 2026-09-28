@@ -8,8 +8,14 @@
  *     해당 종목코드로 실행하고, 실행 상태는 같은 워크플로의 run 목록(run-name "refresh <code>")에서 읽는다
  * 만 한다. DART/KRX 비밀값은 GitHub Secrets에만 있고, Worker에는 GITHUB_TOKEN(이 저장소 전용)만 있다.
  *
- * env: GITHUB_REPO (vars), GITHUB_BRANCH (vars, 기본 main), GITHUB_TOKEN (secret)
+ * 또한 새로고침 때 KRX 최신 시세를 직접 받아(web/krx.js) 저장된 분석을 '잠정' 갱신해 먼저 돌려준다(web/live.js).
+ * 확정 계산·저장은 여전히 Actions가 한다.
+ *
+ * env: GITHUB_REPO (vars), GITHUB_BRANCH (vars, 기본 main), GITHUB_TOKEN (secret), KRX_ID·KRX_PW (secret, 선택)
  */
+import { recentPrices, KrxError } from "./krx.js";
+import { applyLive, parseUs10y } from "./live.js";
+
 const GH = "https://api.github.com";
 // 실행 상태 조회 대상. POST /refresh의 repository_dispatch(stock_refresh)를 받는 워크플로와 같아야 한다.
 const WORKFLOW = "stock-refresh.yml";
@@ -48,7 +54,7 @@ function gh(env, path, init = {}) {
 const etags = new Map();
 const ETAG_MAX = 200;
 
-async function readRepoFile(env, path) {
+async function readRepoFile(env, path, { text = false } = {}) {
   const ref = env.GITHUB_BRANCH || "main";
   const prev = etags.get(path);
   const r = await gh(env, `/contents/${path}?ref=${ref}`, {
@@ -57,7 +63,7 @@ async function readRepoFile(env, path) {
   if (r.status === 304 && prev) return prev.body;
   if (r.status === 404) { etags.delete(path); return null; }
   if (!r.ok) throw new Error(`GitHub ${r.status}: ${path}`);
-  const body = await r.json();
+  const body = text ? await r.text() : await r.json();
   const etag = r.headers.get("etag");
   if (etag) {
     etags.delete(path);
@@ -65,6 +71,27 @@ async function readRepoFile(env, path) {
     if (etags.size > ETAG_MAX) etags.delete(etags.keys().next().value);   // 가장 오래된 항목부터 버림
   }
   return body;
+}
+
+const kstToday = (now = new Date()) => new Date(now.getTime() + 9 * 3600e3).toISOString().slice(0, 10);
+const addDays = (day, n) => new Date(Date.parse(`${day}T00:00:00Z`) + n * 86400e3).toISOString().slice(0, 10);
+
+/** KRX 최신 시세로 저장된 분석을 잠정 갱신한다. 실패는 {status:"unavailable", reason}으로 돌려 화면이 Actions 결과를 기다리게 한다. */
+async function liveAnalysis(env, code) {
+  if (!env.KRX_ID || !env.KRX_PW) return { status: "unavailable", reason: "no_credentials" };
+  const analysis = await readRepoFile(env, `data/cache/stocks/${code}/analysis.json`);
+  if (!analysis) return { status: "unavailable", reason: "no_cache" };
+  const today = kstToday();
+  const [rows, csv] = await Promise.all([
+    recentPrices(env, code, addDays(analysis.as_of, -14), today)    // 저장 기준일 앞 거래일을 포함해 비교·권리락 판정
+      .catch((e) => { throw e instanceof KrxError ? e : new KrxError("krx_unreachable", String(e)); }),
+    readRepoFile(env, "data/us10y/dgs10.csv", { text: true }),
+  ]);
+  if (!csv) return { status: "unavailable", reason: "no_us10y" };
+  const res = applyLive(analysis, rows, parseUs10y(csv), today);
+  if (!res.ok) return { status: "unavailable", reason: res.reason };
+  res.analysis.live = { provisional: true, source: "KRX", fetched_at: new Date().toISOString(), base_as_of: analysis.as_of };
+  return { status: "live", code, analysis: res.analysis };
 }
 
 /** 한국 기준 '가장 최근 장 마감 거래일' (공휴일은 모름 → 주말만 제외) 과 그 마감 시각 */
@@ -134,7 +161,7 @@ async function api(url, req, env, ctx) {
     return cachedJson(30, async () => (await readRepoFile(env, "data/cache/index.json")) || { stocks: [] });
   }
 
-  const m = p.match(/^\/api\/stock\/(\d{6})(\/refresh|\/run|\/meta)?$/);
+  const m = p.match(/^\/api\/stock\/(\d{6})(\/refresh|\/run|\/meta|\/live)?$/);
   if (!m) return json({ error: "not found" }, 404);
   const [, code, sub] = m;
 
@@ -152,6 +179,18 @@ async function api(url, req, env, ctx) {
     const meta = await readRepoFile(env, `data/cache/stocks/${code}/metadata.json`);
     if (!meta) return json({ status: "missing", code });
     return json({ status: "ready", code, last_attempt: meta.last_attempt ?? null, updated_at: meta.updated_at ?? null });
+  }
+
+  // KRX 최신 시세로 잠정 갱신한 분석. 같은 종목 반복 요청은 Workers Cache(15초)가 받아 KRX 호출을 줄인다.
+  // KRX 쪽 실패(로그인·응답 이상)는 오류가 아니라 unavailable로 돌려준다 — 화면은 Actions 확정 결과를 기다린다.
+  if (sub === "/live" && req.method === "GET") {
+    try {
+      const out = await liveAnalysis(env, code);
+      return out.status === "live" ? json(out, 200, { "cache-control": "public, max-age=15" }) : json(out);
+    } catch (e) {
+      if (e instanceof KrxError) return json({ status: "unavailable", reason: e.code });
+      throw e;
+    }
   }
 
   if (sub === "/run" && req.method === "GET") {

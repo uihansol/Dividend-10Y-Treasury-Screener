@@ -53,20 +53,38 @@ jobs:
           sed -i "s/__WORKER_NAME__/$NAME/" wrangler.toml
           sed -i "s#^GITHUB_REPO = .*#GITHUB_REPO = \"${{ github.repository }}\"#" wrangler.toml
 
+      # 있는 시크릿만 Worker 비밀값으로 올린다(값은 출력하지 않고 이름만 목록으로 만든다).
+      #  - GITHUB_TOKEN(←WORKER_GITHUB_TOKEN): 없으면 /api 가 설정 안내 오류를 반환
+      #  - KRX_ID·KRX_PW: 없으면 /live(KRX 직접 조회 잠정 반영)만 꺼지고 나머지는 그대로 동작
+      - name: Worker 비밀값 목록
+        id: wsecrets
+        if: env.HAS_CF == 'true'
+        env:
+          HAS_GH: ${{ secrets.WORKER_GITHUB_TOKEN != '' }}
+          HAS_KRX: ${{ secrets.KRX_ID != '' && secrets.KRX_PW != '' }}
+        run: |
+          {
+            echo "list<<EOF"
+            if [ "$HAS_GH" = "true" ]; then echo GITHUB_TOKEN; fi
+            if [ "$HAS_KRX" = "true" ]; then echo KRX_ID; echo KRX_PW; fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Deploy to Cloudflare Workers
         id: deploy
         if: env.HAS_CF == 'true'
         uses: cloudflare/wrangler-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.WORKER_GITHUB_TOKEN }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4"
           workingDirectory: web
           command: deploy
-          # WORKER_GITHUB_TOKEN 이 있을 때만 Worker 비밀값으로 올린다 (없으면 /api 가 설정 안내 오류를 반환)
-          secrets: ${{ secrets.WORKER_GITHUB_TOKEN != '' && 'GITHUB_TOKEN' || '' }}
+          secrets: ${{ steps.wsecrets.outputs.list }}
 
       - name: 배포 주소
         if: steps.deploy.outcome == 'success'
