@@ -444,7 +444,14 @@ def analyze_stock(code: str, *, force: bool = False, master: dict | None = None,
         if stage in (None, "prices"):   # 실행의 시작: cooldown 판단
             state = {"skip": not force and _within_cooldown(meta), "steps": {}, "errors": {}}
         else:
-            state = read_json(_run_file(code)) or {"skip": True, "steps": {}, "errors": {}}
+            state = read_json(_run_file(code))
+            if state is None:
+                # .run.json이 없다 = 이번 호출은 prices/dividends/us10y를 새로 수집하지 않는
+                # 재계산 전용 호출이다(예: 백그라운드 과거 시세 보완 중 매 구간마다 부르는
+                # --stage compute). 직전 수집에서 실패가 있었다면 그 사실을 지우지 말고
+                # 이어간다 — 그러지 않으면 dividends 수집이 실패해도 최종 metadata.json엔
+                # last_error가 null로 남아 실패가 있었다는 사실 자체가 사라진다.
+                state = {"skip": True, "steps": {}, "errors": dict((meta or {}).get("last_error") or {})}
         for s in (STAGES if stage is None else [x for x in STAGES if x == stage]):
             _run_stage(code, s, state, info, today, fetch_prices, fetch_dividends, update_us, fetch_announcements, quick=quick)
         if stage in STAGES:

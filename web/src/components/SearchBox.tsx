@@ -25,7 +25,7 @@ export function SearchBox({ master, onPick, autoFocus }: {
       <label className="search-label" htmlFor="stock-search">종목 검색</label>
       <div className="search-field">
         <input id="stock-search" type="search" autoComplete="off" autoFocus={autoFocus}
-          placeholder={master ? "종목명 또는 코드 (예: 삼성전자, 005930)" : "종목 목록 불러오는 중…"}
+          placeholder={master ? "종목명·코드·초성 (예: 삼성전자, 005930, ㅅㅅㅈㅈ)" : "종목 목록 불러오는 중…"}
           value={q} disabled={!master}
           role="combobox" aria-expanded={open && results.length > 0} aria-controls="search-list"
           onChange={(e) => { setQ(e.target.value); setOpen(true); setHi(0); }}

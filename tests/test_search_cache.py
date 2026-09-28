@@ -40,6 +40,19 @@ def test_search_none():
     assert search("", MASTER) == []
 
 
+def test_search_chosung_exact():
+    assert search("ㅅㅅㅈㅈ", MASTER)[0]["code"] == "005930"
+
+
+def test_search_chosung_prefix_lists_candidates():
+    codes = [s["code"] for s in search("ㅅㅅ", MASTER)]
+    assert set(codes) == {"005930", "009150", "006400"}
+
+
+def test_search_chosung_alias():
+    assert search("ㅎㄷㅈㄷㅊ", MASTER)[0]["code"] == "005380"
+
+
 # ------------------------------------------------------------------ 캐시
 class FakeKrx:
     """요청된 기간만 돌려주는 가짜 KRX. 호출 기록을 남긴다."""
@@ -186,6 +199,29 @@ def test_staged_failure_is_carried_to_compute(tmp_data, monkeypatch):
     r = analyze_stock("005930", stage="compute", today=date(2026, 9, 27), **kw)
     assert "prices" in r["metadata"]["last_error"]
     assert r["summary"]["price"] == 50000.0                     # 기존 캐시로 계산
+
+
+def test_recompute_only_call_preserves_prior_fetch_error(tmp_data):
+    """백그라운드 과거 시세 보완(backfill)은 --stage compute만 반복 호출해 재계산한다(새 수집 없음).
+    직전 실행에서 dividends 수집이 실패했다면, 이 재계산 전용 호출들 때문에 그 실패 사실이
+    metadata.json에서 조용히 사라지면 안 된다 — 그러면 last_error가 null로 보여 배당 데이터가
+    없는 건지 수집이 실패한 건지 구분할 수 없다(남화산업 111710에서 실제로 일어난 문제)."""
+    from pipeline.cache import analyze_stock
+
+    def broken_dividends(*a, **k):
+        raise RuntimeError("ConnectTimeout")
+
+    kw = dict(master=MASTER, today=date(2026, 9, 25), update_us=False)
+    analyze_stock("005930", stage="prices", fetch_prices=FakeKrx(date(2026, 9, 25)), **kw)
+    analyze_stock("005930", stage="dividends", fetch_dividends=broken_dividends, **kw)
+    analyze_stock("005930", stage="us10y", **kw)
+    r1 = analyze_stock("005930", stage="compute", **kw)
+    assert "dividends" in r1["metadata"]["last_error"]
+    assert not (C.CACHE_DIR / "005930" / ".run.json").exists()   # 첫 compute 후 삭제됨
+
+    # backfill 루프가 하듯 .run.json 없이 --stage compute만 다시 호출
+    r2 = analyze_stock("005930", stage="compute", **kw)
+    assert "dividends" in r2["metadata"]["last_error"]
 
 
 def test_recompute_cached_is_offline_and_only_cached(tmp_data):
