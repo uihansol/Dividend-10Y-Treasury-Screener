@@ -2,54 +2,50 @@
  "code": "051600",
  "name": "한전KPS",
  "market": "KOSPI",
- "price_through": "2026-09-23",
+ "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T01:07:54+09:00",
- "updated_at": "2026-09-28T01:07:54+09:00",
- "last_attempt": "2026-09-28T01:07:54+09:00",
+ "updated_at": "2026-09-28T16:29:45+09:00",
+ "last_attempt": "2026-09-28T16:29:45+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2879,
-   "from": "2015-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 36
+   "mode": "incremental",
+   "added": 43
   },
   "announcements": {
    "mode": "check",
-   "added": 1
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
+   "added": 0
   }
  },
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "051600",
   "name": "한전KPS",
   "market": "KOSPI",
-  "price": 45750.0,
-  "price_date": "2026-09-23",
-  "dps": 2158.0,
-  "yield": 4.7169,
-  "multiple": 0.951,
-  "paid10": 9,
-  "known10": 9,
+  "price": 46400.0,
+  "price_date": "2026-09-28",
+  "dps": 1651.0,
+  "yield": 3.5582,
+  "multiple": 0.6882,
+  "paid10": 10,
+  "known10": 10,
   "paid5": 5,
-  "pct": 20.8,
-  "p10": 0.7763,
-  "p90": 5.2208,
+  "pct": 8.9,
+  "p10": 0.7035,
+  "p90": 5.2274,
   "mcap": null,
-  "tv": 3237289225.0,
+  "tv": 3247370875.0,
   "has_div_data": true,
   "flags": []
  }
