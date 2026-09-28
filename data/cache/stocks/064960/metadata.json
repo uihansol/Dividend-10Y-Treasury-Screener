@@ -2,55 +2,50 @@
  "code": "064960",
  "name": "SNT모티브",
  "market": "KOSPI",
- "price_through": "2026-09-23",
+ "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T02:57:04+09:00",
- "updated_at": "2026-09-28T02:57:04+09:00",
- "last_attempt": "2026-09-28T02:57:04+09:00",
+ "updated_at": "2026-09-28T17:50:00+09:00",
+ "last_attempt": "2026-09-28T17:50:00+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2879,
-   "from": "2015-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 43
+   "mode": "incremental",
+   "added": 0
   },
   "announcements": {
    "mode": "check",
-   "added": 3
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
+   "added": 0
   }
  },
- "recomputed_at": "2026-09-28T17:41:06+09:00",
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "064960",
   "name": "SNT모티브",
   "market": "KOSPI",
-  "price": 25500.0,
-  "price_date": "2026-09-23",
+  "price": 27400.0,
+  "price_date": "2026-09-28",
   "dps": 1600.0,
-  "yield": 6.2745,
-  "multiple": 1.2136,
+  "yield": 5.8394,
+  "multiple": 1.1295,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 56.2,
+  "pct": 51.4,
   "p10": 0.8154,
-  "p90": 2.91,
+  "p90": 2.9136,
   "mcap": null,
-  "tv": 593327025.0,
+  "tv": 7186624775.0,
   "has_div_data": true,
   "flags": [
    "prior_year_unconfirmed_periods_filled"
