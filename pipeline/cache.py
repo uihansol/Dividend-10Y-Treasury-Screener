@@ -407,7 +407,8 @@ def analyze_stock(code: str, *, force: bool = False, master: dict | None = None,
             raise DataUnavailable(f"{info['name']} 데이터를 가져오지 못했습니다: {errors}")
 
         analysis = _save_analysis(code, info, prices, div, meta, {
-            "updated_at": now_kst() if not errors else (meta or {}).get("updated_at", now_kst()),\n            "valuation_date": (today or datetime.now(KST).date()).isoformat(),
+            "updated_at": now_kst() if not errors else (meta or {}).get("updated_at", now_kst()),
+            "valuation_date": (today or datetime.now(KST).date()).isoformat(),
             "last_attempt": now_kst(), "last_error": errors or None, "steps": steps,
         })
     rebuild_index()
@@ -416,7 +417,8 @@ def analyze_stock(code: str, *, force: bool = False, master: dict | None = None,
 
 def _save_analysis(code: str, info: dict, prices: pd.DataFrame, div: dict, meta: dict | None, extra: dict) -> dict:
     us_dates, us_vals = load_us10y()
-    analysis = compute_analysis(info, prices, div, us_dates, us_vals,\n                                 valuation_date=date.fromisoformat(extra["valuation_date"]) if extra.get("valuation_date") else None)
+    analysis = compute_analysis(info, prices, div, us_dates, us_vals,
+                                 valuation_date=date.fromisoformat(extra["valuation_date"]) if extra.get("valuation_date") else None)
     new_meta = {
         "code": code, "name": info["name"], "market": info["market"],
         "price_through": prices["date"].max(),
