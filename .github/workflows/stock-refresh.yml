@@ -51,7 +51,7 @@ jobs:
           KRX_PW: ${{ secrets.KRX_PW }}
         run: |
           ARGS=""; [ "$FORCE" = "true" ] && ARGS="--force"
-          python -m pipeline.update stock "$CODE" --stage prices $ARGS | tee -a /tmp/out.txt
+          python -m pipeline.update stock "$CODE" --stage prices --quick $ARGS | tee -a /tmp/out.txt
 
       - name: ② 배당 데이터 확인
         env:
