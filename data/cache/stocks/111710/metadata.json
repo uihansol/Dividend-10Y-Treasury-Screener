@@ -28,26 +28,31 @@
    "added": 1
   }
  },
- "valuation_date": "2026-09-28",
+ "recomputed_at": "2026-09-28T23:09:14+09:00",
  "summary": {
   "code": "111710",
   "name": "남화산업",
   "market": "KOSDAQ",
   "price": 3255.0,
   "price_date": "2026-09-28",
-  "dps": 200.0,
-  "yield": 6.1444,
-  "multiple": 1.1885,
+  "dps": 400.0,
+  "yield": 12.2888,
+  "multiple": 2.3769,
   "paid10": 8,
   "known10": 8,
   "paid5": 5,
-  "pct": 78.7,
+  "pct": 95.6,
   "p10": 0.514,
-  "p90": 1.36,
+  "p90": 1.4722,
   "mcap": null,
   "tv": 408905605.0,
   "has_div_data": true,
-  "flags": [],
-  "tags": []
+  "flags": [
+   "interim_exceeds_annual",
+   "prior_year_unconfirmed_periods_filled"
+  ],
+  "tags": [
+   "bomb"
+  ]
  }
 }

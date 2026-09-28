@@ -249,18 +249,32 @@ def _provisional_reports(div: dict) -> list[DividendReport]:
     '이미 반영됐다'는 접수일 순서가 아니라 보고기간으로 판단한다: 정기보고서의 결산기준일이
     이 공시의 배당기준일 이후면(그 분기·반기가 이 배당까지 포함하는 기간이면) 그 정기보고서를
     신뢰하고 잠정치는 버린다. KT&G처럼 반기보고서(결산기준일 6/30)가 8월 분기배당 공시(배당기준일
-    8/21)보다 늦게 '접수'돼도 그 배당을 반영하지 않는 경우가 있어, 접수일만으로는 판단할 수 없다."""
+    8/21)보다 늦게 '접수'돼도 그 배당을 반영하지 않는 경우가 있어, 접수일만으로는 판단할 수 없다.
+
+    다만 결산기준일만으로 '반영됨'을 판단하면 서호전기(065710)처럼 반기보고서(결산기준일 6/30)가
+    분기배당 공시(배당기준일 6/30, 같은 날) 이틀 뒤에 나왔는데도 그 표(주당 현금배당금)엔 아직
+    0으로 남아 있는 경우를 잘못 '반영됨'으로 봐서 잠정치를 버리고, 그 해 자체가 화면에서 통째로
+    사라진다. 그래서 결산기준일 조건에 더해, 그 정기보고서의 누계가 실제로 공시 금액만큼
+    늘어났는지(직전 누계 + 공시 금액 이상인지)까지 확인한다 — 기간은 지났지만 표에 아직 안 실렸으면
+    '반영 안 됨'으로 보고 잠정치를 유지한다.
+
+    사업연도는 공시 접수일이 아니라 배당기준일(basis_date) 기준으로 정한다. 예를 들어 전년도
+    기말배당 공시는 보통 다음 해 2~3월에 '접수'되므로, 접수일 연도를 쓰면 전년도 배당이 올해
+    잠정치로 잘못 섞여 들어간다(서호전기 065710: 2025년 기말배당 공시가 접수일 기준 2026년으로
+    잘못 분류되면서 2026년 중간배당 잠정치와 뒤섞였다)."""
     periodic = [r for r in div["reports"] if r.get("confirmed_date")]
     out = []
     for a in div.get("announcements", {}).values():
         if a.get("status") != "ok" or not a.get("confirmed_date") or not a.get("amount"):
             continue
-        year = int(a["confirmed_date"][:4])
         ann_basis = date.fromisoformat(a["basis_date"]) if a.get("basis_date") else date.fromisoformat(a["confirmed_date"])
+        year = ann_basis.year
         same_year = [r for r in periodic if int(r["fiscal_year"]) == year]
-        if any(_period_end_date(r) >= ann_basis for r in same_year):
-            continue  # 결산기준일이 배당기준일을 지난 정기보고서가 있으면 이미 반영된 것으로 본다
         prior_cum = max([0.0] + [float(r["cum_dps"]) for r in same_year if r["confirmed_date"] <= a["confirmed_date"]])
+        covered = any(_period_end_date(r) >= ann_basis and float(r["cum_dps"]) >= prior_cum + float(a["amount"])
+                     for r in same_year)
+        if covered:
+            continue
         out.append(DividendReport(year, "PROV", prior_cum + float(a["amount"]), ann_basis,
                                   date.fromisoformat(a["confirmed_date"]), str(a.get("rcept_no", ""))))
     return out

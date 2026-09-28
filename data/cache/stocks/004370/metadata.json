@@ -25,28 +25,31 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T21:09:54+09:00",
+ "recomputed_at": "2026-09-28T23:09:11+09:00",
  "summary": {
   "code": "004370",
   "name": "농심",
   "market": "KOSPI",
   "price": 398500.0,
   "price_date": "2026-09-28",
-  "dps": 6000.0,
-  "yield": 1.5056,
-  "multiple": 0.2912,
+  "dps": 12000.0,
+  "yield": 3.0113,
+  "multiple": 0.5825,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 15.2,
-  "p10": 0.2803,
+  "pct": 64.3,
+  "p10": 0.2804,
   "p90": 1.139,
   "mcap": null,
   "tv": 3613955000.0,
   "has_div_data": true,
-  "flags": [],
+  "flags": [
+   "provisional_dividend_used"
+  ],
   "tags": [
-   "crown"
+   "crown",
+   "bomb"
   ]
  }
 }

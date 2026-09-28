@@ -10,28 +10,28 @@
  "last_attempt": "2026-09-28T22:38:10+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-09-28",
+ "recomputed_at": "2026-09-28T23:09:15+09:00",
  "summary": {
   "code": "284740",
   "name": "쿠쿠홈시스",
   "market": "KOSPI",
   "price": 24300.0,
   "price_date": "2026-09-28",
-  "dps": 1400.0,
-  "yield": 5.7613,
-  "multiple": 1.1144,
+  "dps": 1200.0,
+  "yield": 4.9383,
+  "multiple": 0.9552,
   "paid10": 8,
   "known10": 9,
   "paid5": 5,
-  "pct": 71.3,
+  "pct": 64.4,
   "p10": 0.0,
   "p90": 1.913,
   "mcap": null,
   "tv": 290700500.0,
   "has_div_data": true,
   "flags": [
-   "interim_values_treated_as_per_period",
-   "provisional_dividend_used"
+   "interim_exceeds_annual",
+   "interim_values_treated_as_per_period"
   ],
   "tags": []
  }

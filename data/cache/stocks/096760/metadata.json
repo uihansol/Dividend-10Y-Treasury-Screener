@@ -10,31 +10,31 @@
  "last_attempt": "2026-09-28T22:40:07+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-09-28",
+ "recomputed_at": "2026-09-28T23:09:13+09:00",
  "summary": {
   "code": "096760",
   "name": "JW홀딩스",
   "market": "KOSPI",
   "price": 4355.0,
   "price_date": "2026-09-28",
-  "dps": 335.0,
-  "yield": 7.6923,
-  "multiple": 1.4879,
+  "dps": 120.0,
+  "yield": 2.7555,
+  "multiple": 0.533,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 77.6,
+  "pct": 17.2,
   "p10": 0.3923,
-  "p90": 1.916,
+  "p90": 1.8549,
   "mcap": null,
   "tv": 218175332.0,
   "has_div_data": true,
   "flags": [
+   "interim_exceeds_annual",
    "provisional_dividend_used"
   ],
   "tags": [
-   "crown",
-   "bomb"
+   "crown"
   ]
  }
 }

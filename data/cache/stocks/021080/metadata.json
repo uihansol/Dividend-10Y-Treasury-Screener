@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T22:18:31+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-09-28",
+ "recomputed_at": "2026-09-28T23:09:12+09:00",
  "summary": {
   "code": "021080",
   "name": "에이티넘인베스트",
@@ -29,7 +29,9 @@
   "mcap": null,
   "tv": 138791960.0,
   "has_div_data": true,
-  "flags": [],
+  "flags": [
+   "interim_exceeds_annual"
+  ],
   "tags": []
  }
 }
