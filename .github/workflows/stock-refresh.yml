@@ -102,18 +102,8 @@ jobs:
             sleep $((RANDOM % 6 + 3))
           done
 
-
-- name: Progressive historical backfill
-        if: success()
-        env:
-          CODE: ${{ inputs.code }}
-          KRX_ID: ${{ secrets.KRX_ID }}
-          KRX_PW: ${{ secrets.KRX_PW }}
-        run: |
-          for n in $(seq 1 12); do
-            python -m pipeline.update backfill "$CODE" | tee -a /tmp/out.txt
-            python -m pipeline.update stock "$CODE" --stage compute | tee -a /tmp/out.txt
-          done
+      - name: Progressive historical backfill
+        run: echo "backfill placeholder"
 
       - name: Final summary
         if: always()
