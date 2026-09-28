@@ -2,54 +2,50 @@
  "code": "383220",
  "name": "F&F",
  "market": "KOSPI",
- "price_through": "2026-09-23",
+ "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T02:57:28+09:00",
- "updated_at": "2026-09-28T02:57:28+09:00",
- "last_attempt": "2026-09-28T02:57:28+09:00",
+ "updated_at": "2026-09-28T16:39:23+09:00",
+ "last_attempt": "2026-09-28T16:39:23+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 1310,
-   "from": "2015-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 21
+   "mode": "incremental",
+   "added": 0
   },
   "announcements": {
    "mode": "check",
-   "added": 1
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
+   "added": 0
   }
  },
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "383220",
   "name": "F&F",
   "market": "KOSPI",
-  "price": 67800.0,
-  "price_date": "2026-09-23",
+  "price": 69600.0,
+  "price_date": "2026-09-28",
   "dps": 2700.0,
-  "yield": 3.9823,
-  "multiple": 0.8029,
+  "yield": 3.8793,
+  "multiple": 0.7504,
   "paid10": 5,
   "known10": 5,
   "paid5": 5,
-  "pct": 91.2,
+  "pct": 85.5,
   "p10": 0.2165,
-  "p90": 0.7847,
+  "p90": 0.7846,
   "mcap": null,
-  "tv": 4057065850.0,
+  "tv": 2376207100.0,
   "has_div_data": true,
   "flags": []
  }
