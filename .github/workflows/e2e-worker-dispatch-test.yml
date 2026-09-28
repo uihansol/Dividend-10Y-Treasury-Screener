@@ -1,5 +1,5 @@
 name: E2E Worker dispatch test
-# verify recreated stock refresh workflow
+# verify repository dispatch stock refresh
 
 on:
   push:
