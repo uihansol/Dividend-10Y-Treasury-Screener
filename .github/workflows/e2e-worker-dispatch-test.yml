@@ -1,4 +1,5 @@
 name: E2E Worker dispatch test
+# rerun after worker deployment
 
 on:
   push:
