@@ -102,3 +102,52 @@ jobs:
             sleep $((RANDOM % 6 + 3))
           done
 
+
+      # 빠른 결과를 보여준 뒤, 가장 가까운 과거부터 1년 단위로 가격 이력을 보완한다.
+      - name: Progressive historical backfill
+        if: success()
+        env:
+          CODE: ${{ inputs.code }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
+        run: |
+          for n in $(seq 1 12); do
+            python -m pipeline.update backfill "$CODE" | tee -a /tmp/out.txt
+            python -m pipeline.update stock "$CODE" --stage compute | tee -a /tmp/out.txt
+
+            mkdir -p /tmp/backfill && rm -rf "/tmp/backfill/$CODE"
+            cp -r "data/cache/stocks/$CODE" "/tmp/backfill/$CODE"
+            git config user.name "dividend-bot"
+            git config user.email "actions@users.noreply.github.com"
+
+            for i in 1 2 3 4 5 6; do
+              git fetch -q origin main && git reset -q --hard origin/main
+              rm -rf "data/cache/stocks/$CODE" && mkdir -p data/cache/stocks && cp -r "/tmp/backfill/$CODE" data/cache/stocks/
+              python -m pipeline.update index
+              git add data/cache
+              git diff --cached --quiet && break
+              git commit -q -m "cache: $CODE historical backfill $n"
+              git push -q origin HEAD:main && break
+              sleep $((RANDOM % 6 + 3))
+            done
+
+            if python - <<PY
+import pandas as pd
+from pipeline import config as C
+from pathlib import Path
+p = Path("data/cache/stocks") / "${{ inputs.code }}" / "prices.csv"
+if not p.exists():
+    raise SystemExit(1)
+df = pd.read_csv(p, dtype={"date": str})
+raise SystemExit(0 if len(df) and df["date"].min() <= C.PRICE_START else 1)
+PY
+            then
+              break
+            fi
+          done
+
+      - name: Final summary
+        if: always()
+        run: |
+          [ -f /tmp/out.txt ] || exit 0
+          while IFS= read -r line; do echo "::notice::${line:0:900}"; done < /tmp/out.txt
