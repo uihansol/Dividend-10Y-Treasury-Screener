@@ -88,12 +88,30 @@ export function StockPage({ code, master, onPick }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code]);
 
+  // 페이지를 계속 열어 둔 상태에서 KST 날짜가 바뀌면 최신 증분 데이터를 확인한다.
+  const dayKey = () => new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date());
+
   useEffect(() => {
     alive.current = true;
     setPhase({ kind: "loading" });
-    const t = setInterval(() => setNow(Date.now()), 1000);
+    let lastDay = dayKey();
+    const clock = setInterval(() => setNow(Date.now()), 1000);
+    const dayWatcher = setInterval(() => {
+      const currentDay = dayKey();
+      if (currentDay !== lastDay) {
+        lastDay = currentDay;
+        run(false);
+      }
+    }, 30_000);
     run(false);
-    return () => { alive.current = false; clearInterval(t); };
+    return () => {
+      alive.current = false;
+      clearInterval(clock);
+      clearInterval(dayWatcher);
+    };
   }, [code, run]);
 
   // 방문 기록(브라우저 로컬)에 남긴다. 화면에 데이터가 뜬 시점(=code가 유효했던 시점)에만 남긴다.
