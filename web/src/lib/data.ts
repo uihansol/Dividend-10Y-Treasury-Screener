@@ -74,17 +74,35 @@ export const getRun = (code: string) => getJson<{ run: RunInfo | null }>(`api/st
 // ---------------------------------------------------------------- 로컬 검색
 const norm = (s: string) => s.normalize("NFKC").toLowerCase().replace(/[\s()\-·.,&]/g, "");
 
-/** pipeline/master.py search()와 같은 규칙: 정확히 일치 > 앞부분 일치 > 포함 */
+// 한글 초성 검색(예: "ㅅㅅㅈㅈ" → 삼성전자). 완성형 음절만 초성으로 바꾸고 나머지 글자는 그대로 둔다.
+const CHOSUNG = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
+const toChosung = (s: string) => {
+  let out = "";
+  for (const ch of s) {
+    const code = ch.codePointAt(0)! - 0xac00;
+    out += code >= 0 && code <= 11171 ? CHOSUNG[Math.floor(code / 588)] : ch;
+  }
+  return out;
+};
+const isChosungQuery = (s: string) => s.length > 0 && [...s].every((ch) => CHOSUNG.includes(ch));
+// NFKC 정규화(norm)를 거치면 낱자 자음(호환 자모, U+3131대)이 조합용 초성 자모(U+1100대)로 바뀐다.
+// 사용자가 입력하는 건 호환 자모이므로 비교 전에 다시 되돌린다.
+const LEAD_JAMO_FIX: Record<string, string> = Object.fromEntries(CHOSUNG.map((c, i) => [String.fromCodePoint(0x1100 + i), c]));
+const fixLeadJamo = (s: string) => [...s].map((ch) => LEAD_JAMO_FIX[ch] ?? ch).join("");
+
+/** pipeline/master.py search()와 같은 규칙: 정확히 일치 > 앞부분 일치 > 포함. 입력이 초성만이면 초성 검색으로 전환. */
 export function searchMaster(master: MasterStock[], q: string, limit = 10): MasterStock[] {
-  const nq = norm(q);
+  const nq = fixLeadJamo(norm(q));
   if (!nq) return [];
+  const byChosung = isChosungQuery(nq);
   const scored: [number, MasterStock][] = [];
   for (const s of master) {
     const names = [norm(s.name), ...(s.aliases || []).map(norm)];
+    const keys = byChosung ? names.map(toChosung) : names;
     let rank = -1;
-    if (s.code === nq || names.some((n) => n === nq)) rank = 0;
-    else if (s.code.startsWith(nq) || names.some((n) => n.startsWith(nq))) rank = 1;
-    else if (names.some((n) => n.includes(nq))) rank = 2;
+    if ((!byChosung && s.code === nq) || keys.some((n) => n === nq)) rank = 0;
+    else if ((!byChosung && s.code.startsWith(nq)) || keys.some((n) => n.startsWith(nq))) rank = 1;
+    else if (keys.some((n) => n.includes(nq))) rank = 2;
     if (rank >= 0) scored.push([rank, s]);
   }
   scored.sort((a, b) => a[0] - b[0] || a[1].name.length - b[1].name.length || a[1].name.localeCompare(b[1].name));

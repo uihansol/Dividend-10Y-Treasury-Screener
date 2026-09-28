@@ -40,6 +40,19 @@ def test_search_none():
     assert search("", MASTER) == []
 
 
+def test_search_chosung_exact():
+    assert search("ㅅㅅㅈㅈ", MASTER)[0]["code"] == "005930"
+
+
+def test_search_chosung_prefix_lists_candidates():
+    codes = [s["code"] for s in search("ㅅㅅ", MASTER)]
+    assert set(codes) == {"005930", "009150", "006400"}
+
+
+def test_search_chosung_alias():
+    assert search("ㅎㄷㅈㄷㅊ", MASTER)[0]["code"] == "005380"
+
+
 # ------------------------------------------------------------------ 캐시
 class FakeKrx:
     """요청된 기간만 돌려주는 가짜 KRX. 호출 기록을 남긴다."""
