@@ -13,16 +13,17 @@
 Cloudflare Worker  /api/*   (web/worker.js)
   ├ GET  /api/index               조회한 종목 목록  ← 저장소 data/cache/index.json
   ├ GET  /api/stock/{code}        분석 결과 + stale 여부 ← data/cache/stocks/{code}/analysis.json
-  ├ POST /api/stock/{code}/refresh GitHub Actions 'Analyze stock' 실행 (같은 종목 실행 중이면 생략)
+  ├ POST /api/stock/{code}/refresh repository_dispatch(stock_refresh) → 'Stock refresh' 실행 (같은 종목 실행 중이면 생략)
   │   body {"force": true} 이면 캐시가 최신이어도 다시 수집·계산 (화면의 "새로고침" 버튼이 씀)
   └ GET  /api/stock/{code}/run    최근 실행 상태 + 진행 단계(①~④)
   ▼
-GitHub Actions  analyze-stock.yml  (Python: pykrx + OpenDART + FRED → pipeline/engine.py)
-  ├ ① 가격 데이터 확인   stock CODE --stage prices      (KRX, 그 종목만)
+GitHub Actions  stock-refresh.yml  run-name "refresh {code}"  (Python: pykrx + OpenDART + FRED → pipeline/engine.py)
+  ├ ① 가격 데이터 확인   stock CODE --stage prices --quick  (KRX, 그 종목만. 최초 조회는 최근 90일만)
   ├ ② 배당 데이터 확인   stock CODE --stage dividends   (DART, 그 기업만)
   ├ ③ 미국 10년물 확인   stock CODE --stage us10y       (오늘 성공 기록 있으면 생략)
   ├ ④ 분석 계산          stock CODE --stage compute     (engine.py, 수집 실패 시 기존 캐시)
-  └ data/cache/stocks/{code}/ 커밋 → Worker가 다음 요청 때 읽음
+  ├ Fast commit          최신 결과를 먼저 커밋 → Worker가 다음 요청 때 읽음
+  └ Progressive backfill backfill CODE + compute 를 1년씩 반복(최대 12회), 회차마다 커밋
 ```
 
 pykrx(KRX 로그인)와 계산 엔진이 Python이라 Worker 안에서 직접 돌릴 수 없어, 수집·계산은 GitHub Actions가 맡는다.
@@ -93,6 +94,6 @@ python -m pipeline.update search 삼성
 
 ## 문제 확인
 
-- 종목 화면 "실행 기록" 링크 또는 Actions → Analyze stock 로그
+- 종목 화면 "실행 기록" 링크 또는 Actions → Stock refresh 로그 (run 이름 `refresh {code}`)
 - `data/cache/stocks/{code}/metadata.json` 의 `last_error`
 - KRX 오류 → `KRX_PW` 만료 확인, DART 020 → 하루 한도 초과(다음 날 자동 해소)

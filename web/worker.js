@@ -4,13 +4,15 @@
  * 종목 데이터 수집(pykrx·DART)은 Python이라 Worker에서 직접 돌릴 수 없다.
  * 그래서 Worker는
  *   - 캐시 읽기: GitHub 저장소 data/cache/... 파일을 GitHub API로 읽어 반환
- *   - 캐시 갱신: GitHub Actions 'analyze-stock.yml'을 해당 종목코드로 실행(workflow_dispatch)
+ *   - 캐시 갱신: repository_dispatch(event_type "stock_refresh")로 GitHub Actions 'stock-refresh.yml'을
+ *     해당 종목코드로 실행하고, 실행 상태는 같은 워크플로의 run 목록(run-name "refresh <code>")에서 읽는다
  * 만 한다. DART/KRX 비밀값은 GitHub Secrets에만 있고, Worker에는 GITHUB_TOKEN(이 저장소 전용)만 있다.
  *
  * env: GITHUB_REPO (vars), GITHUB_BRANCH (vars, 기본 main), GITHUB_TOKEN (secret)
  */
 const GH = "https://api.github.com";
-const WORKFLOW = "analyze-stock.yml";
+// 실행 상태 조회 대상. POST /refresh의 repository_dispatch(stock_refresh)를 받는 워크플로와 같아야 한다.
+const WORKFLOW = "stock-refresh.yml";
 const WORKER_VERSION = "2026-09-28-dispatch-fix";
 
 const json = (obj, status = 200, extra = {}) =>
@@ -99,7 +101,7 @@ const runView = (w) => w && {
   created_at: w.created_at, updated_at: w.updated_at,
 };
 
-/** 실행 중인 job의 step 중 이름이 ①~④로 시작하는 것 (analyze-stock.yml의 단계) */
+/** 실행 중인 job의 step 중 이름이 ①~④로 시작하는 것 (stock-refresh.yml의 단계) */
 async function runSteps(env, runId) {
   const r = await gh(env, `/actions/runs/${runId}/jobs`);
   if (!r.ok) return [];
