@@ -20,7 +20,7 @@
    "added": 43
   }
  },
- "recomputed_at": "2026-09-28T17:41:06+09:00",
+ "recomputed_at": "2026-09-28T17:52:43+09:00",
  "summary": {
   "code": "035810",
   "name": "이지홀딩스",
@@ -40,8 +40,6 @@
   "tv": 706914860.0,
   "has_div_data": true,
   "flags": [],
-  "tags": [
-   "bomb"
-  ]
+  "tags": []
  }
 }

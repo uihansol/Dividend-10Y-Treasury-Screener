@@ -20,7 +20,7 @@
    "added": 37
   }
  },
- "recomputed_at": "2026-09-28T17:41:06+09:00",
+ "recomputed_at": "2026-09-28T17:52:43+09:00",
  "summary": {
   "code": "065710",
   "name": "서호전기",
@@ -40,8 +40,6 @@
   "tv": 310906100.0,
   "has_div_data": true,
   "flags": [],
-  "tags": [
-   "bomb"
-  ]
+  "tags": []
  }
 }

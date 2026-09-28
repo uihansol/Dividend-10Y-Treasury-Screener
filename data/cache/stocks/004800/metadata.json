@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T17:41:05+09:00",
+ "recomputed_at": "2026-09-28T17:52:42+09:00",
  "summary": {
   "code": "004800",
   "name": "효성",
@@ -48,8 +48,6 @@
   "tv": 3137592650.0,
   "has_div_data": true,
   "flags": [],
-  "tags": [
-   "bomb"
-  ]
+  "tags": []
  }
 }
