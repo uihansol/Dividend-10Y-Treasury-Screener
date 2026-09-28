@@ -2,54 +2,50 @@
  "code": "112610",
  "name": "씨에스윈드",
  "market": "KOSPI",
- "price_through": "2026-09-23",
+ "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-28T01:06:53+09:00",
- "updated_at": "2026-09-28T01:06:53+09:00",
- "last_attempt": "2026-09-28T01:06:53+09:00",
+ "updated_at": "2026-09-28T14:45:46+09:00",
+ "last_attempt": "2026-09-28T14:45:46+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2879,
-   "from": "2015-01-01"
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
+   "mode": "incremental",
    "added": 43
   },
   "announcements": {
    "mode": "check",
-   "added": 1
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
+   "added": 0
   }
  },
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "112610",
   "name": "씨에스윈드",
   "market": "KOSPI",
-  "price": 50100.0,
-  "price_date": "2026-09-23",
+  "price": 52500.0,
+  "price_date": "2026-09-28",
   "dps": 1000.0,
-  "yield": 1.996,
-  "multiple": 0.4024,
+  "yield": 1.9048,
+  "multiple": 0.3684,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 48.3,
-  "p10": 0.211,
-  "p90": 1.3534,
+  "pct": 43.9,
+  "p10": 0.2109,
+  "p90": 1.3471,
   "mcap": null,
-  "tv": 9725583700.0,
+  "tv": 19833058050.0,
   "has_div_data": true,
   "flags": []
  }
