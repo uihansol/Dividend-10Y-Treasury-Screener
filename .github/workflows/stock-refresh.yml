@@ -1,0 +1,28 @@
+name: Stock refresh
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "종목코드 6자리"
+        required: true
+        type: string
+      force:
+        description: "cooldown 무시"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm dispatch
+        run: |
+          echo "workflow_dispatch accepted"
+          echo "code=${{ inputs.code }}"
+          echo "force=${{ inputs.force }}"
