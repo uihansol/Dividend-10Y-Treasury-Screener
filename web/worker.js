@@ -11,6 +11,7 @@
  */
 const GH = "https://api.github.com";
 const WORKFLOW = "analyze-stock.yml";
+const WORKER_VERSION = "2026-09-28-dispatch-fix";
 
 const json = (obj, status = 200, extra = {}) =>
   new Response(JSON.stringify(obj), {
@@ -38,7 +39,7 @@ function gh(env, path, init = {}) {
     ...init,
     headers: {
       authorization: `Bearer ${env.GITHUB_TOKEN}`,
-      "user-agent": "dividend-10y-worker",
+      "user-agent": `dividend-10y-worker/${WORKER_VERSION}`,
       "x-github-api-version": "2022-11-28",
       accept: "application/vnd.github+json",
       ...(init.headers || {}),
