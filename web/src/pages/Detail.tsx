@@ -9,7 +9,7 @@ import { flagText, mult, pct, signedPct, won, NA } from "../lib/format";
 const DART = (rcp: string) => `https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${rcp}`;
 const C = {
   line: "var(--accent)", accent: "var(--accent)", band: "var(--ink-3)", grid: "var(--chart-grid)",
-  interim: "var(--chart-green)", price: "var(--chart-yellow)",
+  interim: "var(--chart-green)", price: "var(--chart-yellow)", expected: "var(--chart-red)",
 };
 
 function Card({ label, value, sub, strong }: { label: string; value: string; sub?: string; strong?: boolean }) {
@@ -450,13 +450,17 @@ export function DetailPage({ d }: { d: Detail }) {
       <section className="panel">
         <h2>연도별 실제 DPS (현재 주식 수 기준)</h2>
         {d.annual.length ? (
-          <AnnualDpsChart annual={d.annual} accent={C.accent} interim={C.interim} grid={C.grid} />
+          <AnnualDpsChart annual={d.annual} accent={C.accent} interim={C.interim} expected={C.expected} grid={C.grid} />
         ) : <p className="empty-msg">확정된 연간 DPS가 없습니다.</p>}
         <p className="note">
           사업연도 귀속 기준. 분할·무상증자 등이 있으면 과거 DPS를 현재 1주 기준으로 환산했습니다.
           {d.annual.length > 0 && d.annual[d.annual.length - 1].provisional && (
             <> 빗금 친 <strong>{d.annual[d.annual.length - 1].year}년</strong> 막대는 사업보고서 확정 전 잠정치입니다
-            (그때까지 공시된 중간·분기배당 및 배당결정 누계, {d.annual[d.annual.length - 1].confirmed ?? NA} 기준. 기말배당 미확정).</>
+            (그때까지 공시된 중간·분기배당 및 배당결정 누계, {d.annual[d.annual.length - 1].confirmed ?? NA} 기준. 기말배당 미확정).
+            {d.annual[d.annual.length - 1].expected != null && (
+              <> 위에 덧붙은 빨간 부분은 <strong>예상 DPS</strong>로, 아직 확정 안 된 나머지를 전년도 같은 기간 값으로
+              대체해 추정한 연간 합계입니다(홈 화면 💣 태그가 판단하는 값과 같습니다).</>
+            )}</>
           )}
         </p>
       </section>
@@ -499,18 +503,23 @@ export function DetailPage({ d }: { d: Detail }) {
 
 /** 연도별 중간·분기/기말 DPS 막대. 범례 이름을 누르면 그 항목을 숨긴다.
  * 마지막 해가 사업보고서 확정 전 잠정치(provisional)면 빗금 채움으로 구분해서 보여준다. */
-function AnnualDpsChart({ annual, accent, interim, grid }: {
-  annual: Detail["annual"]; accent: string; interim: string; grid: string;
+function AnnualDpsChart({ annual, accent, interim, expected, grid }: {
+  annual: Detail["annual"]; accent: string; interim: string; expected: string; grid: string;
 }) {
   const tog = useToggle();
   const provisionalYear = annual.find((r) => r.provisional)?.year;
+  // expected(홈 화면 💣 태그와 같은 예상 DPS)는 total 위에 쌓는 세 번째 구간으로만 그린다 —
+  // 실제 확정·잠정 금액(interim+final)과 시각적으로 섞이지 않도록 값은 total과의 차이만 쓴다.
+  const data = annual.map((r) => ({ ...r, expectedGap: r.expected != null ? Math.max(r.expected - r.total, 0) : 0 }));
   const xTick = (year: number) => (year === provisionalYear ? `${year}*` : String(year));
-  const tipFormatter = (v: number, name: string, item: { payload?: { provisional?: boolean } }) =>
-    [`${won(v)}원${item.payload?.provisional ? " (잠정)" : ""}`, name];
+  const tipFormatter = (v: number, name: string, item: { payload?: { provisional?: boolean; expected?: number | null } }) => {
+    if (name === "예상") return [`${won(item.payload?.expected ?? v)}원 (전년도 미확정분 대체 추정)`, "예상 DPS"];
+    return [`${won(v)}원${item.payload?.provisional ? " (잠정)" : ""}`, name];
+  };
   return (
     <div className="chart">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={annual} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <defs>
             <pattern id="dps-prov-interim" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
               <rect width="6" height="6" fill={interim} fillOpacity={0.35} />
@@ -520,6 +529,11 @@ function AnnualDpsChart({ annual, accent, interim, grid }: {
               <rect width="6" height="6" fill={accent} fillOpacity={0.35} />
               <line x1="0" y1="0" x2="0" y2="6" stroke={accent} strokeWidth="3" />
             </pattern>
+            <pattern id="dps-expected" width="6" height="6" patternUnits="userSpaceOnUse">
+              <rect width="6" height="6" fill={expected} fillOpacity={0.25} />
+              <circle cx="1.5" cy="1.5" r="1.1" fill={expected} />
+              <circle cx="4.5" cy="4.5" r="1.1" fill={expected} />
+            </pattern>
           </defs>
           <CartesianGrid stroke={grid} vertical={false} />
           <XAxis dataKey="year" tick={{ fontSize: 12 }} tickFormatter={xTick} />
@@ -527,11 +541,13 @@ function AnnualDpsChart({ annual, accent, interim, grid }: {
           <Tooltip formatter={tipFormatter as any} labelFormatter={(year: number) => (year === provisionalYear ? `${year}년 (잠정)` : `${year}년`)} />
           <Legend wrapperStyle={{ fontSize: 12 }} onClick={tog.onLegendClick} formatter={tog.legendFormatter} />
           <Bar dataKey="interim" stackId="a" name="중간·분기" fill={interim} radius={[3, 3, 0, 0]} isAnimationActive={false} hide={tog.isHidden("interim")}>
-            {annual.map((row) => <Cell key={row.year} fill={row.provisional ? "url(#dps-prov-interim)" : interim} />)}
+            {data.map((row) => <Cell key={row.year} fill={row.provisional ? "url(#dps-prov-interim)" : interim} />)}
           </Bar>
           <Bar dataKey="final" stackId="a" name="기말" fill={accent} radius={[3, 3, 0, 0]} isAnimationActive={false} hide={tog.isHidden("final")}>
-            {annual.map((row) => <Cell key={row.year} fill={row.provisional ? "url(#dps-prov-final)" : accent} />)}
+            {data.map((row) => <Cell key={row.year} fill={row.provisional ? "url(#dps-prov-final)" : accent} />)}
           </Bar>
+          <Bar dataKey="expectedGap" stackId="a" name="예상" fill="url(#dps-expected)" radius={[3, 3, 0, 0]}
+               isAnimationActive={false} hide={tog.isHidden("expectedGap")} />
         </BarChart>
       </ResponsiveContainer>
     </div>

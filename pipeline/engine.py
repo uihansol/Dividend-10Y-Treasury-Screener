@@ -488,6 +488,7 @@ def annual_breakdown(years: dict[int, FiscalYear], asof: date) -> list[dict]:
             "confirmed": fy.fy_confirmed.isoformat(),
             "flags": fy.flags,
             "provisional": False,
+            "expected": None,
         })
 
     cur = years.get(asof.year)
@@ -503,6 +504,7 @@ def annual_breakdown(years: dict[int, FiscalYear], asof: date) -> list[dict]:
                 "confirmed": rec[2].isoformat() if rec else None,
                 "flags": cur.flags,
                 "provisional": True,
+                "expected": None,
             })
     return rows
 

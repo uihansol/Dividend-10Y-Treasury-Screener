@@ -281,6 +281,15 @@ def load_us10y():
     return list(us["date"]), [float(v) for v in us["us10y"]]
 
 
+def _with_expected_dps(annual: list[dict], exp) -> list[dict]:
+    """연도별 막대그래프의 마지막 잠정 행에 '예상 DPS'(exp.value, 폭탄 태그와 같은 값)를 덧붙인다.
+    태그와 차트가 서로 다른 값을 보여주면 판단에 혼란을 주므로, exp가 실제로 그 잠정 연도를
+    계산한 경우(latest_fy + 1 == 그 행의 연도)에만 붙인다. expected_dps_asof() 자체는 바꾸지 않는다."""
+    if not annual or not annual[-1]["provisional"] or exp is None or exp.latest_fy + 1 != annual[-1]["year"]:
+        return annual
+    return [*annual[:-1], {**annual[-1], "expected": _r(exp.value, 2)}]
+
+
 def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_vals, valuation_date: date | None = None) -> dict:
     """engine.py로 현재·역사 지표 계산. (기존 build.py의 종목 1개 계산부를 그대로 옮김)"""
     code = info["code"]
@@ -347,7 +356,7 @@ def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_v
                         "confirmed": c.confirmed_date.isoformat(), "ref": c.ref} for c in (exp.components if exp else [])],
         "components_status": ("annual_confirmed" if exp and all(c.fiscal_year == exp.latest_fy for c in exp.components)
                               else "in_progress") if exp else None,
-        "annual": annual_breakdown(years, as_of),
+        "annual": _with_expected_dps(annual_breakdown(years, as_of), exp),
         "persistence": {k: (_r(v, 3) if isinstance(v, float) else v) for k, v in (pers or {}).items()},
         "dividend_persistence": {k: (_r(v, 3) if isinstance(v, float) else v) for k, v in (pers or {}).items()},
         "multiple_stats": {k: _r(v) for k, v in hist.items()} if hist else None,
