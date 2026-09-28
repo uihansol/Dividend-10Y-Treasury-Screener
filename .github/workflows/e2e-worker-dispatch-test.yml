@@ -1,5 +1,5 @@
 name: E2E Worker dispatch test
-# run full stock-refresh workflow
+# run restored known-good workflow
 
 on:
   push:
