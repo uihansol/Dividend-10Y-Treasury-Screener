@@ -43,12 +43,28 @@ function gh(env, path, init = {}) {
   });
 }
 
+// 같은 isolate 안에서만 유지되는 best-effort ETag 캐시 (path → {etag, body}).
+// 인증된 조건부 요청이 304를 받으면 GitHub primary rate limit에 계산되지 않고 본문 전송도 없다.
+const etags = new Map();
+const ETAG_MAX = 200;
+
 async function readRepoFile(env, path) {
   const ref = env.GITHUB_BRANCH || "main";
-  const r = await gh(env, `/contents/${path}?ref=${ref}`, { headers: { accept: "application/vnd.github.raw+json" } });
-  if (r.status === 404) return null;
+  const prev = etags.get(path);
+  const r = await gh(env, `/contents/${path}?ref=${ref}`, {
+    headers: { accept: "application/vnd.github.raw+json", ...(prev ? { "if-none-match": prev.etag } : {}) },
+  });
+  if (r.status === 304 && prev) return prev.body;
+  if (r.status === 404) { etags.delete(path); return null; }
   if (!r.ok) throw new Error(`GitHub ${r.status}: ${path}`);
-  return r.json();
+  const body = await r.json();
+  const etag = r.headers.get("etag");
+  if (etag) {
+    etags.delete(path);
+    etags.set(path, { etag, body });
+    if (etags.size > ETAG_MAX) etags.delete(etags.keys().next().value);   // 가장 오래된 항목부터 버림
+  }
+  return body;
 }
 
 /** 한국 기준 '가장 최근 장 마감 거래일' (공휴일은 모름 → 주말만 제외) 과 그 마감 시각 */
@@ -116,7 +132,7 @@ async function api(url, req, env, ctx) {
     return cachedJson(30, async () => (await readRepoFile(env, "data/cache/index.json")) || { stocks: [] });
   }
 
-  const m = p.match(/^\/api\/stock\/(\d{6})(\/refresh|\/run)?$/);
+  const m = p.match(/^\/api\/stock\/(\d{6})(\/refresh|\/run|\/meta)?$/);
   if (!m) return json({ error: "not found" }, 404);
   const [, code, sub] = m;
 
@@ -126,6 +142,14 @@ async function api(url, req, env, ctx) {
       if (!analysis) return { status: "missing", code };
       return { status: "ready", code, stale: isStale(analysis.metadata), analysis };
     });
+  }
+
+  // 새로고침 폴링용 경량 응답: metadata.json(1KB 미만)만 읽는다. analysis.json(100KB+)은
+  // last_attempt가 바뀌었을 때만 화면이 따로 받는다. 폴링은 항상 최신을 봐야 하므로 캐시하지 않는다.
+  if (sub === "/meta" && req.method === "GET") {
+    const meta = await readRepoFile(env, `data/cache/stocks/${code}/metadata.json`);
+    if (!meta) return json({ status: "missing", code });
+    return json({ status: "ready", code, last_attempt: meta.last_attempt ?? null, updated_at: meta.updated_at ?? null });
   }
 
   if (sub === "/run" && req.method === "GET") {

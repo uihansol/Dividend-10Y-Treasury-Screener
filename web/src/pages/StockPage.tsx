@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { getRun, getStock, requestRefresh } from "../lib/data";
+import { getMeta, getRun, getStock, requestRefresh } from "../lib/data";
 import type { Detail, MasterStock, RunInfo } from "../lib/types";
 import { pushRecent } from "../lib/recent";
 import { SearchBox } from "../components/SearchBox";
@@ -77,10 +77,11 @@ export function StockPage({ code, master, onPick }: {
       while (alive.current && Date.now() - started < TIMEOUT_MS) {
         await new Promise((res) => setTimeout(res, POLL_MS));
         if (!alive.current) return;
-        // fresh=true: 캐시(메모리·엣지)를 건너뛰고 항상 최신을 본다 — 그렇지 않으면 새로고침이
-        // 끝나도 캐시된 옛 응답만 반복해서 받아 완료를 영영 감지하지 못한다.
-        const [s, runInfo] = await Promise.all([getStock(code, true), getRun(code).catch(() => ({ run: null }))]);
-        if (s.status === "ready" && s.analysis.metadata?.last_attempt !== before) {
+        // 폴링은 가벼운 메타(last_attempt)만 확인하고, 바뀌었을 때만 analysis 전체를 받는다.
+        // 전체를 받을 때는 fresh=true로 캐시(메모리·엣지)를 건너뛴다 — 그렇지 않으면 캐시된 옛 응답을 받는다.
+        const [meta, runInfo] = await Promise.all([getMeta(code), getRun(code).catch(() => ({ run: null }))]);
+        const s = meta.status === "ready" && meta.last_attempt !== before ? await getStock(code, true) : null;
+        if (s?.status === "ready" && s.analysis.metadata?.last_attempt !== before) {
           const errs = s.analysis.metadata?.last_error;
           const active = !runInfo.run || runInfo.run.status !== "completed";
           // 최초 빠른 분석이 끝나면 즉시 화면을 열고, 백그라운드 과거 데이터 보완은 계속 감시한다.
@@ -94,11 +95,13 @@ export function StockPage({ code, master, onPick }: {
         const failed = runInfo.run && runInfo.run.status === "completed" && runInfo.run.conclusion !== "success"
           && new Date(runInfo.run.created_at).getTime() >= started - 60_000;
         if (failed) {
-          if (s.status === "ready") {
-            setPhase({ kind: "ready", data: s.analysis, refreshing: false, note: "최신 데이터 확인에 실패해 저장된 데이터를 보여줍니다." });
-          } else {
-            setPhase({ kind: "error", message: `${name} 데이터를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.` });
-          }
+          // 이번 폴링에서 analysis를 새로 받지 않았다면 화면에 있는 데이터가 저장된 최신 데이터다.
+          setPhase((p) => {
+            const data = s?.status === "ready" ? s.analysis : p.kind === "ready" ? p.data : null;
+            return data
+              ? { kind: "ready", data, refreshing: false, note: "최신 데이터 확인에 실패해 저장된 데이터를 보여줍니다." }
+              : { kind: "error", message: `${name} 데이터를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.` };
+          });
           return;
         }
         setPhase((p) => (p.kind === "preparing" ? { ...p, run: runInfo.run ?? undefined } : p));

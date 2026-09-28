@@ -56,6 +56,10 @@ export const requestRefresh = (code: string, force = false) =>
   getJson<{ status: "queued" | "running" | "error"; run?: RunInfo; error?: string }>(`api/stock/${code}/refresh`, {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ force }),
   });
+/** 새로고침 폴링용 경량 조회: metadata.json의 last_attempt만 받는다(analysis.json 전체 대신). */
+export const getMeta = (code: string) =>
+  getJson<{ status: "missing"; code: string } | { status: "ready"; code: string; last_attempt: string | null; updated_at: string | null }>(
+    `api/stock/${code}/meta`);
 export const getRun = (code: string) => getJson<{ run: RunInfo | null }>(`api/stock/${code}/run`);
 
 // ---------------------------------------------------------------- 로컬 검색
