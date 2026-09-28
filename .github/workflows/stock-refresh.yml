@@ -3,17 +3,8 @@ name: Stock refresh
 run-name: refresh ${{ inputs.code }}
 
 on:
-  workflow_dispatch:
-    inputs:
-      code:
-        description: "종목코드 6자리 (예: 005930)"
-        required: true
-        type: string
-      force:
-        description: "cooldown 무시"
-        required: false
-        default: false
-        type: boolean
+  repository_dispatch:
+    types: [stock_refresh]
 
 concurrency:
   group: analyze-${{ inputs.code }}
