@@ -2,46 +2,44 @@
  "code": "089150",
  "name": "케이씨티",
  "market": "KOSDAQ",
- "price_through": "2026-09-23",
+ "price_through": "2026-09-28",
  "dividend_through": "2026-09-27",
  "us10y_through": "2026-09-25",
  "created_at": "2026-09-27T23:18:10+09:00",
  "updated_at": "2026-09-27T23:18:10+09:00",
- "last_attempt": "2026-09-27T23:18:10+09:00",
- "last_error": null,
+ "last_attempt": "2026-09-28T22:40:01+09:00",
+ "last_error": {
+  "dividends": "ConnectTimeout(MaxRetryError(\"HTTPSConnectionPool(host='opendart.fss.or.kr', port=443): Max retries exceeded with url: /api/alotMatter.json?crtfc_key=ec6c957ff8f9b45d3b178a078f1a48264aa8a565&corp_code=00441447&bsns_year=2026&reprt_code=11012 (Caused by ConnectTimeoutError(<HTTPSConnection(host='open"
+ },
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2631,
-   "from": "2016-01-01"
-  },
-  "dividends": {
-   "mode": "initial",
-   "added": 43
-  },
-  "announcements": {
-   "mode": "check",
-   "added": 1
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-09-21",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   }
  },
- "recomputed_at": "2026-09-28T21:09:56+09:00",
+ "valuation_date": "2026-09-28",
  "summary": {
   "code": "089150",
   "name": "케이씨티",
   "market": "KOSDAQ",
-  "price": 1628.0,
-  "price_date": "2026-09-23",
+  "price": 1655.0,
+  "price_date": "2026-09-28",
   "dps": 80.0,
-  "yield": 4.914,
-  "multiple": 0.9505,
+  "yield": 4.8338,
+  "multiple": 0.935,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 62.1,
-  "p10": 0.3521,
-  "p90": 2.5689,
+  "pct": 61.2,
+  "p10": 0.352,
+  "p90": 2.5613,
   "mcap": null,
-  "tv": 47448869.0,
+  "tv": 27603104.0,
   "has_div_data": true,
   "flags": [],
   "tags": []
