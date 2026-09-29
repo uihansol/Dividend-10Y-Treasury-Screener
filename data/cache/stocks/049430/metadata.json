@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-09-25",
+ "us10y_through": "2026-09-28",
  "created_at": "2026-09-27T17:31:10+09:00",
  "updated_at": "2026-09-28T09:43:19+09:00",
  "last_attempt": "2026-09-28T09:43:19+09:00",
@@ -24,7 +24,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T23:40:17+09:00",
+ "recomputed_at": "2026-09-29T10:24:52+09:00",
  "summary": {
   "code": "049430",
   "name": "코메론",
@@ -33,11 +33,11 @@
   "price_date": "2026-09-28",
   "dps": 700.0,
   "yield": 3.1042,
-  "multiple": 0.6004,
+  "multiple": 0.5924,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 25.2,
+  "pct": 23.7,
   "p10": 0.5138,
   "p90": 1.5903,
   "mcap": null,

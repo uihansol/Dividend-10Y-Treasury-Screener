@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-09-25",
+ "us10y_through": "2026-09-28",
  "created_at": "2026-09-28T00:53:03+09:00",
  "updated_at": "2026-09-28T22:35:40+09:00",
  "last_attempt": "2026-09-28T22:35:40+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-28T23:40:17+09:00",
+ "recomputed_at": "2026-09-29T10:24:52+09:00",
  "summary": {
   "code": "068930",
   "name": "디지털대성",
@@ -37,11 +37,11 @@
   "price_date": "2026-09-28",
   "dps": 520.0,
   "yield": 5.3775,
-  "multiple": 1.0401,
+  "multiple": 1.0262,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 23.6,
+  "pct": 23.5,
   "p10": 0.743,
   "p90": 2.8587,
   "mcap": null,

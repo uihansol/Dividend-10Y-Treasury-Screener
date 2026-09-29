@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-09-23",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-09-25",
+ "us10y_through": "2026-09-28",
  "created_at": "2026-09-28T01:05:54+09:00",
  "updated_at": "2026-09-28T01:05:54+09:00",
  "last_attempt": "2026-09-28T01:05:54+09:00",
@@ -33,7 +33,7 @@
    ]
   }
  },
- "recomputed_at": "2026-09-28T23:40:18+09:00",
+ "recomputed_at": "2026-09-29T10:24:52+09:00",
  "summary": {
   "code": "069960",
   "name": "현대백화점",
@@ -42,11 +42,11 @@
   "price_date": "2026-09-23",
   "dps": 2150.0,
   "yield": 2.2303,
-  "multiple": 0.4314,
+  "multiple": 0.4256,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 31.4,
+  "pct": 30.5,
   "p10": 0.2793,
   "p90": 1.0128,
   "mcap": null,
