@@ -1,0 +1,55 @@
+{
+ "code": "049720",
+ "name": "고려신용정보",
+ "market": "KOSDAQ",
+ "price_through": "2026-09-30",
+ "dividend_through": "2026-09-30",
+ "us10y_through": "2026-09-29",
+ "created_at": "2026-09-30T10:38:14+09:00",
+ "updated_at": "2026-09-30T10:38:14+09:00",
+ "last_attempt": "2026-09-30T10:38:14+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 61,
+   "from": "2026-07-02",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 34
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 2
+  }
+ },
+ "valuation_date": "2026-09-30",
+ "summary": {
+  "code": "049720",
+  "name": "고려신용정보",
+  "market": "KOSDAQ",
+  "price": 9120.0,
+  "price_date": "2026-09-30",
+  "dps": 510.0,
+  "yield": 5.5921,
+  "multiple": 1.0631,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 0.8,
+  "p10": 1.115,
+  "p90": 1.1781,
+  "mcap": null,
+  "tv": 28138035.0,
+  "has_div_data": true,
+  "flags": [],
+  "tags": [
+   "crown"
+  ]
+ }
+}
