@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-09-28",
+ "us10y_through": "2026-09-29",
  "created_at": "2026-09-27T22:53:21+09:00",
  "updated_at": "2026-09-28T16:38:50+09:00",
  "last_attempt": "2026-09-28T16:38:50+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-29T10:24:53+09:00",
+ "recomputed_at": "2026-09-30T09:54:18+09:00",
  "summary": {
   "code": "271560",
   "name": "오리온",
@@ -37,7 +37,7 @@
   "price_date": "2026-09-28",
   "dps": 5250.0,
   "yield": 4.7085,
-  "multiple": 0.8986,
+  "multiple": 0.8952,
   "paid10": 9,
   "known10": 9,
   "paid5": 5,
