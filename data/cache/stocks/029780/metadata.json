@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-09-29",
+ "us10y_through": "2026-09-30",
  "created_at": "2026-09-28T01:06:17+09:00",
  "updated_at": "2026-09-28T17:50:00+09:00",
  "last_attempt": "2026-09-28T17:50:00+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-09-30T09:54:16+09:00",
+ "recomputed_at": "2026-10-01T09:58:20+09:00",
  "summary": {
   "code": "029780",
   "name": "삼성카드",
@@ -37,11 +37,11 @@
   "price_date": "2026-09-28",
   "dps": 2800.0,
   "yield": 6.4591,
-  "multiple": 1.228,
+  "multiple": 1.221,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 4.1,
+  "pct": 3.8,
   "p10": 1.2937,
   "p90": 4.1831,
   "mcap": null,

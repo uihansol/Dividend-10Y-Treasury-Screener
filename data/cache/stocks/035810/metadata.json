@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-09-23",
  "dividend_through": "2026-09-27",
- "us10y_through": "2026-09-29",
+ "us10y_through": "2026-09-30",
  "created_at": "2026-09-27T19:16:11+09:00",
  "updated_at": "2026-09-27T19:16:11+09:00",
  "last_attempt": "2026-09-27T19:16:11+09:00",
@@ -20,7 +20,7 @@
    "added": 43
   }
  },
- "recomputed_at": "2026-09-30T09:54:16+09:00",
+ "recomputed_at": "2026-10-01T09:58:21+09:00",
  "summary": {
   "code": "035810",
   "name": "이지홀딩스",
@@ -29,11 +29,11 @@
   "price_date": "2026-09-23",
   "dps": 1361.0,
   "yield": 30.0442,
-  "multiple": 5.7118,
+  "multiple": 5.6794,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 96.2,
+  "pct": 96.1,
   "p10": 0.2858,
   "p90": 1.6897,
   "mcap": null,
