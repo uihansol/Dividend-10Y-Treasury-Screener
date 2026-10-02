@@ -388,10 +388,13 @@ td.prov { color: var(--accent); }
 .sync-toggle-btn:hover, .sync-toggle-btn.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .sync-panel { margin-top: 7px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--radius-s); background: var(--surface); }
 .sync-desc { margin: 0 0 8px; color: var(--ink-3); font-size: 0.78rem; }
-.sync-code-row { margin-bottom: 8px; }
-.sync-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.1rem; font-weight: 700;
-  letter-spacing: 0.12em; color: var(--accent); padding: 4px 9px; border: 1px dashed var(--accent-soft-strong);
-  border-radius: var(--radius-s); background: var(--accent-soft); user-select: all; }
+.sync-code-row { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sync-code { font-size: 1rem; font-weight: 700; letter-spacing: 0.02em; color: var(--accent); padding: 5px 10px;
+  border: 1px dashed var(--accent-soft-strong); border-radius: var(--radius-s); background: var(--accent-soft);
+  user-select: all; }
+.sync-code-secret { color: var(--neg); border-color: color-mix(in srgb, var(--neg) 35%, transparent);
+  background: color-mix(in srgb, var(--neg) 6%, transparent); }
+.sync-readonly-note { color: var(--ink-2); }
 .sync-edit-btn { min-height: 32px; padding: 5px 10px; border: 1px solid var(--rule); border-radius: var(--radius-s);
   background: transparent; color: var(--ink-2); font: inherit; font-size: 0.82rem; cursor: pointer; }
 .sync-edit-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
@@ -399,10 +402,9 @@ td.prov { color: var(--accent); }
 .sync-off-btn { min-height: 32px; padding: 5px 10px; border: 1px solid var(--neg); border-radius: var(--radius-s);
   background: transparent; color: var(--neg); font: inherit; font-size: 0.82rem; cursor: pointer; }
 .sync-off-btn:hover { background: color-mix(in srgb, var(--neg) 8%, transparent); }
-.sync-join-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.sync-join-fields { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .sync-join-input { min-height: 32px; padding: 5px 9px; border: 1px solid var(--rule); border-radius: var(--radius-s);
-  background: var(--surface); color: var(--ink); font: inherit; font-size: 0.85rem; letter-spacing: 0.08em;
-  text-transform: uppercase; width: 130px; }
+  background: var(--surface); color: var(--ink); font: inherit; font-size: 0.85rem; width: 100%; max-width: 320px; }
 .sync-error { margin: 8px 0 0; color: var(--neg); font-size: 0.78rem; }
 
 /* ---------- Butler-inspired data visualization ---------- */

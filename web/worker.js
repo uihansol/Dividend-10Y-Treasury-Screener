@@ -176,10 +176,11 @@ async function runSteps(env, runId) {
 }
 
 // ---------------------------------------------------------------- 기기 간 '최근 조회' 동기화
-// 로그인이 없는 개인용 사이트라 사용자 식별 없이, 사용자가 기기 사이에 직접 옮기는 코드(8자, 길이로
-// 짐작하기 어려운 랜덤값) 를 키로 쓴다. 저장 내용은 종목코드·이름·시장·조회시각뿐이라 민감하지 않다.
-// 서버는 그 코드를 아는 사람 누구나 읽고 쓸 수 있다고 전제한다(로그인 대신 코드 자체가 비밀).
+// 로그인이 없는 개인용 사이트라 사용자 식별 없이, 사람이 기억·타이핑하기 쉬운 단어 코드를 키로 쓴다
+// (web/src/lib/syncWords.ts). 코드는 두 가지다 — 보기 코드(3단어)를 아는 사람은 누구나 목록을 읽을
+// 수 있고, 편집 키(5단어)를 같이 아는 사람만 쓸 수 있다. 편집 키 원문은 저장하지 않고 해시만 둔다.
 const SYNC_MAX_ENTRIES = 300;
+const SYNC_CODE_RE = /^[a-z]{2,20}(-[a-z]{2,20}){1,7}$/;
 const SYNC_TTL_SEC = 400 * 24 * 3600;   // 한동안 안 쓰는 코드만 자연히 정리된다. 기기의 로컬 목록 자체는
                                          // 이 코드와 무관하게 영구 보존되므로(recent.ts), 사용자 데이터 손실은 없다.
 
@@ -200,15 +201,22 @@ function isValidDeletedList(list) {
     && typeof t.at === "number" && Number.isFinite(t.at));
 }
 
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 async function syncHandler(code, req, env) {
   if (!env.SYNC_KV) return json({ error: "동기화 기능이 설정되지 않았습니다 (wrangler.toml kv_namespaces, "
     + "Cloudflare API 토큰에 Workers KV Storage 편집 권한이 있는지 확인하세요)." }, 500);
+  if (!SYNC_CODE_RE.test(code)) return json({ error: "코드 형식이 올바르지 않습니다." }, 400);
   const key = `sync:${code}`;
   if (req.method === "GET") {
     const raw = await env.SYNC_KV.get(key);
     if (!raw) return json({ status: "missing" });
     try {
       const data = JSON.parse(raw);
+      // editKeyHash는 보기 응답에 절대 포함하지 않는다 — 코드를 아는 누구나 읽을 수 있는 건 목록뿐이다.
       return json({ status: "ok", recent: data.recent, deleted: data.deleted ?? [], updated_at: data.updated_at });
     } catch {
       return json({ status: "missing" });   // 손상된 값은 없는 것과 같게 취급 — 다음 PUT이 덮어쓴다
@@ -219,9 +227,22 @@ async function syncHandler(code, req, env) {
     try { body = await req.json(); } catch { return json({ error: "잘못된 요청 본문" }, 400); }
     if (!isValidRecentList(body?.recent) || !isValidDeletedList(body?.deleted ?? []))
       return json({ error: "잘못된 목록 형식" }, 400);
+    if (typeof body?.editKey !== "string" || !SYNC_CODE_RE.test(body.editKey))
+      return json({ error: "편집 키 형식이 올바르지 않습니다." }, 400);
+    const editKeyHash = await sha256Hex(body.editKey);
+
+    const raw = await env.SYNC_KV.get(key);
+    const existing = raw && (() => { try { return JSON.parse(raw); } catch { return null; } })();
+    // 이미 누가 만든 코드면 같은 편집 키를 가진 기기만 바꿀 수 있다. 처음 만드는 코드는 이 PUT의
+    // editKey가 그대로 '정식' 편집 키가 된다(enableSync가 코드·키를 함께 새로 만들어 보낸다).
+    if (existing && existing.editKeyHash && existing.editKeyHash !== editKeyHash) {
+      return json({ error: "편집 키가 올바르지 않습니다." }, 403);
+    }
+
     const updated_at = new Date().toISOString();
-    await env.SYNC_KV.put(key, JSON.stringify({ recent: body.recent, deleted: body.deleted ?? [], updated_at }),
-      { expirationTtl: SYNC_TTL_SEC });
+    await env.SYNC_KV.put(key, JSON.stringify({
+      recent: body.recent, deleted: body.deleted ?? [], editKeyHash, updated_at,
+    }), { expirationTtl: SYNC_TTL_SEC });
     return json({ status: "ok", updated_at });
   }
   return json({ error: "method not allowed" }, 405);
@@ -230,8 +251,9 @@ async function syncHandler(code, req, env) {
 async function api(url, req, env, ctx) {
   const p = url.pathname;
 
-  // 기기 간 '최근 조회' 동기화 코드. GitHub를 안 쓰므로 아래 GITHUB_TOKEN 확인보다 먼저 처리한다.
-  const sm = p.match(/^\/api\/sync\/([A-Z0-9]{8})$/);
+  // 기기 간 '최근 조회' 동기화 코드(예: apple-tiger-chair). GitHub를 안 쓰므로 아래 GITHUB_TOKEN
+  // 확인보다 먼저 처리한다. 코드 형식 자체는 syncHandler가 SYNC_CODE_RE로 다시 검증한다.
+  const sm = p.match(/^\/api\/sync\/([a-z0-9-]{1,170})$/);
   if (sm) return syncHandler(sm[1], req, env);
 
   if (!env.GITHUB_TOKEN) return json({ error: "GitHub 저장소 접근용 토큰이 없습니다. "

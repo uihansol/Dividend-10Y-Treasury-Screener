@@ -3,7 +3,8 @@ import type { CacheIndex, MasterStock } from "../lib/types";
 import { mult, pct, won, NA } from "../lib/format";
 import { loadRecent, removeRecent, removeRecentMany, type RecentEntry } from "../lib/recent";
 import { cachedLiveIndex, fetchLiveIndex, type LiveIndex } from "../lib/liveIndex";
-import { disableSync, enableSync, joinSync, loadSyncCode, syncPull, syncPush } from "../lib/sync";
+import { disableSync, enableSync, hasEditAccess, joinSync, loadEditKey, loadSyncCode, syncPull, syncPush } from "../lib/sync";
+import { codeToKorean } from "../lib/syncWords";
 import { BandGauge } from "../components/BandGauge";
 import { SearchBox } from "../components/SearchBox";
 
@@ -67,8 +68,12 @@ export function Home({ master, index, indexError, onPick }: {
   const [selectedRecent, setSelectedRecent] = useState<Set<string>>(() => new Set());
   const [swipedRecent, setSwipedRecent] = useState<string | null>(null);
   const [syncCode, setSyncCode] = useState<string | null>(() => loadSyncCode());
+  const [syncEditKey, setSyncEditKey] = useState<string | null>(() => loadEditKey());
+  const [syncReadOnly, setSyncReadOnly] = useState(() => loadSyncCode() !== null && !hasEditAccess());
   const [syncOpen, setSyncOpen] = useState(false);
-  const [syncJoinInput, setSyncJoinInput] = useState("");
+  const [syncShowEditKey, setSyncShowEditKey] = useState(false);
+  const [syncJoinCode, setSyncJoinCode] = useState("");
+  const [syncJoinEditKey, setSyncJoinEditKey] = useState("");
   const [syncBusy, setSyncBusy] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
 
@@ -176,15 +181,22 @@ export function Home({ master, index, indexError, onPick }: {
     setSyncBusy(true);
     setSyncError(null);
     enableSync()
-      .then((code) => setSyncCode(code))
+      .then(({ code, editKey }) => { setSyncCode(code); setSyncEditKey(editKey); setSyncReadOnly(false); setSyncShowEditKey(true); })
       .catch((e) => setSyncError(`동기화 코드를 만들지 못했습니다 (${(e as Error).message}).`))
       .finally(() => setSyncBusy(false));
   };
   const handleJoinSync = () => {
     setSyncBusy(true);
     setSyncError(null);
-    joinSync(syncJoinInput)
-      .then((merged) => { setRecent(merged); setSyncCode(loadSyncCode()); setSyncJoinInput(""); })
+    joinSync(syncJoinCode, syncJoinEditKey)
+      .then(({ recent: merged, readOnly }) => {
+        setRecent(merged);
+        setSyncCode(loadSyncCode());
+        setSyncEditKey(loadEditKey());
+        setSyncReadOnly(readOnly);
+        setSyncJoinCode("");
+        setSyncJoinEditKey("");
+      })
       .catch((e) => setSyncError(`코드를 적용하지 못했습니다 (${(e as Error).message}).`))
       .finally(() => setSyncBusy(false));
   };
@@ -192,6 +204,8 @@ export function Home({ master, index, indexError, onPick }: {
     if (!window.confirm("이 기기의 동기화를 끌까요? (다른 기기의 목록과 코드는 그대로 남습니다)")) return;
     disableSync();
     setSyncCode(null);
+    setSyncEditKey(null);
+    setSyncReadOnly(false);
     setSyncError(null);
   };
   const startRowLongPress = (code: string) => {
@@ -226,25 +240,49 @@ export function Home({ master, index, indexError, onPick }: {
         <SearchBox master={master} onPick={onPick} autoFocus />
         <div className="sync-section">
           <button type="button" className={"sync-toggle-btn" + (syncOpen ? " on" : "")} onClick={() => { setSyncOpen((v) => !v); setSyncError(null); }}>
-            {syncCode ? "다른 기기와 동기화 중" : "다른 기기와 최근 조회 동기화"}
+            {syncCode ? (syncReadOnly ? "다른 기기 목록 보는 중 (보기 전용)" : "다른 기기와 동기화 중") : "다른 기기와 최근 조회 동기화"}
           </button>
           {syncOpen && (
             <div className="sync-panel">
               {syncCode ? (
                 <>
-                  <p className="sync-desc">이 코드를 다른 기기 "동기화" 화면에 입력하면 최근 조회 목록을 함께 씁니다.</p>
-                  <div className="sync-code-row"><span className="sync-code">{syncCode}</span></div>
+                  <p className="sync-desc">
+                    <strong>보기 코드</strong> — 아는 사람은 누구나 이 목록을 볼 수 있습니다.
+                  </p>
+                  <div className="sync-code-row"><span className="sync-code">{codeToKorean(syncCode)}</span></div>
+                  {syncEditKey ? (
+                    <>
+                      <p className="sync-desc">
+                        <strong>편집 키</strong> — 내 다른 기기에만 입력하세요. 이 키를 아는 기기만 목록을 바꿀 수 있습니다.
+                      </p>
+                      {syncShowEditKey ? (
+                        <div className="sync-code-row">
+                          <span className="sync-code sync-code-secret">{codeToKorean(syncEditKey)}</span>
+                          <button type="button" className="sync-edit-btn" onClick={() => setSyncShowEditKey(false)}>가리기</button>
+                        </div>
+                      ) : (
+                        <button type="button" className="sync-edit-btn" onClick={() => setSyncShowEditKey(true)}>편집 키 보기</button>
+                      )}
+                    </>
+                  ) : (
+                    <p className="sync-desc sync-readonly-note">
+                      보기 전용입니다 — 이 기기에서는 목록을 바꿀 수 없습니다. 편집하려면 편집 키를 알아야 합니다.
+                    </p>
+                  )}
                   <button type="button" className="sync-off-btn" onClick={handleDisableSync}>이 기기 동기화 끄기</button>
                 </>
               ) : (
                 <>
                   <p className="sync-desc">코드를 만들어 다른 기기에 입력하거나, 다른 기기에서 받은 코드를 입력하세요.</p>
                   <button type="button" className="sync-edit-btn" onClick={handleEnableSync} disabled={syncBusy}>코드 만들기</button>
-                  <div className="sync-join-row">
-                    <input type="text" inputMode="text" maxLength={8} placeholder="코드 8자리 입력" value={syncJoinInput}
-                      onChange={(e) => setSyncJoinInput(e.target.value.toUpperCase())}
+                  <div className="sync-join-fields">
+                    <input type="text" inputMode="text" placeholder="보기 코드 (예: 사과 호랑이 의자)" value={syncJoinCode}
+                      onChange={(e) => setSyncJoinCode(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter") handleJoinSync(); }} className="sync-join-input" />
-                    <button type="button" className="sync-edit-btn" onClick={handleJoinSync} disabled={syncBusy || syncJoinInput.trim().length === 0}>코드 입력</button>
+                    <input type="text" inputMode="text" placeholder="편집 키 (내 기기면 입력, 그냥 보기만 하면 비워두세요)" value={syncJoinEditKey}
+                      onChange={(e) => setSyncJoinEditKey(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleJoinSync(); }} className="sync-join-input" />
+                    <button type="button" className="sync-edit-btn" onClick={handleJoinSync} disabled={syncBusy || syncJoinCode.trim().length === 0}>코드 입력</button>
                   </div>
                 </>
               )}
