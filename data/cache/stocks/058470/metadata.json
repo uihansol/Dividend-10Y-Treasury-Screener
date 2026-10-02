@@ -6,8 +6,8 @@
  "dividend_through": "2026-10-02",
  "us10y_through": "2026-10-01",
  "created_at": "2026-10-02T19:18:29+09:00",
- "updated_at": "2026-10-02T19:18:53+09:00",
- "last_attempt": "2026-10-02T19:18:53+09:00",
+ "updated_at": "2026-10-02T19:19:10+09:00",
+ "last_attempt": "2026-10-02T19:19:10+09:00",
  "last_error": null,
  "steps": {},
  "valuation_date": "2026-10-02",
@@ -23,13 +23,15 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 16.6,
-  "p10": 0.1684,
-  "p90": 1.4804,
+  "pct": 15.2,
+  "p10": 0.1655,
+  "p90": 0.4006,
   "mcap": null,
   "tv": 191500458400.0,
   "has_div_data": true,
   "flags": [],
-  "tags": []
+  "tags": [
+   "crown"
+  ]
  }
 }
