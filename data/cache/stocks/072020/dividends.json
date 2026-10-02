@@ -1,0 +1,634 @@
+{
+ "log": {
+  "2026-H1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:46+09:00",
+   "parser_version": 2
+  },
+  "2026-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:47+09:00",
+   "parser_version": 2
+  },
+  "2025-FY": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:47+09:00",
+   "parser_version": 2
+  },
+  "2025-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:48+09:00",
+   "parser_version": 2
+  },
+  "2025-H1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:48+09:00",
+   "parser_version": 2
+  },
+  "2025-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:49+09:00",
+   "parser_version": 2
+  },
+  "2024-FY": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:49+09:00",
+   "parser_version": 2
+  },
+  "2024-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:50+09:00",
+   "parser_version": 2
+  },
+  "2024-H1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:50+09:00",
+   "parser_version": 2
+  },
+  "2024-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:51+09:00",
+   "parser_version": 2
+  },
+  "2023-FY": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:51+09:00",
+   "parser_version": 2
+  },
+  "2023-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:52+09:00",
+   "parser_version": 2
+  },
+  "2023-H1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:52+09:00",
+   "parser_version": 2
+  },
+  "2023-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:52+09:00",
+   "parser_version": 2
+  },
+  "2022-FY": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:53+09:00",
+   "parser_version": 2
+  },
+  "2022-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:53+09:00",
+   "parser_version": 2
+  },
+  "2022-H1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:54+09:00",
+   "parser_version": 2
+  },
+  "2022-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:54+09:00",
+   "parser_version": 2
+  },
+  "2021-FY": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:55+09:00",
+   "parser_version": 2
+  },
+  "2021-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:55+09:00",
+   "parser_version": 2
+  },
+  "2021-H1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:56+09:00",
+   "parser_version": 2
+  },
+  "2021-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:56+09:00",
+   "parser_version": 2
+  },
+  "2020-FY": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:57+09:00",
+   "parser_version": 2
+  },
+  "2020-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:57+09:00",
+   "parser_version": 2
+  },
+  "2020-H1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:58+09:00",
+   "parser_version": 2
+  },
+  "2020-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:58+09:00",
+   "parser_version": 2
+  },
+  "2019-FY": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:59+09:00",
+   "parser_version": 2
+  },
+  "2019-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:44:59+09:00",
+   "parser_version": 2
+  },
+  "2019-H1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:00+09:00",
+   "parser_version": 2
+  },
+  "2019-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:00+09:00",
+   "parser_version": 2
+  },
+  "2018-FY": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:01+09:00",
+   "parser_version": 2
+  },
+  "2018-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:01+09:00",
+   "parser_version": 2
+  },
+  "2018-H1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:02+09:00",
+   "parser_version": 2
+  },
+  "2018-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:02+09:00",
+   "parser_version": 2
+  },
+  "2017-FY": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:02+09:00",
+   "parser_version": 2
+  },
+  "2017-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:03+09:00",
+   "parser_version": 2
+  },
+  "2017-H1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:03+09:00",
+   "parser_version": 2
+  },
+  "2017-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:04+09:00",
+   "parser_version": 2
+  },
+  "2016-FY": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:04+09:00",
+   "parser_version": 2
+  },
+  "2016-Q3": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:05+09:00",
+   "parser_version": 2
+  },
+  "2016-H1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:05+09:00",
+   "parser_version": 2
+  },
+  "2016-Q1": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:06+09:00",
+   "parser_version": 2
+  },
+  "2015-FY": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:06+09:00",
+   "parser_version": 2
+  },
+  "2015-Q3": {
+   "status": "no_data",
+   "fetched_at": "2026-10-02T19:45:07+09:00",
+   "parser_version": 2
+  },
+  "2015-H1": {
+   "status": "no_data",
+   "fetched_at": "2026-10-02T19:45:07+09:00",
+   "parser_version": 2
+  },
+  "2015-Q1": {
+   "status": "no_data",
+   "fetched_at": "2026-10-02T19:45:07+09:00",
+   "parser_version": 2
+  }
+ },
+ "reports": [
+  {
+   "fiscal_year": 2015,
+   "period": "FY",
+   "cum_dps": 50.0,
+   "rcept_no": "20160518000023",
+   "confirmed_date": "2016-05-18",
+   "basis_date": "2015-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2016,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20160513002605",
+   "confirmed_date": "2016-05-13",
+   "basis_date": "2016-03-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2016,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20160812000200",
+   "confirmed_date": "2016-08-12",
+   "basis_date": "2016-06-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2016,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20161114000625",
+   "confirmed_date": "2016-11-14",
+   "basis_date": "2016-09-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2016,
+   "period": "FY",
+   "cum_dps": 50.0,
+   "rcept_no": "20170331003606",
+   "confirmed_date": "2017-03-31",
+   "basis_date": "2016-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2017,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20170512006112",
+   "confirmed_date": "2017-05-12",
+   "basis_date": "2017-03-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2017,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20170814001062",
+   "confirmed_date": "2017-08-14",
+   "basis_date": "2017-06-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2017,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20171114000192",
+   "confirmed_date": "2017-11-14",
+   "basis_date": "2017-09-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2017,
+   "period": "FY",
+   "cum_dps": 50.0,
+   "rcept_no": "20180328000519",
+   "confirmed_date": "2018-03-28",
+   "basis_date": "2017-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2018,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20180515000948",
+   "confirmed_date": "2018-05-15",
+   "basis_date": "2018-03-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2018,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20180813000174",
+   "confirmed_date": "2018-08-13",
+   "basis_date": "2018-06-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2018,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20181114000292",
+   "confirmed_date": "2018-11-14",
+   "basis_date": "2018-09-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2018,
+   "period": "FY",
+   "cum_dps": 50.0,
+   "rcept_no": "20190411001772",
+   "confirmed_date": "2019-04-11",
+   "basis_date": "2018-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2019,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20190514001113",
+   "confirmed_date": "2019-05-14",
+   "basis_date": "2019-03-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2019,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20190813000465",
+   "confirmed_date": "2019-08-13",
+   "basis_date": "2019-06-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2019,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20191114000754",
+   "confirmed_date": "2019-11-14",
+   "basis_date": "2019-09-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2019,
+   "period": "FY",
+   "cum_dps": 50.0,
+   "rcept_no": "20200330002663",
+   "confirmed_date": "2020-03-30",
+   "basis_date": "2019-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2020,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20200514000116",
+   "confirmed_date": "2020-05-14",
+   "basis_date": "2020-03-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2020,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20200813000203",
+   "confirmed_date": "2020-08-13",
+   "basis_date": "2020-06-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2020,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20201113000169",
+   "confirmed_date": "2020-11-13",
+   "basis_date": "2020-09-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2020,
+   "period": "FY",
+   "cum_dps": 70.0,
+   "rcept_no": "20210317000278",
+   "confirmed_date": "2021-03-17",
+   "basis_date": "2020-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2021,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20210514000637",
+   "confirmed_date": "2021-05-14",
+   "basis_date": "2021-03-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2021,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20210813000704",
+   "confirmed_date": "2021-08-13",
+   "basis_date": "2021-06-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2021,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20211126000639",
+   "confirmed_date": "2021-11-26",
+   "basis_date": "2021-09-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2021,
+   "period": "FY",
+   "cum_dps": 100.0,
+   "rcept_no": "20220321000952",
+   "confirmed_date": "2022-03-21",
+   "basis_date": "2021-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2022,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20220516000720",
+   "confirmed_date": "2022-05-16",
+   "basis_date": "2022-03-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2022,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20220826000503",
+   "confirmed_date": "2022-08-26",
+   "basis_date": "2022-06-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2022,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20221128000070",
+   "confirmed_date": "2022-11-28",
+   "basis_date": "2022-09-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2022,
+   "period": "FY",
+   "cum_dps": 100.0,
+   "rcept_no": "20230320000557",
+   "confirmed_date": "2023-03-20",
+   "basis_date": "2022-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2023,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20230515000106",
+   "confirmed_date": "2023-05-15",
+   "basis_date": "2023-03-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2023,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20230814000523",
+   "confirmed_date": "2023-08-14",
+   "basis_date": "2023-06-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2023,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20231114000812",
+   "confirmed_date": "2023-11-14",
+   "basis_date": "2023-09-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2023,
+   "period": "FY",
+   "cum_dps": 150.0,
+   "rcept_no": "20240318000413",
+   "confirmed_date": "2024-03-18",
+   "basis_date": "2023-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2024,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20240514000791",
+   "confirmed_date": "2024-05-14",
+   "basis_date": "2024-03-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2024,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20240814003099",
+   "confirmed_date": "2024-08-14",
+   "basis_date": "2024-06-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2024,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20241114001127",
+   "confirmed_date": "2024-11-14",
+   "basis_date": "2024-09-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2024,
+   "period": "FY",
+   "cum_dps": 170.0,
+   "rcept_no": "20250317000811",
+   "confirmed_date": "2025-03-17",
+   "basis_date": "2024-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2025,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20250514000791",
+   "confirmed_date": "2025-05-14",
+   "basis_date": "2025-03-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2025,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20250814003043",
+   "confirmed_date": "2025-08-14",
+   "basis_date": "2025-06-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2025,
+   "period": "Q3",
+   "cum_dps": 0.0,
+   "rcept_no": "20251114000527",
+   "confirmed_date": "2025-11-14",
+   "basis_date": "2025-09-30",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2025,
+   "period": "FY",
+   "cum_dps": 200.0,
+   "rcept_no": "20260316001508",
+   "confirmed_date": "2026-03-16",
+   "basis_date": "2025-12-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2026,
+   "period": "Q1",
+   "cum_dps": 0.0,
+   "rcept_no": "20260515001342",
+   "confirmed_date": "2026-05-15",
+   "basis_date": "2026-03-31",
+   "stock_knd": "-"
+  },
+  {
+   "fiscal_year": 2026,
+   "period": "H1",
+   "cum_dps": 0.0,
+   "rcept_no": "20260814001832",
+   "confirmed_date": "2026-08-14",
+   "basis_date": "2026-06-30",
+   "stock_knd": "-"
+  }
+ ],
+ "announcements": {
+  "20260206901453": {
+   "status": "ok",
+   "fetched_at": "2026-10-02T19:45:08+09:00",
+   "report_nm": "현금ㆍ현물배당결정              ",
+   "rcept_no": "20260206901453",
+   "confirmed_date": "2026-02-06",
+   "basis_date": "2025-12-31",
+   "amount": 200.0
+  }
+ }
+}
