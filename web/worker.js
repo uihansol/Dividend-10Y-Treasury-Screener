@@ -254,7 +254,7 @@ async function syncHandler(code, req, env) {
   return json({ error: "method not allowed" }, 405);
 }
 
-const BATCH_REFRESH_MAX = 50;
+const BATCH_REFRESH_MAX = 100;
 
 /** 쉼표 다중 추가로 한 번도 수집된 적 없는 종목들을 받아, 시간차를 두고 개별 수집을 요청하는 배치
  * 워크플로를 한 번만 깨운다. 이 요청 자체는 dispatch만 보내고 끝나며, 실제 수집·커밋은 전부
