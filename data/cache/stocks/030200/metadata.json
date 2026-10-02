@@ -2,62 +2,56 @@
  "code": "030200",
  "name": "KT",
  "market": "KOSPI",
- "price_through": "2026-09-23",
- "dividend_through": "2026-09-28",
+ "price_through": "2026-10-02",
+ "dividend_through": "2026-10-02",
  "us10y_through": "2026-10-01",
  "created_at": "2026-09-28T00:36:14+09:00",
- "updated_at": "2026-09-28T00:54:48+09:00",
- "last_attempt": "2026-09-28T00:54:48+09:00",
+ "updated_at": "2026-10-02T18:22:34+09:00",
+ "last_attempt": "2026-10-02T18:22:34+09:00",
  "last_error": null,
  "steps": {
   "prices": {
    "mode": "incremental",
-   "added": 0,
-   "from": "2026-09-24"
+   "added": 5,
+   "from": "2026-09-25",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 38
+   "mode": "incremental",
+   "added": 43
   },
   "announcements": {
    "mode": "check",
-   "added": 2
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
+   "added": 0
   }
  },
- "recomputed_at": "2026-10-02T10:14:16+09:00",
+ "valuation_date": "2026-10-02",
  "summary": {
   "code": "030200",
   "name": "KT",
   "market": "KOSPI",
-  "price": 52700.0,
-  "price_date": "2026-09-23",
-  "dps": 3000.0,
-  "yield": 5.6926,
-  "multiple": 1.0864,
+  "price": 51900.0,
+  "price_date": "2026-10-02",
+  "dps": 2400.0,
+  "yield": 4.6243,
+  "multiple": 0.8825,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 24.7,
-  "p10": 0.9147,
-  "p90": 3.3411,
+  "pct": 6.3,
+  "p10": 0.9188,
+  "p90": 3.3451,
   "mcap": null,
-  "tv": 9472487350.0,
+  "tv": 8937395478.0,
   "has_div_data": true,
   "flags": [
-   "provisional_dividend_used"
+   "prior_year_unconfirmed_periods_filled"
   ],
   "tags": [
-   "crown",
-   "bomb"
+   "crown"
   ]
  }
 }
