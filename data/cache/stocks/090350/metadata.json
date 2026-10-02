@@ -6,10 +6,12 @@
  "dividend_through": "2026-10-02",
  "us10y_through": "2026-10-01",
  "created_at": "2026-10-02T19:29:54+09:00",
- "updated_at": "2026-10-02T19:35:44+09:00",
- "last_attempt": "2026-10-02T19:35:44+09:00",
+ "updated_at": "2026-10-02T19:36:06+09:00",
+ "last_attempt": "2026-10-02T19:36:06+09:00",
  "last_error": null,
- "steps": {},
+ "steps": {
+  "cache": "cooldown: 네트워크 조회 생략"
+ },
  "valuation_date": "2026-10-02",
  "summary": {
   "code": "090350",
