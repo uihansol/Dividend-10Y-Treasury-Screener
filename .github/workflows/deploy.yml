@@ -64,16 +64,24 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           TITLE="dividend10y-recent-sync"
-          ID="$(npx -y wrangler@4 kv namespace list 2>/dev/null | jq -r --arg t "$TITLE" '.[] | select(.title == $t) | .id' | head -1)"
+          echo "::group::kv namespace list"
+          LIST_OUT="$(npx -y wrangler@4 kv namespace list 2>&1)"
+          echo "$LIST_OUT"
+          echo "::endgroup::"
+          ID="$(echo "$LIST_OUT" | jq -r --arg t "$TITLE" '.[] | select(.title == $t) | .id' 2>/dev/null | head -1)"
           if [ -z "$ID" ]; then
-            OUT="$(npx -y wrangler@4 kv namespace create "$TITLE" 2>&1)" || echo "$OUT"
+            echo "::group::kv namespace create"
+            OUT="$(npx -y wrangler@4 kv namespace create "$TITLE" 2>&1)"
+            echo "$OUT"
+            echo "::endgroup::"
             ID="$(echo "$OUT" | grep -oE '"id": *"[a-f0-9]+"' | grep -oE '[a-f0-9]+' | head -1)"
           fi
           if [ -n "$ID" ]; then
             sed -i "s/__SYNC_KV_ID__/$ID/" wrangler.toml
             sed -i '/# SYNC_KV_START/d; /# SYNC_KV_END/d' wrangler.toml
+            echo "::notice::동기화 KV 네임스페이스 id=$ID"
           else
-            echo "::warning::동기화 KV 네임스페이스를 준비하지 못해 '최근 조회 동기화 코드' 기능 없이 배포합니다 (CLOUDFLARE_API_TOKEN에 Workers KV Storage 편집 권한이 있는지 확인하세요)."
+            echo "::warning::동기화 KV 네임스페이스를 준비하지 못해 '최근 조회 동기화 코드' 기능 없이 배포합니다 (CLOUDFLARE_API_TOKEN에 Workers KV Storage 편집 권한이 있는지 확인하세요. 위 group 로그에 실제 오류가 있습니다)."
             sed -i '/# SYNC_KV_START/,/# SYNC_KV_END/d' wrangler.toml
           fi
 
