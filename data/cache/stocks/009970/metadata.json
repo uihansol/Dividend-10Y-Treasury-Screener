@@ -1,0 +1,57 @@
+{
+ "code": "009970",
+ "name": "영원무역홀딩스",
+ "market": "KOSPI",
+ "price_through": "2026-10-02",
+ "dividend_through": "2026-10-02",
+ "us10y_through": "2026-10-01",
+ "created_at": "2026-10-02T19:23:39+09:00",
+ "updated_at": "2026-10-02T19:23:39+09:00",
+ "last_attempt": "2026-10-02T19:23:39+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 61,
+   "from": "2026-07-04",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 43
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 2
+  }
+ },
+ "valuation_date": "2026-10-02",
+ "summary": {
+  "code": "009970",
+  "name": "영원무역홀딩스",
+  "market": "KOSPI",
+  "price": 160900.0,
+  "price_date": "2026-10-02",
+  "dps": 7176.0,
+  "yield": 4.4599,
+  "multiple": 0.8511,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 97.5,
+  "p10": 0.7036,
+  "p90": 0.8235,
+  "mcap": null,
+  "tv": 1520000200.0,
+  "has_div_data": true,
+  "flags": [
+   "provisional_dividend_used"
+  ],
+  "tags": [
+   "crown"
+  ]
+ }
+}
