@@ -1,0 +1,55 @@
+{
+ "code": "009290",
+ "name": "광동제약",
+ "market": "KOSPI",
+ "price_through": "2026-10-02",
+ "dividend_through": "2026-10-02",
+ "us10y_through": "2026-10-01",
+ "created_at": "2026-10-02T19:33:32+09:00",
+ "updated_at": "2026-10-02T19:33:32+09:00",
+ "last_attempt": "2026-10-02T19:33:32+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 61,
+   "from": "2026-07-04",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 43
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 1
+  }
+ },
+ "valuation_date": "2026-10-02",
+ "summary": {
+  "code": "009290",
+  "name": "광동제약",
+  "market": "KOSPI",
+  "price": 6550.0,
+  "price_date": "2026-10-02",
+  "dps": 100.0,
+  "yield": 1.5267,
+  "multiple": 0.2914,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 2.5,
+  "p10": 0.3119,
+  "p90": 0.3638,
+  "mcap": null,
+  "tv": 879452935.0,
+  "has_div_data": true,
+  "flags": [],
+  "tags": [
+   "crown"
+  ]
+ }
+}
