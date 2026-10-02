@@ -6,28 +6,10 @@
  "dividend_through": "2026-10-02",
  "us10y_through": "2026-10-01",
  "created_at": "2026-10-02T19:16:05+09:00",
- "updated_at": "2026-10-02T19:16:05+09:00",
- "last_attempt": "2026-10-02T19:16:05+09:00",
+ "updated_at": "2026-10-02T19:16:25+09:00",
+ "last_attempt": "2026-10-02T19:16:25+09:00",
  "last_error": null,
- "steps": {
-  "prices": {
-   "mode": "initial",
-   "added": 61,
-   "from": "2026-07-04",
-   "recent_first": true,
-   "recent_days": 7,
-   "quick_initial": true,
-   "gap_filled": false
-  },
-  "dividends": {
-   "mode": "initial",
-   "added": 43
-  },
-  "announcements": {
-   "mode": "check",
-   "added": 2
-  }
- },
+ "steps": {},
  "valuation_date": "2026-10-02",
  "summary": {
   "code": "134380",
@@ -35,15 +17,15 @@
   "market": "KOSPI",
   "price": 10130.0,
   "price_date": "2026-10-02",
-  "dps": 2750.0,
-  "yield": 27.1471,
-  "multiple": 5.1807,
+  "dps": 500.0,
+  "yield": 4.9358,
+  "multiple": 0.942,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 5.7,
-  "p10": 5.2682,
-  "p90": 9.8318,
+  "pct": 23.8,
+  "p10": 0.8684,
+  "p90": 1.1374,
   "mcap": null,
   "tv": 69461500.0,
   "has_div_data": true,
