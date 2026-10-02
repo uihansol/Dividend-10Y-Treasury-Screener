@@ -7,7 +7,7 @@
  "us10y_through": "2026-10-01",
  "created_at": "2026-10-02T19:22:44+09:00",
  "updated_at": "2026-10-02T19:22:44+09:00",
- "last_attempt": "2026-10-02T19:26:42+09:00",
+ "last_attempt": "2026-10-02T19:27:15+09:00",
  "last_error": {
   "dividends": "ConnectTimeout(MaxRetryError(\"HTTPSConnectionPool(host='opendart.fss.or.kr', port=443): Max retries exceeded with url: /api/alotMatter.json?crtfc_key=ec6c957ff8f9b45d3b178a078f1a48264aa8a565&corp_code=00157070&bsns_year=2026&reprt_code=11012 (Caused by ConnectTimeoutError(<HTTPSConnection(host='open"
  },
