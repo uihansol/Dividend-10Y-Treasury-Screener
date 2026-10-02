@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-09-23",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-09-30",
+ "us10y_through": "2026-10-01",
  "created_at": "2026-09-28T00:03:40+09:00",
  "updated_at": "2026-09-28T00:32:48+09:00",
  "last_attempt": "2026-09-28T00:32:48+09:00",
@@ -33,7 +33,7 @@
    ]
   }
  },
- "recomputed_at": "2026-10-01T09:58:20+09:00",
+ "recomputed_at": "2026-10-02T10:14:16+09:00",
  "summary": {
   "code": "032640",
   "name": "LG유플러스",
@@ -42,11 +42,11 @@
   "price_date": "2026-09-23",
   "dps": 550.0,
   "yield": 3.7568,
-  "multiple": 0.7102,
+  "multiple": 0.717,
   "paid10": 7,
   "known10": 7,
   "paid5": 5,
-  "pct": 0.7,
+  "pct": 0.9,
   "p10": 0.8287,
   "p90": 3.1585,
   "mcap": null,
