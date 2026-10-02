@@ -12,7 +12,7 @@
  "steps": {
   "cache": "cooldown: 네트워크 조회 생략"
  },
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:27+09:00",
  "summary": {
   "code": "002150",
   "name": "도화엔지니어링",
@@ -27,7 +27,7 @@
   "paid5": 5,
   "pct": 53.8,
   "p10": 0.8081,
-  "p90": 2.8061,
+  "p90": 2.604,
   "mcap": null,
   "tv": 181364660.0,
   "has_div_data": true,

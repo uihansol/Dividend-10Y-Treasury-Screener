@@ -12,7 +12,7 @@
  "steps": {
   "cache": "cooldown: 네트워크 조회 생략"
  },
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:30+09:00",
  "summary": {
   "code": "067160",
   "name": "SOOP",
@@ -25,9 +25,9 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 98.9,
-  "p10": 0.1199,
-  "p90": 1.0979,
+  "pct": 92.3,
+  "p10": 0.1978,
+  "p90": 1.537,
   "mcap": null,
   "tv": 916504550.0,
   "has_div_data": true,

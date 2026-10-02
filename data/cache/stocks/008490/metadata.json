@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:28+09:00",
  "summary": {
   "code": "008490",
   "name": "서흥",
@@ -41,9 +41,9 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 56.8,
+  "pct": 61.8,
   "p10": 0.1725,
-  "p90": 0.7333,
+  "p90": 0.7118,
   "mcap": null,
   "tv": 163662675.0,
   "has_div_data": true,

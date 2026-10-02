@@ -314,7 +314,21 @@ def expected_dps_asof(t: date, years: dict[int, FiscalYear], mode: str = "substi
 
     O = years.get(F.year + 1)
     o_events = dividend_events(O, t)
-    if o_events:
+    if o_events and not F.interims and F.year == min(years):
+        # 데이터 첫해에 분기·반기 보고서가 없으면(DART에 2015년 분기 배당 자료가 없음) 연간 DPS를 중간·기말로
+        # 나눌 수 없다. 그대로 기말로 보고 올해 중간배당을 더하면 같은 배당을 두 번 센다(현대차 2016년 8월:
+        # 1,000 + 4,000 = 5,000, 실제 연간 4,000). 전년도 연간 DPS 중 올해 이미 받은 만큼을 뺀 나머지만 더한다.
+        # 첫해가 아니면 분기 보고서가 없다는 건 중간배당이 없던 해라는 뜻이라 기존 방식대로 더한다.
+        cum_o = O.interim_cum_asof(t)[0]
+        rest_annual = max((F.fy_total or 0.0) - cum_o, 0.0)
+        comps.extend(_event_components(O, _raw_increments(O, t)))
+        comps.append(DpsComponent(f"{F.year}년 연간배당 중 나머지 (분기 자료 없음)", "final", F.year,
+                                  rest_annual, F.fy_confirmed, F.fy_ref))
+        flags += list(O.flags) + ["prior_year_interims_unknown"]
+        if any(is_provisional_period(p) for p, *_ in o_events):
+            flags.append("provisional_dividend_used")
+        value = cum_o + rest_annual
+    elif o_events:
         cum_o = O.interim_cum_asof(t)[0]
         f_events = [] if "interim_exceeds_annual" in F.flags else dividend_events(F)
         rest = f_events[len(o_events):]

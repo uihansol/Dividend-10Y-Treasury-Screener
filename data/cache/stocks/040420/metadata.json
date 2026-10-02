@@ -10,7 +10,7 @@
  "last_attempt": "2026-10-02T19:22:10+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:29+09:00",
  "summary": {
   "code": "040420",
   "name": "정상제이엘에스",
@@ -25,7 +25,7 @@
   "paid5": 5,
   "pct": 3.4,
   "p10": 1.8573,
-  "p90": 6.0594,
+  "p90": 5.0299,
   "mcap": null,
   "tv": 27445820.0,
   "has_div_data": true,

@@ -10,7 +10,7 @@
  "last_attempt": "2026-10-02T21:27:40+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:30+09:00",
  "summary": {
   "code": "108670",
   "name": "LX하우시스",
@@ -25,7 +25,7 @@
   "paid5": 4,
   "pct": 2.8,
   "p10": 0.1109,
-  "p90": 1.1248,
+  "p90": 1.0068,
   "mcap": null,
   "tv": 723522000.0,
   "has_div_data": true,

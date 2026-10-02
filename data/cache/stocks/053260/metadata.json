@@ -10,7 +10,7 @@
  "last_attempt": "2026-10-02T19:42:26+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:29+09:00",
  "summary": {
   "code": "053260",
   "name": "금강철강",
@@ -25,7 +25,7 @@
   "paid5": 5,
   "pct": 5.2,
   "p10": 0.4898,
-  "p90": 2.3261,
+  "p90": 2.1621,
   "mcap": null,
   "tv": 3410516110.0,
   "has_div_data": true,

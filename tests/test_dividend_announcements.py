@@ -198,6 +198,33 @@ def test_to_reports_includes_provisional_alongside_periodic():
     assert periods == {(2025, "FY"), (2026, "Q1"), (2026, "PROV_H1")}
 
 
+# ------------------------------------------------------------------ 정정공시로 밀린 접수일
+def test_corrected_reports_count_from_filing_deadline_not_correction_date():
+    """현대차(005380) 원 데이터: 2015~2020 사업보고서가 2022-02-17 정정본 접수번호로만 남아,
+    2015~2022년 2월 시가배당률이 통째로 비고 그 뒤 2년간은 이미 공시된 배당 대신 2020년 값을 썼다."""
+    div = {"reports": [_periodic(y, "FY", v, "2022-02-17") for y, v in
+                       ((2015, 4000), (2016, 4000), (2017, 4000), (2018, 4000), (2019, 4000), (2020, 3000))]
+               + [_periodic(2021, "FY", 5000, "2024-03-14"), _periodic(2022, "FY", 7000, "2024-03-14")]}
+    fy = {r.fiscal_year: r.confirmed_date for r in to_reports(div) if r.period == "FY"}
+    assert fy[2015] == D(2016, 3, 30)          # 결산일 + 90일
+    assert fy[2021] == D(2022, 3, 31)
+    years = build_fiscal_years(to_reports(div), [])
+    assert expected_dps_asof(D(2016, 6, 1), years).value == 4000
+    assert expected_dps_asof(D(2022, 6, 1), years).value == 5000
+    assert expected_dps_asof(D(2023, 6, 1), years).value == 7000
+
+
+def test_reports_filed_on_time_keep_their_own_date():
+    div = {"reports": [_periodic(2025, "FY", 6000, "2026-03-18"), _periodic(2026, "Q1", 300, "2026-05-15")]}
+    got = {(r.fiscal_year, r.period): r.confirmed_date for r in to_reports(div)}
+    assert got == {(2025, "FY"): D(2026, 3, 18), (2026, "Q1"): D(2026, 5, 15)}
+
+
+def test_corrected_interim_report_capped_at_sixty_days():
+    div = {"reports": [_periodic(2024, "H1", 500, "2025-01-20")]}
+    assert to_reports(div)[0].confirmed_date == D(2024, 8, 29)   # 6/30 + 60일
+
+
 # ------------------------------------------------------------------ 같은 해 공시가 여럿일 때 (원 데이터 기반)
 def _ann(conf, basis, amount, rno=None):
     return {"status": "ok", "confirmed_date": conf, "basis_date": basis, "amount": amount,

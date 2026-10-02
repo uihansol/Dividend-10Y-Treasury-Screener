@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T18:37:19+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-10-02T10:14:16+09:00",
+ "recomputed_at": "2026-10-02T21:39:30+09:00",
  "summary": {
   "code": "058630",
   "name": "엠게임",
@@ -25,7 +25,7 @@
   "paid5": 2,
   "pct": 98.1,
   "p10": 0.0,
-  "p90": 0.6094,
+  "p90": 0.6118,
   "mcap": null,
   "tv": 152247597.0,
   "has_div_data": true,

@@ -555,3 +555,37 @@ def test_expected_dps_does_not_split_a_larger_dividend_after_a_paid_period():
         R(2026, "H1", 800, D(2026, 6, 30), D(2026, 8, 18)),
     ]
     assert expected_dps_asof(D(2026, 9, 28), build_fiscal_years(rows, [])).value == pytest.approx(1600)
+
+
+# --- 전년도 분기 자료가 아예 없을 때 (DART 2015년 분기 배당 공백) ------------------------------
+def test_prior_year_without_interim_reports_does_not_double_count_this_years_interim():
+    """현대차(005380): 2015년은 사업보고서(연간 4,000)만 있고 분기·반기 자료가 없다. 2016년 반기 1,000원이
+    나왔을 때 2015년 4,000원을 전부 기말로 보고 더하면 5,000원(실제 연간 4,000원)이 된다."""
+    years = build_fiscal_years([
+        R(2015, "FY", 4000, D(2015, 12, 31), D(2016, 3, 30)),
+        R(2016, "Q1", 0, D(2016, 3, 31), D(2016, 5, 16)),
+        R(2016, "H1", 1000, D(2016, 6, 30), D(2016, 8, 16)),
+    ], [])
+    e = expected_dps_asof(D(2016, 9, 1), years)
+    assert e.value == 4000
+    assert "prior_year_interims_unknown" in e.flags
+    assert sum(c.dps for c in e.components) == pytest.approx(4000)
+
+
+def test_this_years_interim_above_prior_annual_is_kept_when_prior_interims_unknown():
+    years = build_fiscal_years([
+        R(2015, "FY", 1000, D(2015, 12, 31), D(2016, 3, 30)),
+        R(2016, "H1", 1500, D(2016, 6, 30), D(2016, 8, 16)),
+    ], [])
+    assert expected_dps_asof(D(2016, 9, 1), years).value == 1500
+
+
+def test_prior_year_with_zero_interim_reports_still_adds_new_interim():
+    """전년도 분기보고서가 있고 0원이었다면(진짜로 중간배당이 없던 해) 올해 새로 시작한 중간배당은 더한다."""
+    years = build_fiscal_years([
+        R(2015, "Q1", 0, D(2015, 3, 31), D(2015, 5, 15)),
+        R(2015, "H1", 0, D(2015, 6, 30), D(2015, 8, 14)),
+        R(2015, "FY", 4000, D(2015, 12, 31), D(2016, 3, 30)),
+        R(2016, "H1", 1000, D(2016, 6, 30), D(2016, 8, 16)),
+    ], [])
+    assert expected_dps_asof(D(2016, 9, 1), years).value == 5000

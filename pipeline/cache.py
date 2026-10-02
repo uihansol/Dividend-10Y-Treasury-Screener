@@ -219,16 +219,32 @@ def update_stock_announcement_cache(code: str, corp_code: str, today: date | Non
     return out, {"mode": "check", "added": len(new)}
 
 
+_PERIOD_END = {"Q1": (3, 31), "H1": (6, 30), "Q3": (9, 30), "FY": (12, 31)}
+# 법정 제출기한(자본시장법: 사업보고서 90일, 반기·분기 45일 — 최초 연결 대상 등은 60일이라 넉넉히 60일).
+_FILING_DEADLINE_DAYS = {"FY": 90, "Q1": 60, "H1": 60, "Q3": 60}
+
+
+def _period_end(r: dict) -> date:
+    m, d = _PERIOD_END[r["period"]]
+    return date.fromisoformat(r["basis_date"][:10]) if r.get("basis_date") else date(int(r["fiscal_year"]), m, d)
+
+
+def _first_public_date(r: dict) -> str:
+    """정기보고서 값이 처음 공개된 날. DART alotMatter는 보고서가 정정되면 정정본 접수번호를 돌려줘서
+    접수일이 수개월~수년 뒤로 밀린다(현대차 005380: 2015~2020 사업보고서가 모두 2022-02-17). 원본은
+    법정 기한 안에 나왔으므로 기한을 넘는 접수일은 기한으로 당긴다 — 그 사이 실제로 알려져 있던 배당을
+    역사적 계산에서 몇 년씩 못 쓰는 일을 막는다. 기한은 원본 제출일 이후이므로 미래 정보가 섞이지 않는다
+    (드물게 기한을 넘겨 지연 제출한 원본만 예외)."""
+    deadline = _period_end(r) + timedelta(days=_FILING_DEADLINE_DAYS[r["period"]])
+    return min(r["confirmed_date"], deadline.isoformat())
+
+
 def to_reports(div: dict) -> list[DividendReport]:
-    out = []
-    for r in div["reports"]:
-        if not r.get("confirmed_date"):
-            continue
-        m, d = {"Q1": (3, 31), "H1": (6, 30), "Q3": (9, 30), "FY": (12, 31)}[r["period"]]
-        basis = date.fromisoformat(r["basis_date"][:10]) if r.get("basis_date") else date(int(r["fiscal_year"]), m, d)
-        out.append(DividendReport(int(r["fiscal_year"]), r["period"], float(r["cum_dps"]), basis,
-                                  date.fromisoformat(r["confirmed_date"]), str(r.get("rcept_no", ""))))
-    out.extend(_provisional_reports(div))
+    reports = [{**r, "confirmed_date": _first_public_date(r)} for r in div["reports"] if r.get("confirmed_date")]
+    out = [DividendReport(int(r["fiscal_year"]), r["period"], float(r["cum_dps"]), _period_end(r),
+                          date.fromisoformat(r["confirmed_date"]), str(r.get("rcept_no", "")))
+           for r in reports]
+    out.extend(_provisional_reports({**div, "reports": reports}))
     return out
 
 

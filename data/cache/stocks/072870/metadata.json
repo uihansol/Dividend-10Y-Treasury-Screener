@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T18:37:16+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-10-02T10:14:16+09:00",
+ "recomputed_at": "2026-10-02T21:39:30+09:00",
  "summary": {
   "code": "072870",
   "name": "메가스터디",
@@ -23,7 +23,7 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 57.8,
+  "pct": 57.7,
   "p10": 0.7383,
   "p90": 3.4473,
   "mcap": null,

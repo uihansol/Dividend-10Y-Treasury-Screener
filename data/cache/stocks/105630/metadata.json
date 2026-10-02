@@ -12,7 +12,7 @@
  "steps": {
   "cache": "cooldown: 네트워크 조회 생략"
  },
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:30+09:00",
  "summary": {
   "code": "105630",
   "name": "한세실업",

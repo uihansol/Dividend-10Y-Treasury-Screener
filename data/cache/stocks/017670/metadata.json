@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:28+09:00",
  "summary": {
   "code": "017670",
   "name": "SK텔레콤",
@@ -43,7 +43,7 @@
   "paid5": 5,
   "pct": 10.0,
   "p10": 0.5378,
-  "p90": 4.2314,
+  "p90": 3.0628,
   "mcap": null,
   "tv": 50121633900.0,
   "has_div_data": true,

@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T22:31:59+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-10-02T10:14:16+09:00",
+ "recomputed_at": "2026-10-02T21:39:29+09:00",
  "summary": {
   "code": "036640",
   "name": "HRS",
@@ -23,7 +23,7 @@
   "paid10": 8,
   "known10": 10,
   "paid5": 5,
-  "pct": 70.1,
+  "pct": 71.2,
   "p10": 0.0,
   "p90": 1.7727,
   "mcap": null,

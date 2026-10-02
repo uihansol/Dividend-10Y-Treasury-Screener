@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:28+09:00",
  "summary": {
   "code": "010950",
   "name": "S-Oil",
@@ -43,7 +43,7 @@
   "paid5": 5,
   "pct": 24.0,
   "p10": 0.0245,
-  "p90": 2.1541,
+  "p90": 2.1526,
   "mcap": null,
   "tv": 74574067800.0,
   "has_div_data": true,

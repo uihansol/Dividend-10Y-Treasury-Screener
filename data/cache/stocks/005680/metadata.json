@@ -10,7 +10,7 @@
  "last_attempt": "2026-10-02T19:28:09+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:27+09:00",
  "summary": {
   "code": "005680",
   "name": "삼영전자",
@@ -25,7 +25,7 @@
   "paid5": 5,
   "pct": 1.5,
   "p10": 0.5967,
-  "p90": 1.9957,
+  "p90": 1.8829,
   "mcap": null,
   "tv": 193444120.0,
   "has_div_data": true,

@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T22:29:32+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-10-02T10:14:17+09:00",
+ "recomputed_at": "2026-10-02T21:39:30+09:00",
  "summary": {
   "code": "092130",
   "name": "이크레더블",
@@ -25,7 +25,7 @@
   "paid5": 5,
   "pct": 2.5,
   "p10": 1.2654,
-  "p90": 4.6067,
+  "p90": 4.6487,
   "mcap": null,
   "tv": 52410320.0,
   "has_div_data": true,

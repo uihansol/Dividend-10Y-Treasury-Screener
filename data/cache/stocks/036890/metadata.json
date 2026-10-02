@@ -10,7 +10,7 @@
  "last_attempt": "2026-10-02T19:39:59+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:29+09:00",
  "summary": {
   "code": "036890",
   "name": "진성티이씨",
@@ -25,7 +25,7 @@
   "paid5": 5,
   "pct": 26.0,
   "p10": 0.4393,
-  "p90": 2.0825,
+  "p90": 1.8962,
   "mcap": null,
   "tv": 461245200.0,
   "has_div_data": true,

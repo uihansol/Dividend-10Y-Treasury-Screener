@@ -10,7 +10,7 @@
  "last_attempt": "2026-10-02T19:40:51+09:00",
  "last_error": null,
  "steps": {},
- "valuation_date": "2026-10-02",
+ "recomputed_at": "2026-10-02T21:39:28+09:00",
  "summary": {
   "code": "005720",
   "name": "넥센",
@@ -25,7 +25,7 @@
   "paid5": 5,
   "pct": 22.7,
   "p10": 0.4004,
-  "p90": 2.6687,
+  "p90": 2.6381,
   "mcap": null,
   "tv": 987026870.0,
   "has_div_data": true,
