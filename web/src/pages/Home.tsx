@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CacheIndex, MasterStock } from "../lib/types";
 import { mult, pct, won, NA } from "../lib/format";
-import { requestRefresh } from "../lib/data";
+import { requestBatchRefresh } from "../lib/data";
 import { loadRecent, pushRecent, removeRecent, removeRecentMany, type RecentEntry } from "../lib/recent";
 import { cachedLiveIndex, fetchLiveIndex, type LiveIndex } from "../lib/liveIndex";
 import { disableSync, enableSync, hasEditAccess, joinSync, loadEditKey, loadSyncCode, syncPull, syncPush } from "../lib/sync";
@@ -86,6 +86,9 @@ export function Home({ master, index, indexError, onPick, reloadIndex }: {
 
   // 최근 조회 목록에는 있지만 index(수집 완료된 종목)에는 아직 없는 종목이 있으면(예: 쉼표로
   // 처음 추가한 종목) 수집이 끝나는 대로 테이블에 뜨도록 주기적으로 index를 다시 읽는다.
+  // 여러 종목을 한꺼번에 추가했으면 서버가 시간차를 두고 처리하므로(stock-batch-refresh.yml) 다
+  // 끝나기까지 꽤 걸릴 수 있다 — 화면을 보고 있지 않으면 이 폴링은 멈추지만, 다음에 다시 열면
+  // index를 새로 읽어 그때까지 끝난 종목은 바로 보인다(App.tsx).
   useEffect(() => {
     const indexCodes = new Set((index?.stocks ?? []).map((s) => s.code));
     if (recent.every((r) => indexCodes.has(r.code))) return;
@@ -93,8 +96,8 @@ export function Home({ master, index, indexError, onPick, reloadIndex }: {
     const id = window.setInterval(() => {
       attempts += 1;
       reloadIndex();
-      if (attempts >= 40) window.clearInterval(id);   // 최대 약 5분(8초 간격) 확인 후 중단
-    }, 8000);
+      if (attempts >= 90) window.clearInterval(id);   // 최대 약 15분(10초 간격) 확인 후 중단
+    }, 10000);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recent, index]);
@@ -200,9 +203,12 @@ export function Home({ master, index, indexError, onPick, reloadIndex }: {
     setRecent(next);
     syncPush(next);
     // 종목 상세를 직접 열 때(StockPage)와 달리 여기서는 서버에 수집을 요청하는 과정이 없으므로,
-    // 한 번도 수집된 적 없는(index에 없는) 종목은 여기서 직접 요청해야 테이블에 데이터가 뜬다.
+    // 한 번도 수집된 적 없는(index에 없는) 종목은 배치 수집을 한 번 요청한다. 여러 종목을 동시에
+    // 요청하면 KRX 로그인이 한꺼번에 몰리므로, 서버(Actions)가 종목마다 시간차를 두고 처리한다 —
+    // 요청만 보내고 끝나서 화면을 닫아도 계속 진행된다.
     const known = new Set((index?.stocks ?? []).map((s) => s.code));
-    for (const s of stocks) if (!known.has(s.code)) requestRefresh(s.code).catch(() => {});
+    const fresh = stocks.filter((s) => !known.has(s.code)).map((s) => s.code);
+    if (fresh.length > 0) requestBatchRefresh(fresh).catch(() => {});
   };
 
   const handleEnableSync = () => {

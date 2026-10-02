@@ -13,6 +13,12 @@
  *
  * env: GITHUB_REPO (vars), GITHUB_BRANCH (vars, 기본 main), GITHUB_TOKEN (secret), KRX_ID·KRX_PW (secret, 선택),
  *      SYNC_KV (KV 네임스페이스, 선택: 기기 간 '최근 조회' 동기화 코드 저장용. 없으면 /api/sync/* 만 꺼짐)
+ *
+ * 검색창에서 쉼표로 여러 종목을 한꺼번에 추가했을 때(한 번도 수집된 적 없는 종목들)는
+ * POST /api/stock/batch-refresh(codes 배열)로 repository_dispatch(event_type "stock_batch_refresh")를
+ * 한 번만 보낸다. 'stock-batch-refresh.yml'이 그 목록을 받아 종목마다 시간차를 두고 개별
+ * stock_refresh를 다시 보낸다(KRX 로그인 세션이 한꺼번에 몰리는 걸 줄이려고) — 이 Worker 요청 자체는
+ * 바로 끝나고, 실제 수집은 GitHub Actions에서 전부 진행되므로 사용자가 화면을 닫아도 계속된다.
  */
 import { recentPrices, marketPrices, withSession, KrxError } from "./krx.js";
 import { applyLive, liveIndexRows, parseUs10y } from "./live.js";
@@ -248,6 +254,27 @@ async function syncHandler(code, req, env) {
   return json({ error: "method not allowed" }, 405);
 }
 
+const BATCH_REFRESH_MAX = 50;
+
+/** 쉼표 다중 추가로 한 번도 수집된 적 없는 종목들을 받아, 시간차를 두고 개별 수집을 요청하는 배치
+ * 워크플로를 한 번만 깨운다. 이 요청 자체는 dispatch만 보내고 끝나며, 실제 수집·커밋은 전부
+ * GitHub Actions 쪽에서 일어난다(브라우저를 닫아도 계속됨). */
+async function batchRefreshHandler(req, env) {
+  let body;
+  try { body = await req.json(); } catch { return json({ error: "잘못된 요청 본문" }, 400); }
+  const codes = Array.isArray(body?.codes) ? body.codes : null;
+  if (!codes || codes.length === 0) return json({ error: "codes가 비었습니다." }, 400);
+  const clean = [...new Set(codes)].filter((c) => typeof c === "string" && /^\d{6}$/.test(c));
+  if (clean.length === 0) return json({ error: "유효한 종목코드가 없습니다." }, 400);
+  if (clean.length > BATCH_REFRESH_MAX) return json({ error: `한 번에 최대 ${BATCH_REFRESH_MAX}개까지 요청할 수 있습니다.` }, 400);
+  const r = await gh(env, "/dispatches", {
+    method: "POST",
+    body: JSON.stringify({ event_type: "stock_batch_refresh", client_payload: { codes: clean } }),
+  });
+  if (r.status !== 204) return json({ status: "error", error: `repository dispatch 실패 ${r.status}: ${await r.text()}` }, 502);
+  return json({ status: "queued", codes: clean });
+}
+
 async function api(url, req, env, ctx) {
   const p = url.pathname;
 
@@ -282,6 +309,8 @@ async function api(url, req, env, ctx) {
     return json({ ...st, repo: env.GITHUB_REPO, checked_at: new Date().toISOString() }, 200,
       { "cache-control": `public, max-age=${st.state === "ok" ? 300 : 600}` });
   }
+
+  if (p === "/api/stock/batch-refresh" && req.method === "POST") return batchRefreshHandler(req, env);
 
   const m = p.match(/^\/api\/stock\/(\d{6})(\/refresh|\/run|\/meta|\/live)?$/);
   if (!m) return json({ error: "not found" }, 404);

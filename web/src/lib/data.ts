@@ -56,6 +56,13 @@ export const requestRefresh = (code: string, force = false) =>
   getJson<{ status: "queued" | "running" | "error"; run?: RunInfo; error?: string }>(`api/stock/${code}/refresh`, {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ force }),
   });
+/** 쉼표 다중 추가로 한 번도 수집된 적 없는 종목들을 한 번에 요청한다. 요청 자체는 바로 끝나고,
+ * 실제 수집은 GitHub Actions(stock-batch-refresh.yml)가 종목마다 시간차를 두고 진행한다 —
+ * 화면을 보고 있지 않아도(탭을 닫아도) 계속된다. */
+export const requestBatchRefresh = (codes: string[]) =>
+  getJson<{ status: "queued" | "error"; codes?: string[]; error?: string }>("api/stock/batch-refresh", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ codes }),
+  });
 /** 새로고침 폴링용 경량 조회: metadata.json의 last_attempt만 받는다(analysis.json 전체 대신). */
 export const getMeta = (code: string) =>
   getJson<{ status: "missing"; code: string } | { status: "ready"; code: string; last_attempt: string | null; updated_at: string | null }>(
