@@ -1,0 +1,53 @@
+{
+ "code": "046940",
+ "name": "우원개발",
+ "market": "KOSDAQ",
+ "price_through": "2026-10-02",
+ "dividend_through": "2026-10-02",
+ "us10y_through": "2026-10-01",
+ "created_at": "2026-10-02T21:22:07+09:00",
+ "updated_at": "2026-10-02T21:22:07+09:00",
+ "last_attempt": "2026-10-02T21:22:07+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 61,
+   "from": "2026-07-04",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 40
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 1
+  }
+ },
+ "valuation_date": "2026-10-02",
+ "summary": {
+  "code": "046940",
+  "name": "우원개발",
+  "market": "KOSDAQ",
+  "price": 2745.0,
+  "price_date": "2026-10-02",
+  "dps": 120.0,
+  "yield": 4.3716,
+  "multiple": 0.8343,
+  "paid10": 2,
+  "known10": 10,
+  "paid5": 1,
+  "pct": 25.4,
+  "p10": 0.8105,
+  "p90": 0.8965,
+  "mcap": null,
+  "tv": 69171660.0,
+  "has_div_data": true,
+  "flags": [],
+  "tags": []
+ }
+}
