@@ -10,7 +10,7 @@
  "last_attempt": "2026-09-28T22:18:31+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-10-02T21:52:21+09:00",
+ "recomputed_at": "2026-10-02T22:05:46+09:00",
  "summary": {
   "code": "021080",
   "name": "에이티넘인베스트",
@@ -30,8 +30,6 @@
   "tv": 138791960.0,
   "has_div_data": true,
   "flags": [],
-  "tags": [
-   "bomb"
-  ]
+  "tags": []
  }
 }

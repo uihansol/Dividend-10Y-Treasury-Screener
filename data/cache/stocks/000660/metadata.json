@@ -33,7 +33,7 @@
    ]
   }
  },
- "recomputed_at": "2026-10-02T21:52:19+09:00",
+ "recomputed_at": "2026-10-02T22:05:45+09:00",
  "summary": {
   "code": "000660",
   "name": "SK하이닉스",
@@ -55,6 +55,8 @@
   "flags": [
    "prior_year_unconfirmed_periods_filled"
   ],
-  "tags": []
+  "tags": [
+   "bomb"
+  ]
  }
 }

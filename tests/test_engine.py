@@ -200,34 +200,41 @@ def test_crown_flat_dps_allowed():
     assert dividend_tags(yrs, asof)["crown"] is True
 
 
-def test_bomb_when_latest_annual_jumps_50pct_over_prior_year():
-    """최근 확정 결산년도(2025) DPS가 전년도(2024)보다 50% 이상 늘면 폭탄."""
-    yrs = build_fiscal_years(_annual({2023: 100, 2024: 100, 2025: 150}), [])
+def test_bomb_when_latest_annual_jumps_50pct_over_3yr_median():
+    """최근 확정 결산년도(2025) DPS가 그 앞 3년(2022~2024) 중앙값보다 50% 이상 높으면 폭탄."""
+    yrs = build_fiscal_years(_annual({2022: 100, 2023: 100, 2024: 100, 2025: 150}), [])
     assert dividend_tags(yrs, D(2026, 4, 1))["bomb"] is True
 
 
 def test_bomb_false_under_threshold():
-    yrs = build_fiscal_years(_annual({2024: 100, 2025: 149}), [])
+    yrs = build_fiscal_years(_annual({2022: 100, 2023: 100, 2024: 100, 2025: 149}), [])
+    assert dividend_tags(yrs, D(2026, 4, 1))["bomb"] is False
+
+
+def test_bomb_median_ignores_low_prior_year():
+    """전년도만 유독 낮았다가(감배·휴배당) 평소 수준으로 돌아온 해는 폭탄이 아니다.
+    100, 100, 0 → 중앙값 100, 올해 120 → +20%. 전년도(0)와만 비교했다면 잘못 폭탄이 된다."""
+    yrs = build_fiscal_years(_annual({2022: 100, 2023: 100, 2024: 0, 2025: 120}), [])
     assert dividend_tags(yrs, D(2026, 4, 1))["bomb"] is False
 
 
 def test_bomb_uses_only_confirmed_years_known_at_asof():
-    """2025 사업보고서(2026-03-13 접수) 전에는 2024 vs 2023을 비교한다."""
-    yrs = build_fiscal_years(_annual({2023: 100, 2024: 100, 2025: 150}), [])
+    """2025 사업보고서(2026-03-15 접수) 전에는 2024를 최근 결산년도로 보고 비교한다."""
+    yrs = build_fiscal_years(_annual({2021: 100, 2022: 100, 2023: 100, 2024: 100, 2025: 150}), [])
     assert dividend_tags(yrs, D(2026, 2, 1))["bomb"] is False
 
 
 def test_bomb_ignores_this_years_interim_and_provisional_data():
     """올해 분기배당이 크게 늘어도 결산 확정 전에는 폭탄으로 보지 않는다(확정치만 비교)."""
-    rows = _annual({2024: 100, 2025: 100}) + [R(2026, "Q1", 90, D(2026, 3, 31), D(2026, 5, 15))]
+    rows = _annual({2023: 100, 2024: 100, 2025: 100}) + [R(2026, "Q1", 90, D(2026, 3, 31), D(2026, 5, 15))]
     yrs = build_fiscal_years(rows, [])
     assert dividend_tags(yrs, D(2026, 6, 1))["bomb"] is False
 
 
-def test_bomb_false_without_prior_year_or_from_zero():
-    """전년도 자료가 없거나 0원(무배당→배당 재개)이면 비율을 계산할 수 없어 폭탄이 아니다."""
-    assert dividend_tags(build_fiscal_years(_annual({2025: 150}), []), D(2026, 4, 1))["bomb"] is False
-    assert dividend_tags(build_fiscal_years(_annual({2024: 0, 2025: 150}), []), D(2026, 4, 1))["bomb"] is False
+def test_bomb_false_with_too_few_baseline_years_or_zero_baseline():
+    """기준선 연도가 1개뿐이거나 중앙값이 0원(무배당→배당 재개)이면 폭탄이 아니다."""
+    assert dividend_tags(build_fiscal_years(_annual({2024: 100, 2025: 300}), []), D(2026, 4, 1))["bomb"] is False
+    assert dividend_tags(build_fiscal_years(_annual({2023: 0, 2024: 0, 2025: 150}), []), D(2026, 4, 1))["bomb"] is False
 
 
 def test_tags_empty_without_dividend_history():

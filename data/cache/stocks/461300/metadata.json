@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-02T21:52:24+09:00",
+ "recomputed_at": "2026-10-02T22:05:49+09:00",
  "summary": {
   "code": "461300",
   "name": "아이스크림미디어",
@@ -50,8 +50,6 @@
   "flags": [
    "prior_year_unconfirmed_periods_filled"
   ],
-  "tags": [
-   "bomb"
-  ]
+  "tags": []
  }
 }

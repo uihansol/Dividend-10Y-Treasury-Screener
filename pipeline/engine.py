@@ -488,7 +488,16 @@ def persistence(years: dict[int, FiscalYear], asof: date, current_dps: Optional[
     }
 
 
-BOMB_RATIO = 0.50  # 최근 결산년도 DPS가 그 전년도보다 이 비율 이상 늘면 폭탄
+BOMB_RATIO = 0.50             # 최근 결산년도 DPS가 기준선보다 이 비율 이상 높으면 폭탄
+BOMB_BASELINE_YEARS = 3       # 기준선: 최근 결산년도 바로 앞 N개 확정연도 DPS의 중앙값
+BOMB_BASELINE_MIN_YEARS = 2   # 기준선 계산에 필요한 최소 확정 연도 수
+
+
+def _median(values: Sequence[float]) -> float:
+    s = sorted(values)
+    n = len(s)
+    mid = n // 2
+    return s[mid] if n % 2 else (s[mid - 1] + s[mid]) / 2.0
 
 
 def dividend_tags(years: dict[int, FiscalYear], asof: date) -> dict:
@@ -496,9 +505,10 @@ def dividend_tags(years: dict[int, FiscalYear], asof: date) -> dict:
 
     crown(왕관): 확정된 최근 10개 사업연도 데이터가 전부 있고(연속 10년), 그 10년 모두
                 배당을 지급했으며(0원인 해 없음), 10년 안에서 전년 대비 감소가 한 번도 없었던 경우.
-    bomb(폭탄):  가장 최근 확정 결산년도 DPS가 그 전년도 확정 DPS보다 BOMB_RATIO 이상 늘어난 경우.
-                1회성으로 크게 배당해 배당수익률이 부풀려졌을 수 있다는 표시다. 전년도가 없거나 0원
-                (무배당→배당 재개)이면 비율을 계산할 수 없어 붙이지 않는다.
+    bomb(폭탄):  가장 최근 확정 결산년도 DPS가 그 앞 BOMB_BASELINE_YEARS개 확정연도 DPS의 중앙값(그 회사의
+                '평소' 수준, 최소 BOMB_BASELINE_MIN_YEARS개 필요)보다 BOMB_RATIO 이상 높은 경우. 1회성으로 크게
+                배당해 배당수익률이 부풀려졌을 수 있다는 표시다. 전년도 1개만 보면 감배·휴배당 뒤 회복한 해도
+                폭탄이 되므로 중앙값을 쓴다. 기준선이 0원(무배당→배당 재개)이면 붙이지 않는다.
     """
     annual = {fy.year: fy.fy_total for fy in years.values()
               if fy.fy_total is not None and fy.fy_confirmed and fy.fy_confirmed <= asof}
@@ -508,9 +518,11 @@ def dividend_tags(years: dict[int, FiscalYear], asof: date) -> dict:
         win10 = list(range(F - 9, F + 1))
         if all(y in annual and (annual[y] or 0) > 0 for y in win10):
             crown = all(annual[win10[i]] >= annual[win10[i - 1]] for i in range(1, len(win10)))
-        prev = annual.get(F - 1)
-        if prev:
-            bomb = annual[F] / prev - 1.0 >= BOMB_RATIO
+        base = [annual[y] for y in range(F - BOMB_BASELINE_YEARS, F) if y in annual]
+        if len(base) >= BOMB_BASELINE_MIN_YEARS:
+            baseline = _median(base)
+            if baseline > 0:
+                bomb = annual[F] / baseline - 1.0 >= BOMB_RATIO
 
     return {"crown": crown, "bomb": bomb}
 
