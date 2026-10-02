@@ -1,0 +1,53 @@
+{
+ "code": "018880",
+ "name": "한온시스템",
+ "market": "KOSPI",
+ "price_through": "2026-10-02",
+ "dividend_through": "2026-10-02",
+ "us10y_through": "2026-10-01",
+ "created_at": "2026-10-02T19:17:09+09:00",
+ "updated_at": "2026-10-02T19:17:09+09:00",
+ "last_attempt": "2026-10-02T19:17:09+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 61,
+   "from": "2026-07-04",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 43
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
+  }
+ },
+ "valuation_date": "2026-10-02",
+ "summary": {
+  "code": "018880",
+  "name": "한온시스템",
+  "market": "KOSPI",
+  "price": 3830.0,
+  "price_date": "2026-10-02",
+  "dps": 0.0,
+  "yield": 0.0,
+  "multiple": 0.0,
+  "paid10": 8,
+  "known10": 10,
+  "paid5": 3,
+  "pct": 50.0,
+  "p10": 0.0,
+  "p90": 0.0,
+  "mcap": null,
+  "tv": 70982512972.0,
+  "has_div_data": true,
+  "flags": [],
+  "tags": []
+ }
+}
