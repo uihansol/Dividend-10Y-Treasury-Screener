@@ -277,6 +277,11 @@ input, select { background: var(--surface); border: 1px solid var(--rule); borde
 .search-list .s-code { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .search-list .s-mkt { color: var(--ink-3); font-size: 0.82rem; min-width: 4.5em; text-align: right; }
 .search-list .search-empty { color: var(--ink-3); cursor: default; display: block; }
+.search-list-multi li.search-multi-row { cursor: default; }
+.search-multi-miss { color: var(--ink-3); grid-column: 1 / -1; }
+.search-multi-actions { padding: 8px 12px; border-top: 1px solid var(--rule); }
+.search-multi-add-btn { width: 100%; min-height: 40px; }
+.search-multi-add-btn:disabled { opacity: .5; cursor: not-allowed; }
 .top-search { display: flex; flex-wrap: nowrap; gap: 5px; align-items: center; padding-top: 8px; padding-bottom: 8px; }
 .top-search .back { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 2px; margin: 0; white-space: nowrap; font-size: 0.8rem; text-decoration: none; }
 .top-search .back > span:first-child { font-size: 1.65rem; line-height: 1; font-weight: 300; }

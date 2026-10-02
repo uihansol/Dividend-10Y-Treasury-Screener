@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CacheIndex, MasterStock } from "../lib/types";
 import { mult, pct, won, NA } from "../lib/format";
-import { loadRecent, removeRecent, removeRecentMany, type RecentEntry } from "../lib/recent";
+import { loadRecent, pushRecent, removeRecent, removeRecentMany, type RecentEntry } from "../lib/recent";
 import { cachedLiveIndex, fetchLiveIndex, type LiveIndex } from "../lib/liveIndex";
 import { disableSync, enableSync, hasEditAccess, joinSync, loadEditKey, loadSyncCode, syncPull, syncPush } from "../lib/sync";
 import { codeToKorean } from "../lib/syncWords";
@@ -177,6 +177,13 @@ export function Home({ master, index, indexError, onPick }: {
     setEditingRecent(false);
   };
 
+  const addMultipleRecent = (stocks: MasterStock[]) => {
+    let next = recent;
+    for (const s of [...stocks].reverse()) next = pushRecent({ code: s.code, name: s.name, market: s.market });
+    setRecent(next);
+    syncPush(next);
+  };
+
   const handleEnableSync = () => {
     setSyncBusy(true);
     setSyncError(null);
@@ -237,7 +244,7 @@ export function Home({ master, index, indexError, onPick }: {
       </header>
 
       <section className="search-wrap">
-        <SearchBox master={master} onPick={onPick} autoFocus />
+        <SearchBox master={master} onPick={onPick} onAddMultiple={addMultipleRecent} autoFocus />
         <div className="sync-section">
           <button type="button" className={"sync-toggle-btn" + (syncOpen ? " on" : "")} onClick={() => { setSyncOpen((v) => !v); setSyncError(null); }}>
             {syncCode ? (syncReadOnly ? "다른 기기 목록 보는 중 (보기 전용)" : "다른 기기와 동기화 중") : "다른 기기와 최근 조회 동기화"}
