@@ -6,12 +6,10 @@
  "dividend_through": "2026-10-02",
  "us10y_through": "2026-10-01",
  "created_at": "2026-10-02T19:32:02+09:00",
- "updated_at": "2026-10-02T19:38:42+09:00",
- "last_attempt": "2026-10-02T19:38:42+09:00",
+ "updated_at": "2026-10-02T19:39:14+09:00",
+ "last_attempt": "2026-10-02T19:39:14+09:00",
  "last_error": null,
- "steps": {
-  "cache": "cooldown: 네트워크 조회 생략"
- },
+ "steps": {},
  "valuation_date": "2026-10-02",
  "summary": {
   "code": "001940",
@@ -25,9 +23,9 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 1.2,
-  "p10": 1.4459,
-  "p90": 2.7002,
+  "pct": 31.5,
+  "p10": 1.0332,
+  "p90": 2.6392,
   "mcap": null,
   "tv": 102559750.0,
   "has_div_data": true,
