@@ -2,55 +2,50 @@
  "code": "017670",
  "name": "SK텔레콤",
  "market": "KOSPI",
- "price_through": "2026-09-23",
- "dividend_through": "2026-09-28",
+ "price_through": "2026-10-02",
+ "dividend_through": "2026-10-02",
  "us10y_through": "2026-10-01",
  "created_at": "2026-09-28T00:55:18+09:00",
- "updated_at": "2026-09-28T00:55:18+09:00",
- "last_attempt": "2026-09-28T00:55:18+09:00",
+ "updated_at": "2026-10-02T18:22:44+09:00",
+ "last_attempt": "2026-10-02T18:22:44+09:00",
  "last_error": null,
  "steps": {
   "prices": {
-   "mode": "initial",
-   "added": 2879,
-   "from": "2015-01-01"
+   "mode": "incremental",
+   "added": 5,
+   "from": "2026-09-25",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
   },
   "dividends": {
-   "mode": "initial",
-   "added": 18
+   "mode": "incremental",
+   "added": 28
   },
   "announcements": {
    "mode": "check",
-   "added": 1
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 0,
-   "through": "2026-09-25",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
+   "added": 0
   }
  },
- "recomputed_at": "2026-10-02T10:14:15+09:00",
+ "valuation_date": "2026-10-02",
  "summary": {
   "code": "017670",
   "name": "SK텔레콤",
   "market": "KOSPI",
-  "price": 87100.0,
-  "price_date": "2026-09-23",
+  "price": 88400.0,
+  "price_date": "2026-10-02",
   "dps": 2490.0,
-  "yield": 2.8588,
-  "multiple": 0.5456,
-  "paid10": 7,
-  "known10": 7,
+  "yield": 2.8167,
+  "multiple": 0.5375,
+  "paid10": 10,
+  "known10": 10,
   "paid5": 5,
-  "pct": 4.0,
-  "p10": 1.3255,
-  "p90": 4.3116,
+  "pct": 10.0,
+  "p10": 0.5378,
+  "p90": 4.2314,
   "mcap": null,
-  "tv": 49457326700.0,
+  "tv": 50121633900.0,
   "has_div_data": true,
   "flags": [
    "provisional_dividend_used"
