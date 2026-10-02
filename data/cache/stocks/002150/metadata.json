@@ -1,0 +1,55 @@
+{
+ "code": "002150",
+ "name": "도화엔지니어링",
+ "market": "KOSPI",
+ "price_through": "2026-10-02",
+ "dividend_through": "2026-10-02",
+ "us10y_through": "2026-10-01",
+ "created_at": "2026-10-02T19:26:13+09:00",
+ "updated_at": "2026-10-02T19:26:13+09:00",
+ "last_attempt": "2026-10-02T19:26:13+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 61,
+   "from": "2026-07-04",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 40
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 1
+  }
+ },
+ "valuation_date": "2026-10-02",
+ "summary": {
+  "code": "002150",
+  "name": "도화엔지니어링",
+  "market": "KOSPI",
+  "price": 4955.0,
+  "price_date": "2026-10-02",
+  "dps": 300.0,
+  "yield": 6.0545,
+  "multiple": 1.1554,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 9.0,
+  "p10": 1.1566,
+  "p90": 1.3277,
+  "mcap": null,
+  "tv": 181364660.0,
+  "has_div_data": true,
+  "flags": [],
+  "tags": [
+   "crown"
+  ]
+ }
+}
