@@ -11,7 +11,8 @@
  * 또한 새로고침 때 KRX 최신 시세를 직접 받아(web/krx.js) 저장된 분석을 '잠정' 갱신해 먼저 돌려준다(web/live.js).
  * 확정 계산·저장은 여전히 Actions가 한다.
  *
- * env: GITHUB_REPO (vars), GITHUB_BRANCH (vars, 기본 main), GITHUB_TOKEN (secret), KRX_ID·KRX_PW (secret, 선택)
+ * env: GITHUB_REPO (vars), GITHUB_BRANCH (vars, 기본 main), GITHUB_TOKEN (secret), KRX_ID·KRX_PW (secret, 선택),
+ *      SYNC_KV (KV 네임스페이스, 선택: 기기 간 '최근 조회' 동기화 코드 저장용. 없으면 /api/sync/* 만 꺼짐)
  */
 import { recentPrices, marketPrices, withSession, KrxError } from "./krx.js";
 import { applyLive, liveIndexRows, parseUs10y } from "./live.js";
@@ -174,11 +175,68 @@ async function runSteps(env, runId) {
     .map((s) => ({ name: s.name, status: s.status, conclusion: s.conclusion }));
 }
 
+// ---------------------------------------------------------------- 기기 간 '최근 조회' 동기화
+// 로그인이 없는 개인용 사이트라 사용자 식별 없이, 사용자가 기기 사이에 직접 옮기는 코드(8자, 길이로
+// 짐작하기 어려운 랜덤값) 를 키로 쓴다. 저장 내용은 종목코드·이름·시장·조회시각뿐이라 민감하지 않다.
+// 서버는 그 코드를 아는 사람 누구나 읽고 쓸 수 있다고 전제한다(로그인 대신 코드 자체가 비밀).
+const SYNC_MAX_ENTRIES = 300;
+const SYNC_TTL_SEC = 400 * 24 * 3600;   // 한동안 안 쓰는 코드만 자연히 정리된다. 기기의 로컬 목록 자체는
+                                         // 이 코드와 무관하게 영구 보존되므로(recent.ts), 사용자 데이터 손실은 없다.
+
+function isValidRecentList(list) {
+  return Array.isArray(list) && list.length <= SYNC_MAX_ENTRIES && list.every((r) =>
+    r && typeof r === "object"
+    && typeof r.code === "string" && /^\d{6}$/.test(r.code)
+    && typeof r.name === "string" && r.name.length <= 100
+    && typeof r.market === "string" && r.market.length <= 20
+    && typeof r.at === "number" && Number.isFinite(r.at));
+}
+
+// 삭제 기록(tombstone). web/src/lib/sync.ts 참고 — 한쪽이 지운 종목을 다른 쪽이 아직 모른 채 들고
+// 있을 때, 단순히 두 목록을 합치면 삭제가 매번 취소되고 되살아난다. 서버는 그대로 저장·반환만 한다.
+function isValidDeletedList(list) {
+  return Array.isArray(list) && list.length <= SYNC_MAX_ENTRIES && list.every((t) =>
+    t && typeof t === "object" && typeof t.code === "string" && /^\d{6}$/.test(t.code)
+    && typeof t.at === "number" && Number.isFinite(t.at));
+}
+
+async function syncHandler(code, req, env) {
+  if (!env.SYNC_KV) return json({ error: "동기화 기능이 설정되지 않았습니다 (wrangler.toml kv_namespaces, "
+    + "Cloudflare API 토큰에 Workers KV Storage 편집 권한이 있는지 확인하세요)." }, 500);
+  const key = `sync:${code}`;
+  if (req.method === "GET") {
+    const raw = await env.SYNC_KV.get(key);
+    if (!raw) return json({ status: "missing" });
+    try {
+      const data = JSON.parse(raw);
+      return json({ status: "ok", recent: data.recent, deleted: data.deleted ?? [], updated_at: data.updated_at });
+    } catch {
+      return json({ status: "missing" });   // 손상된 값은 없는 것과 같게 취급 — 다음 PUT이 덮어쓴다
+    }
+  }
+  if (req.method === "PUT") {
+    let body;
+    try { body = await req.json(); } catch { return json({ error: "잘못된 요청 본문" }, 400); }
+    if (!isValidRecentList(body?.recent) || !isValidDeletedList(body?.deleted ?? []))
+      return json({ error: "잘못된 목록 형식" }, 400);
+    const updated_at = new Date().toISOString();
+    await env.SYNC_KV.put(key, JSON.stringify({ recent: body.recent, deleted: body.deleted ?? [], updated_at }),
+      { expirationTtl: SYNC_TTL_SEC });
+    return json({ status: "ok", updated_at });
+  }
+  return json({ error: "method not allowed" }, 405);
+}
+
 async function api(url, req, env, ctx) {
+  const p = url.pathname;
+
+  // 기기 간 '최근 조회' 동기화 코드. GitHub를 안 쓰므로 아래 GITHUB_TOKEN 확인보다 먼저 처리한다.
+  const sm = p.match(/^\/api\/sync\/([A-Z0-9]{8})$/);
+  if (sm) return syncHandler(sm[1], req, env);
+
   if (!env.GITHUB_TOKEN) return json({ error: "GitHub 저장소 접근용 토큰이 없습니다. "
     + "저장소 Settings → Secrets and variables → Actions에 WORKER_GITHUB_TOKEN을 등록한 뒤 Deploy를 다시 실행하세요." }, 500);
   if (!env.GITHUB_REPO) return json({ error: "Worker 설정 필요: GITHUB_REPO (wrangler.toml vars)" }, 500);
-  const p = url.pathname;
 
   // 조회한 종목 목록: 새 종목이 생기거나 값이 바뀌어도 30초 정도는 늦게 보여도 무방하다.
   if (p === "/api/index" && req.method === "GET") {

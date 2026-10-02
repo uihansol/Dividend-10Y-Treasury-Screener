@@ -53,6 +53,30 @@ jobs:
           sed -i "s/__WORKER_NAME__/$NAME/" wrangler.toml
           sed -i "s#^GITHUB_REPO = .*#GITHUB_REPO = \"${{ github.repository }}\"#" wrangler.toml
 
+      # 기기 간 '최근 조회' 동기화 코드를 저장할 KV 네임스페이스. 이름으로 기존 것을 찾고 없으면 새로 만든다
+      # (재배포마다 새로 만들지 않도록). 토큰에 Workers KV Storage 편집 권한이 없는 등 실패하면 wrangler.toml의
+      # kv_namespaces 블록을 통째로 지우고 계속 진행한다 — 동기화 코드 기능만 꺼지고 나머지는 정상 배포된다.
+      - name: 동기화 KV 네임스페이스 확인/생성
+        if: env.HAS_CF == 'true'
+        working-directory: web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          TITLE="dividend10y-recent-sync"
+          ID="$(npx -y wrangler@4 kv namespace list 2>/dev/null | jq -r --arg t "$TITLE" '.[] | select(.title == $t) | .id' | head -1)"
+          if [ -z "$ID" ]; then
+            OUT="$(npx -y wrangler@4 kv namespace create "$TITLE" 2>&1)" || echo "$OUT"
+            ID="$(echo "$OUT" | grep -oE '"id": *"[a-f0-9]+"' | grep -oE '[a-f0-9]+' | head -1)"
+          fi
+          if [ -n "$ID" ]; then
+            sed -i "s/__SYNC_KV_ID__/$ID/" wrangler.toml
+            sed -i '/# SYNC_KV_START/d; /# SYNC_KV_END/d' wrangler.toml
+          else
+            echo "::warning::동기화 KV 네임스페이스를 준비하지 못해 '최근 조회 동기화 코드' 기능 없이 배포합니다 (CLOUDFLARE_API_TOKEN에 Workers KV Storage 편집 권한이 있는지 확인하세요)."
+            sed -i '/# SYNC_KV_START/,/# SYNC_KV_END/d' wrangler.toml
+          fi
+
       # 있는 시크릿만 Worker 비밀값으로 올린다(값은 출력하지 않고 이름만 목록으로 만든다).
       #  - GITHUB_TOKEN(←WORKER_GITHUB_TOKEN): 없으면 /api 가 설정 안내 오류를 반환
       #  - KRX_ID·KRX_PW: 없으면 /live(KRX 직접 조회 잠정 반영)만 꺼지고 나머지는 그대로 동작

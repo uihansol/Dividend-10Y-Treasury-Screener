@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { getLive, getMeta, getRun, getStock, requestRefresh } from "../lib/data";
 import type { Detail, MasterStock, RunInfo } from "../lib/types";
 import { pushRecent } from "../lib/recent";
+import { syncPush } from "../lib/sync";
 import { SearchBox } from "../components/SearchBox";
 
 const DetailPage = lazy(() => import("./Detail").then((m) => ({ default: m.DetailPage })));
@@ -197,7 +198,7 @@ export function StockPage({ code, master, onPick }: {
 
   // 방문 기록(브라우저 로컬)에 남긴다. 화면에 데이터가 뜬 시점(=code가 유효했던 시점)에만 남긴다.
   useEffect(() => {
-    if (phase.kind === "ready") pushRecent({ code: phase.data.code, name: phase.data.name, market: phase.data.market });
+    if (phase.kind === "ready") syncPush(pushRecent({ code: phase.data.code, name: phase.data.name, market: phase.data.market }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase.kind === "ready" ? phase.data.code : null]);
 

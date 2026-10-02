@@ -1,8 +1,9 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CacheIndex, MasterStock } from "../lib/types";
 import { mult, pct, won, NA } from "../lib/format";
 import { loadRecent, removeRecent, removeRecentMany, type RecentEntry } from "../lib/recent";
 import { cachedLiveIndex, fetchLiveIndex, type LiveIndex } from "../lib/liveIndex";
+import { disableSync, enableSync, joinSync, loadSyncCode, syncPull, syncPush } from "../lib/sync";
 import { BandGauge } from "../components/BandGauge";
 import { SearchBox } from "../components/SearchBox";
 
@@ -65,6 +66,16 @@ export function Home({ master, index, indexError, onPick }: {
   const [editingRecent, setEditingRecent] = useState(false);
   const [selectedRecent, setSelectedRecent] = useState<Set<string>>(() => new Set());
   const [swipedRecent, setSwipedRecent] = useState<string | null>(null);
+  const [syncCode, setSyncCode] = useState<string | null>(() => loadSyncCode());
+  const [syncOpen, setSyncOpen] = useState(false);
+  const [syncJoinInput, setSyncJoinInput] = useState("");
+  const [syncBusy, setSyncBusy] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  // 앱 진입 시 한 번: 동기화 중이면 다른 기기에서 생긴 변경을 끌어와 합친다. 동기화 중이 아니면 아무것도 안 함.
+  useEffect(() => {
+    syncPull().then((merged) => { if (merged) setRecent(merged); }).catch(() => { /* 로컬 목록은 그대로 */ });
+  }, []);
   // '조회한 종목' 새로고침: KRX 전종목 잠정 시세로 주가·배당률·배수만 빠르게 덮어쓴다(역사적 위치는 확정값 유지).
   const [live, setLive] = useState<Extract<LiveIndex, { status: "live" }> | null>(() => cachedLiveIndex());
   const [liveLoading, setLiveLoading] = useState(false);
@@ -142,7 +153,9 @@ export function Home({ master, index, indexError, onPick }: {
 
   const deleteRecent = (code: string) => {
     if (!window.confirm("최근 조회 목록에서 삭제할까요?")) return;
-    setRecent(removeRecent(code));
+    const next = removeRecent(code);
+    setRecent(next);
+    syncPush(next);
     setSelectedRecent((prev) => { const next = new Set(prev); next.delete(code); return next; });
     setSwipedRecent(null);
   };
@@ -152,9 +165,34 @@ export function Home({ master, index, indexError, onPick }: {
   const deleteSelectedRecent = () => {
     if (selectedRecent.size === 0) return;
     if (!window.confirm("선택한 " + selectedRecent.size + "개 종목을 최근 조회 목록에서 삭제할까요?")) return;
-    setRecent(removeRecentMany(selectedRecent));
+    const next = removeRecentMany(selectedRecent);
+    setRecent(next);
+    syncPush(next);
     setSelectedRecent(new Set());
     setEditingRecent(false);
+  };
+
+  const handleEnableSync = () => {
+    setSyncBusy(true);
+    setSyncError(null);
+    enableSync()
+      .then((code) => setSyncCode(code))
+      .catch((e) => setSyncError(`동기화 코드를 만들지 못했습니다 (${(e as Error).message}).`))
+      .finally(() => setSyncBusy(false));
+  };
+  const handleJoinSync = () => {
+    setSyncBusy(true);
+    setSyncError(null);
+    joinSync(syncJoinInput)
+      .then((merged) => { setRecent(merged); setSyncCode(loadSyncCode()); setSyncJoinInput(""); })
+      .catch((e) => setSyncError(`코드를 적용하지 못했습니다 (${(e as Error).message}).`))
+      .finally(() => setSyncBusy(false));
+  };
+  const handleDisableSync = () => {
+    if (!window.confirm("이 기기의 동기화를 끌까요? (다른 기기의 목록과 코드는 그대로 남습니다)")) return;
+    disableSync();
+    setSyncCode(null);
+    setSyncError(null);
   };
   const startRowLongPress = (code: string) => {
     longPressTriggered.current = false;
@@ -186,6 +224,34 @@ export function Home({ master, index, indexError, onPick }: {
 
       <section className="search-wrap">
         <SearchBox master={master} onPick={onPick} autoFocus />
+        <div className="sync-section">
+          <button type="button" className={"sync-toggle-btn" + (syncOpen ? " on" : "")} onClick={() => { setSyncOpen((v) => !v); setSyncError(null); }}>
+            {syncCode ? "다른 기기와 동기화 중" : "다른 기기와 최근 조회 동기화"}
+          </button>
+          {syncOpen && (
+            <div className="sync-panel">
+              {syncCode ? (
+                <>
+                  <p className="sync-desc">이 코드를 다른 기기 "동기화" 화면에 입력하면 최근 조회 목록을 함께 씁니다.</p>
+                  <div className="sync-code-row"><span className="sync-code">{syncCode}</span></div>
+                  <button type="button" className="sync-off-btn" onClick={handleDisableSync}>이 기기 동기화 끄기</button>
+                </>
+              ) : (
+                <>
+                  <p className="sync-desc">코드를 만들어 다른 기기에 입력하거나, 다른 기기에서 받은 코드를 입력하세요.</p>
+                  <button type="button" className="sync-edit-btn" onClick={handleEnableSync} disabled={syncBusy}>코드 만들기</button>
+                  <div className="sync-join-row">
+                    <input type="text" inputMode="text" maxLength={8} placeholder="코드 8자리 입력" value={syncJoinInput}
+                      onChange={(e) => setSyncJoinInput(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleJoinSync(); }} className="sync-join-input" />
+                    <button type="button" className="sync-edit-btn" onClick={handleJoinSync} disabled={syncBusy || syncJoinInput.trim().length === 0}>코드 입력</button>
+                  </div>
+                </>
+              )}
+              {syncError && <p className="sync-error">{syncError}</p>}
+            </div>
+          )}
+        </div>
         {recent.length > 0 && (
           <div className="recent-section">
             <div className="recent-head">

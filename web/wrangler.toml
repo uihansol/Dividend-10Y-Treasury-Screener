@@ -19,3 +19,12 @@ enabled = true
 GITHUB_REPO = "uihansol/Dividend-10Y-Treasury-Screener"
 GITHUB_BRANCH = "main"
 # GITHUB_TOKEN 은 secret: 배포 워크플로가 WORKER_GITHUB_TOKEN 저장소 시크릿에서 넣는다
+
+# 기기 간 '최근 조회' 동기화 코드 저장소(KV). id는 배포 워크플로가 네임스페이스를 만들거나 찾아서 채운다.
+# 네임스페이스를 못 만들면(API 토큰 권한 부족 등) 이 블록 전체를 지우고 배포한다 — 그러면 /api/sync/*
+# 가 "동기화 기능 설정 필요" 오류를 돌려줄 뿐, 사이트의 다른 기능에는 영향 없다.
+# SYNC_KV_START
+[[kv_namespaces]]
+binding = "SYNC_KV"
+id = "__SYNC_KV_ID__"
+# SYNC_KV_END

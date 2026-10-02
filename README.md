@@ -69,6 +69,23 @@ DART·KRX 비밀값은 GitHub Secrets에만 있고 Worker·브라우저에는 �
 캐시 저장소로 Cloudflare D1/R2 대신 GitHub 저장소를 쓴 이유: 계산이 GitHub Actions에서 일어나므로 결과를 같은 곳에
 두면 추가 서비스·토큰이 필요 없고, 조회한 종목만(종목당 파일 4개) 쌓여 파일 수가 작다.
 
+### 최근 조회 목록 (브라우저 저장, 기기 간 동기화 선택)
+
+"최근 조회"는 종목 데이터 캐시(위 `data/cache/`, 모든 사용자 공통)와 별개로, **이 브라우저가 어떤 종목을 봤는지**만
+`localStorage`(`recent-stocks`)에 저장한다. 로그인이 없으므로 전역 저장소(Cloudflare KV 등)에 두지 않는다.
+만료 기간을 두지 않아 사용자가 직접 지우기 전까지 그대로 남는다. 종목을 다시 보면 그 종목이 맨 앞으로 옮겨지고
+중복으로 쌓이지 않는다(`web/src/lib/recent.ts`).
+
+다른 기기(폰·PC)와 같은 목록을 보고 싶으면 홈 화면의 "다른 기기와 최근 조회 동기화"에서 코드를 만들어 다른 기기에
+입력한다. 코드는 Worker의 KV(`SYNC_KV`, `/api/sync/{code}`)에 목록을 저장하는 키로만 쓰고, 로그인을 대신하므로
+코드를 아는 사람은 누구나 그 목록을 읽고 쓸 수 있다(저장 내용이 종목코드·이름·시장·조회시각뿐이라 민감하지 않다).
+서버 저장은 안 쓰는 코드만 자연히 지워지도록 TTL(약 400일, 쓸 때마다 갱신)을 두지만, 각 기기의 로컬 목록 자체는
+이 코드와 무관하게 영구 보존되므로 동기화를 안 쓰거나 서버 호출이 실패해도 데이터가 사라지지 않는다.
+두 기기가 보던 목록을 합칠 때 종목별로 더 최근 조회를 남기고, 삭제는 삭제 시각을 기록해(tombstone) 아직 그
+삭제를 모르는 기기가 되살리지 않게 한다(`web/src/lib/sync.ts`). `SYNC_KV` 네임스페이스는 deploy 워크플로가
+자동으로 만들거나 찾는다(CLOUDFLARE_API_TOKEN에 Workers KV Storage 편집 권한 필요) — 못 만들면 이 기능만 꺼지고
+나머지는 정상 배포된다.
+
 ## 데이터
 
 ```
@@ -119,7 +136,7 @@ GitHub → Settings → Secrets and variables → Actions
 | `DART_API_KEY` | common-data, stock-refresh | OpenDART |
 | `KRX_ID`, `KRX_PW` | common-data, stock-refresh, krx-live-check, deploy (Worker 비밀값으로도 올림) | KRX 정보데이터시스템 로그인 (아래 'KRX 로그인' 참고). Worker는 `/live` 잠정 반영에만 쓰고, 없으면 `/live`만 꺼진다 |
 | `FRED_API_KEY` | common-data, stock-refresh | 선택. 없으면 FRED CSV → 미 재무부 CSV 순서로 시도 |
-| `CLOUDFLARE_API_TOKEN` | deploy | "Edit Cloudflare Workers" 템플릿 토큰. 없으면 빌드만 하고 배포는 건너뜀 |
+| `CLOUDFLARE_API_TOKEN` | deploy | "Edit Cloudflare Workers" 템플릿 토큰(Workers KV Storage 편집 권한 포함). 없으면 빌드만 하고 배포는 건너뜀. 이 권한이 없으면 아래 `SYNC_KV`(기기 간 동기화)만 못 만들고 나머지는 정상 배포됨 |
 | `CLOUDFLARE_ACCOUNT_ID` | deploy | Cloudflare 계정 ID |
 | `WORKER_GITHUB_TOKEN` | deploy (Worker 비밀값 `GITHUB_TOKEN`으로 올림) | Worker가 쓸 fine-grained 토큰: 이 저장소만, **Contents: Read**, **Actions: Read and write**. 새로고침이 `repository dispatch 실패 403`이면 응답의 `X-Accepted-GitHub-Permissions` 헤더가 요구하는 권한을 추가 |
 

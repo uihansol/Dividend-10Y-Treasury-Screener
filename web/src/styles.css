@@ -381,6 +381,30 @@ td.prov { color: var(--accent); }
 .recent-check { width: 18px; height: 18px; margin: 0 2px 0 7px; accent-color: var(--accent); }
 .recent-swipe-hint { display: none; }
 
+/* ---------- 기기 간 '최근 조회' 동기화 ---------- */
+.sync-section { margin-top: 10px; }
+.sync-toggle-btn { min-height: 32px; padding: 5px 10px; border: 1px solid var(--rule); border-radius: var(--radius-s);
+  background: transparent; color: var(--ink-2); font: inherit; font-size: 0.82rem; cursor: pointer; }
+.sync-toggle-btn:hover, .sync-toggle-btn.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.sync-panel { margin-top: 7px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--radius-s); background: var(--surface); }
+.sync-desc { margin: 0 0 8px; color: var(--ink-3); font-size: 0.78rem; }
+.sync-code-row { margin-bottom: 8px; }
+.sync-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.1rem; font-weight: 700;
+  letter-spacing: 0.12em; color: var(--accent); padding: 4px 9px; border: 1px dashed var(--accent-soft-strong);
+  border-radius: var(--radius-s); background: var(--accent-soft); user-select: all; }
+.sync-edit-btn { min-height: 32px; padding: 5px 10px; border: 1px solid var(--rule); border-radius: var(--radius-s);
+  background: transparent; color: var(--ink-2); font: inherit; font-size: 0.82rem; cursor: pointer; }
+.sync-edit-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.sync-edit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.sync-off-btn { min-height: 32px; padding: 5px 10px; border: 1px solid var(--neg); border-radius: var(--radius-s);
+  background: transparent; color: var(--neg); font: inherit; font-size: 0.82rem; cursor: pointer; }
+.sync-off-btn:hover { background: color-mix(in srgb, var(--neg) 8%, transparent); }
+.sync-join-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.sync-join-input { min-height: 32px; padding: 5px 9px; border: 1px solid var(--rule); border-radius: var(--radius-s);
+  background: var(--surface); color: var(--ink); font: inherit; font-size: 0.85rem; letter-spacing: 0.08em;
+  text-transform: uppercase; width: 130px; }
+.sync-error { margin: 8px 0 0; color: var(--neg); font-size: 0.78rem; }
+
 /* ---------- Butler-inspired data visualization ---------- */
 .recharts-cartesian-axis-tick-value { fill: var(--ink-2); }
 .recharts-cartesian-grid-horizontal line { stroke: var(--chart-grid); }
