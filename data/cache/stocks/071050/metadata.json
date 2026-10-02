@@ -10,7 +10,7 @@
  "last_attempt": "2026-10-02T19:24:08+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-10-02T21:39:30+09:00",
+ "recomputed_at": "2026-10-02T21:52:23+09:00",
  "summary": {
   "code": "071050",
   "name": "한국금융지주",
@@ -30,6 +30,8 @@
   "tv": 24531366450.0,
   "has_div_data": true,
   "flags": [],
-  "tags": []
+  "tags": [
+   "bomb"
+  ]
  }
 }

@@ -19,7 +19,7 @@ export interface ScreenerRow {
   tv: number | null;
   has_div_data: boolean;
   flags: string[];
-  /** "crown"(연속 10년 배당·삭감 없음) · "bomb"(당해 배당 전년 대비 50%+ 증가). pipeline/engine.py dividend_tags() */
+  /** "crown"(연속 10년 배당·삭감 없음) · "bomb"(최근 확정 결산년도 배당이 그 전년도 대비 50%+ 증가). pipeline/engine.py dividend_tags() */
   tags: ("crown" | "bomb")[];
 }
 
@@ -60,7 +60,7 @@ export interface Detail {
   us10y_date: string | null;
   components: { label: string; kind: "final" | "interim" | "provisional"; year: number; dps: number; confirmed: string; ref: string }[];
   components_status: "annual_confirmed" | "in_progress" | null;
-  /** expected: 잠정(마지막) 연도에 한해 채워지는 '예상 DPS'(pipeline/engine.py expected_dps_asof, 폭탄 태그와 같은 값). 그 외 연도는 null. */
+  /** expected: 잠정(마지막) 연도에 한해 채워지는 '예상 DPS'(pipeline/engine.py expected_dps_asof, 현재 배당수익률과 같은 값). 그 외 연도는 null. */
   annual: { year: number; interim: number; final: number; total: number; quarterly: boolean; confirmed: string | null; flags: string[]; provisional: boolean; expected: number | null }[];
   persistence: {
     latest_fy?: number; paid10?: number; known10?: number; paid5?: number; known5?: number;

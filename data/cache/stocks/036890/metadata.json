@@ -10,7 +10,7 @@
  "last_attempt": "2026-10-02T19:39:59+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-10-02T21:39:29+09:00",
+ "recomputed_at": "2026-10-02T21:52:22+09:00",
  "summary": {
   "code": "036890",
   "name": "진성티이씨",
@@ -30,6 +30,8 @@
   "tv": 461245200.0,
   "has_div_data": true,
   "flags": [],
-  "tags": []
+  "tags": [
+   "bomb"
+  ]
  }
 }

@@ -284,8 +284,8 @@ def _provisional_reports(div: dict) -> list[DividendReport]:
 
     원 데이터(조회한 종목 전체의 공시·정기보고서)에서 확인한 규칙:
     1. 사업연도·기간은 결정일과 기준일로 정한다(_attribute_announcement). 결산배당(FY)은
-       사업보고서가 확정하므로 잠정치를 만들지 않는다 — 올해 분기 잠정치로 섞이면 폭탄 태그가
-       잘못 붙는다.
+       사업보고서가 확정하므로 잠정치를 만들지 않는다 — 올해 분기 잠정치로 섞이면 예상 DPS가
+       잘못 잡힌다.
     2. 같은 기준일·금액의 공시는 정정·재공시이므로 하나로 본다(가장 이른 결정일 기준).
     3. 한 기간에 공시가 여럿이면, 그중 하나라도 정기보고서가 이미 반영했으면 그 기간은 정기보고서를
        믿고 모두 버린다(예: 하나금융 086790 반기 1,155원이 반영돼 있으면 같은 기간의 다른 금액은
@@ -374,12 +374,12 @@ def load_us10y():
 
 
 def _with_expected_dps(annual: list[dict], exp) -> list[dict]:
-    """연도별 막대그래프에 '예상 DPS'(exp.value, 폭탄 태그와 같은 값)를 덧붙인다. 태그와 차트가
+    """연도별 막대그래프에 '예상 DPS'(exp.value, 현재 배당수익률과 같은 값)를 덧붙인다. 수익률과 차트가
     서로 다른 값을 보여주면 판단에 혼란을 주므로, exp가 실제로 계산한 연도(latest_fy + 1)에만 붙인다.
     expected_dps_asof() 자체는 바꾸지 않는다.
 
     메가스터디(072870)처럼 올해 아직 중간·분기배당이 전혀 공시되지 않은(확정된 분기보고서가 모두
-    0인) 회사는 annual_breakdown()이 그 해 행 자체를 만들지 않는다 — 그러면 폭탄 태그·배당수익률이
+    0인) 회사는 annual_breakdown()이 그 해 행 자체를 만들지 않는다 — 그러면 배당수익률이
     쓰는 예상 DPS(이 경우 exp가 '올해 확정분 없음'으로 판단해 전년도 연간 DPS를 그대로 씀)가 차트엔
     전혀 안 보인다. 그 해 행이 아직 없으면 확정·잠정 실적 없이(0) 예상 DPS만 있는 행을 새로 붙인다."""
     if exp is None:
@@ -421,7 +421,7 @@ def compute_analysis(info: dict, prices: pd.DataFrame, div: dict, us_dates, us_v
     y = dividend_yield(dps, price)
     m = us10y_multiple(y, cur_us, C.MIN_US10Y_FOR_MULTIPLE)
     pers = persistence(years, valuation_date, dps) if years else None
-    tags = dividend_tags(years, valuation_date, exp) if years else {"crown": False, "bomb": False}
+    tags = dividend_tags(years, valuation_date) if years else {"crown": False, "bomb": False}
 
     hist = yhist = None
     series = []

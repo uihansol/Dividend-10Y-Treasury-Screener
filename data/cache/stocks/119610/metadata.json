@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-02T21:39:31+09:00",
+ "recomputed_at": "2026-10-02T21:52:23+09:00",
  "summary": {
   "code": "119610",
   "name": "인터로조",
@@ -48,6 +48,8 @@
   "tv": 2741901850.0,
   "has_div_data": true,
   "flags": [],
-  "tags": []
+  "tags": [
+   "bomb"
+  ]
  }
 }

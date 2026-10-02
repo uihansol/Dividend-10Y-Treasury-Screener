@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-02T21:39:31+09:00",
+ "recomputed_at": "2026-10-02T21:52:24+09:00",
  "summary": {
   "code": "214150",
   "name": "클래시스",
@@ -48,6 +48,8 @@
   "tv": 2142893675.0,
   "has_div_data": true,
   "flags": [],
-  "tags": []
+  "tags": [
+   "bomb"
+  ]
  }
 }

@@ -10,7 +10,7 @@
  "last_attempt": "2026-10-02T19:21:37+09:00",
  "last_error": null,
  "steps": {},
- "recomputed_at": "2026-10-02T21:39:31+09:00",
+ "recomputed_at": "2026-10-02T21:52:24+09:00",
  "summary": {
   "code": "147830",
   "name": "제룡산업",
@@ -31,7 +31,8 @@
   "has_div_data": true,
   "flags": [],
   "tags": [
-   "crown"
+   "crown",
+   "bomb"
   ]
  }
 }

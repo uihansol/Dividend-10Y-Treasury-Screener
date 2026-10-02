@@ -428,7 +428,7 @@ export function Home({ master, index, indexError, onPick, reloadIndex }: {
                               <span className="tag-icon" role="img" aria-label="연속 10년 배당, 삭감 없음" title="연속 10년 배당, 삭감 없음">👑</span>
                             )}
                             {r.tags.includes("bomb") && (
-                              <span className="tag-icon" role="img" aria-label="올해 배당 전년 대비 50%+ 증가" title="올해 배당 전년 대비 50%+ 증가">💣</span>
+                              <span className="tag-icon" role="img" aria-label="최근 결산 배당 전년 대비 50%+ 증가" title="최근 결산 배당 전년 대비 50%+ 증가">💣</span>
                             )}
                           </span>
                         )}

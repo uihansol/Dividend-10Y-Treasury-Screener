@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-02T21:39:30+09:00",
+ "recomputed_at": "2026-10-02T21:52:23+09:00",
  "summary": {
   "code": "105560",
   "name": "KB금융",
@@ -50,8 +50,6 @@
   "flags": [
    "prior_year_unconfirmed_periods_filled"
   ],
-  "tags": [
-   "bomb"
-  ]
+  "tags": []
  }
 }

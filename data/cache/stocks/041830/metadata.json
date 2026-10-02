@@ -24,7 +24,7 @@
    "added": 2
   }
  },
- "recomputed_at": "2026-10-02T21:39:29+09:00",
+ "recomputed_at": "2026-10-02T21:52:22+09:00",
  "summary": {
   "code": "041830",
   "name": "인바디",
@@ -45,7 +45,8 @@
   "has_div_data": true,
   "flags": [],
   "tags": [
-   "crown"
+   "crown",
+   "bomb"
   ]
  }
 }
