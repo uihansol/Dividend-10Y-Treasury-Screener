@@ -6,12 +6,10 @@
  "dividend_through": "2026-10-02",
  "us10y_through": "2026-10-01",
  "created_at": "2026-10-02T19:23:39+09:00",
- "updated_at": "2026-10-02T19:29:24+09:00",
- "last_attempt": "2026-10-02T19:29:24+09:00",
+ "updated_at": "2026-10-02T19:30:26+09:00",
+ "last_attempt": "2026-10-02T19:30:26+09:00",
  "last_error": null,
- "steps": {
-  "cache": "cooldown: 네트워크 조회 생략"
- },
+ "steps": {},
  "valuation_date": "2026-10-02",
  "summary": {
   "code": "009970",
@@ -25,9 +23,9 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 97.5,
-  "p10": 0.7036,
-  "p90": 0.8235,
+  "pct": 49.8,
+  "p10": 0.714,
+  "p90": 0.9902,
   "mcap": null,
   "tv": 1520000200.0,
   "has_div_data": true,
