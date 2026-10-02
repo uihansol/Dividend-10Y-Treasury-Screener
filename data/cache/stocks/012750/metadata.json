@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-09-23",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-09-25",
+ "us10y_through": "2026-10-01",
  "created_at": "2026-09-28T01:07:07+09:00",
  "updated_at": "2026-09-28T01:07:07+09:00",
  "last_attempt": "2026-09-28T01:07:07+09:00",
@@ -33,7 +33,7 @@
    ]
   }
  },
- "recomputed_at": "2026-09-28T23:40:16+09:00",
+ "recomputed_at": "2026-10-02T10:14:15+09:00",
  "summary": {
   "code": "012750",
   "name": "에스원",
@@ -42,11 +42,11 @@
   "price_date": "2026-09-23",
   "dps": 2700.0,
   "yield": 3.2413,
-  "multiple": 0.6269,
+  "multiple": 0.6186,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 9.8,
+  "pct": 9.6,
   "p10": 0.6329,
   "p90": 2.503,
   "mcap": null,

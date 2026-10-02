@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-09-23",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-09-25",
+ "us10y_through": "2026-10-01",
  "created_at": "2026-09-28T01:26:01+09:00",
  "updated_at": "2026-09-28T01:26:01+09:00",
  "last_attempt": "2026-09-28T01:26:01+09:00",
@@ -33,7 +33,7 @@
    ]
   }
  },
- "recomputed_at": "2026-09-28T23:40:19+09:00",
+ "recomputed_at": "2026-10-02T10:14:17+09:00",
  "summary": {
   "code": "214320",
   "name": "이노션",
@@ -42,11 +42,11 @@
   "price_date": "2026-09-23",
   "dps": 1175.0,
   "yield": 6.5097,
-  "multiple": 1.2591,
+  "multiple": 1.2423,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 45.2,
+  "pct": 43.4,
   "p10": 0.5588,
   "p90": 2.4958,
   "mcap": null,
