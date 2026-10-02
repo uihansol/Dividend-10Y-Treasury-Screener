@@ -6,28 +6,10 @@
  "dividend_through": "2026-10-02",
  "us10y_through": "2026-10-01",
  "created_at": "2026-10-02T19:47:23+09:00",
- "updated_at": "2026-10-02T19:47:23+09:00",
- "last_attempt": "2026-10-02T19:47:23+09:00",
+ "updated_at": "2026-10-02T19:47:59+09:00",
+ "last_attempt": "2026-10-02T19:47:59+09:00",
  "last_error": null,
- "steps": {
-  "prices": {
-   "mode": "initial",
-   "added": 61,
-   "from": "2026-07-04",
-   "recent_first": true,
-   "recent_days": 7,
-   "quick_initial": true,
-   "gap_filled": false
-  },
-  "dividends": {
-   "mode": "initial",
-   "added": 43
-  },
-  "announcements": {
-   "mode": "check",
-   "added": 2
-  }
- },
+ "steps": {},
  "valuation_date": "2026-10-02",
  "summary": {
   "code": "003920",
@@ -41,9 +23,9 @@
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 4.9,
-  "p10": 0.6642,
-  "p90": 0.7422,
+  "pct": 66.4,
+  "p10": 0.0395,
+  "p90": 0.7269,
   "mcap": null,
   "tv": 204773100.0,
   "has_div_data": true,
