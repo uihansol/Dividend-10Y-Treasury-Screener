@@ -23,9 +23,12 @@ export function App() {
   const m = hash.match(/^#\/stock\/(\d{6})/);
 
   useEffect(() => { loadMaster().then(setMaster).catch(() => setMaster([])); }, []);
+  const reloadIndex = () =>
+    loadIndex().then((i) => { setIndex(i); setIndexError(null); }).catch((e) => setIndexError(String(e.message ?? e)));
   useEffect(() => {
     if (m) return;
-    loadIndex().then((i) => { setIndex(i); setIndexError(null); }).catch((e) => setIndexError(String(e.message ?? e)));
+    reloadIndex();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [m?.[1]]);   // 목록 화면으로 돌아올 때마다 새로 읽음
 
   const onPick = (s: MasterStock) => { window.location.hash = `#/stock/${s.code}`; };
@@ -33,7 +36,7 @@ export function App() {
     <>
       <KrxAlert />
       {m ? <StockPage key={m[1]} code={m[1]} master={master} onPick={onPick} />
-        : <Home master={master} index={index} indexError={indexError} onPick={onPick} />}
+        : <Home master={master} index={index} indexError={indexError} onPick={onPick} reloadIndex={reloadIndex} />}
     </>
   );
 }
