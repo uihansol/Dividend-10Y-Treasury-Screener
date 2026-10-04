@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-02T22:05:49+09:00",
+ "recomputed_at": "2026-10-05T03:12:36+09:00",
  "summary": {
   "code": "136540",
   "name": "윈스테크넷",
@@ -49,8 +49,7 @@
   "has_div_data": true,
   "flags": [],
   "tags": [
-   "crown",
-   "bomb"
+   "crown"
   ]
  }
 }

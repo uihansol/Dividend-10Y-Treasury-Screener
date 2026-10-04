@@ -20,7 +20,7 @@
    "added": 20
   }
  },
- "recomputed_at": "2026-10-02T22:05:49+09:00",
+ "recomputed_at": "2026-10-05T03:12:37+09:00",
  "summary": {
   "code": "381970",
   "name": "KG모빌리티플랫폼",
@@ -42,8 +42,6 @@
   "flags": [
    "prior_year_unconfirmed_periods_filled"
   ],
-  "tags": [
-   "bomb"
-  ]
+  "tags": []
  }
 }

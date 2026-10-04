@@ -218,6 +218,19 @@ def test_bomb_median_ignores_low_prior_year():
     assert dividend_tags(yrs, D(2026, 4, 1))["bomb"] is False
 
 
+def test_bomb_false_when_increase_was_years_ago_and_level_is_kept():
+    """500, 500, 1000(올림) 뒤 1000 유지: 중앙값(500) 대비 +100%지만 전년도와는 같아 폭탄이 아니다."""
+    yrs = build_fiscal_years(_annual({2022: 500, 2023: 500, 2024: 1000, 2025: 1000}), [])
+    assert dividend_tags(yrs, D(2026, 4, 1))["bomb"] is False
+
+
+def test_bomb_requires_30pct_over_prior_year_too():
+    """중앙값 대비 +60%여도 전년도 대비 +29%면 아니고, +30%면 폭탄."""
+    rows = lambda last: build_fiscal_years(_annual({2022: 100, 2023: 100, 2024: 125, 2025: last}), [])
+    assert dividend_tags(rows(160), D(2026, 4, 1))["bomb"] is False   # 전년 +28%
+    assert dividend_tags(rows(163), D(2026, 4, 1))["bomb"] is True    # 전년 +30.4%
+
+
 def test_bomb_uses_only_confirmed_years_known_at_asof():
     """2025 사업보고서(2026-03-15 접수) 전에는 2024를 최근 결산년도로 보고 비교한다."""
     yrs = build_fiscal_years(_annual({2021: 100, 2022: 100, 2023: 100, 2024: 100, 2025: 150}), [])

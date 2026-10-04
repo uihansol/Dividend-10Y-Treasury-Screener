@@ -488,7 +488,8 @@ def persistence(years: dict[int, FiscalYear], asof: date, current_dps: Optional[
     }
 
 
-BOMB_RATIO = 0.50             # 최근 결산년도 DPS가 기준선보다 이 비율 이상 높으면 폭탄
+BOMB_RATIO = 0.50             # 최근 결산년도 DPS가 기준선(3년 중앙값)보다 이 비율 이상 높아야 폭탄
+BOMB_PRIOR_RATIO = 0.30       # 그리고 전년도 DPS보다도 이 비율 이상 높아야 한다(증가가 몇 년 전에 끝난 경우 제외)
 BOMB_BASELINE_YEARS = 3       # 기준선: 최근 결산년도 바로 앞 N개 확정연도 DPS의 중앙값
 BOMB_BASELINE_MIN_YEARS = 2   # 기준선 계산에 필요한 최소 확정 연도 수
 
@@ -508,7 +509,9 @@ def dividend_tags(years: dict[int, FiscalYear], asof: date) -> dict:
     bomb(폭탄):  가장 최근 확정 결산년도 DPS가 그 앞 BOMB_BASELINE_YEARS개 확정연도 DPS의 중앙값(그 회사의
                 '평소' 수준, 최소 BOMB_BASELINE_MIN_YEARS개 필요)보다 BOMB_RATIO 이상 높은 경우. 1회성으로 크게
                 배당해 배당수익률이 부풀려졌을 수 있다는 표시다. 전년도 1개만 보면 감배·휴배당 뒤 회복한 해도
-                폭탄이 되므로 중앙값을 쓴다. 기준선이 0원(무배당→배당 재개)이면 붙이지 않는다.
+                폭탄이 되므로 중앙값을 쓴다. 단, 몇 년 전 한 번 올린 뒤 그 수준을 유지하는 회사는 중앙값에 올리기
+                전 해가 섞여 계속 폭탄이 되므로, 전년도 DPS보다도 BOMB_PRIOR_RATIO 이상 높아야 한다(전년도가
+                없으면 이 조건은 건너뛴다). 기준선이 0원(무배당→배당 재개)이면 붙이지 않는다.
     """
     annual = {fy.year: fy.fy_total for fy in years.values()
               if fy.fy_total is not None and fy.fy_confirmed and fy.fy_confirmed <= asof}
@@ -522,7 +525,9 @@ def dividend_tags(years: dict[int, FiscalYear], asof: date) -> dict:
         if len(base) >= BOMB_BASELINE_MIN_YEARS:
             baseline = _median(base)
             if baseline > 0:
-                bomb = annual[F] / baseline - 1.0 >= BOMB_RATIO
+                prev = annual.get(F - 1)
+                bomb = (annual[F] / baseline - 1.0 >= BOMB_RATIO
+                        and (not prev or annual[F] / prev - 1.0 >= BOMB_PRIOR_RATIO))
 
     return {"crown": crown, "bomb": bomb}
 

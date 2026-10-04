@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-02T22:05:48+09:00",
+ "recomputed_at": "2026-10-05T03:12:34+09:00",
  "summary": {
   "code": "068930",
   "name": "디지털대성",
@@ -48,8 +48,6 @@
   "tv": 3253271240.0,
   "has_div_data": true,
   "flags": [],
-  "tags": [
-   "bomb"
-  ]
+  "tags": []
  }
 }

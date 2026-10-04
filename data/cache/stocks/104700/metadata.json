@@ -12,7 +12,7 @@
  "steps": {
   "cache": "cooldown: 네트워크 조회 생략"
  },
- "recomputed_at": "2026-10-02T22:05:48+09:00",
+ "recomputed_at": "2026-10-05T03:12:35+09:00",
  "summary": {
   "code": "104700",
   "name": "한국철강",
@@ -32,8 +32,6 @@
   "tv": 284203605.0,
   "has_div_data": true,
   "flags": [],
-  "tags": [
-   "bomb"
-  ]
+  "tags": []
  }
 }
