@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-09-23",
  "dividend_through": "2026-09-27",
- "us10y_through": "2026-10-01",
+ "us10y_through": "2026-10-02",
  "created_at": "2026-09-27T23:17:32+09:00",
  "updated_at": "2026-09-27T23:17:32+09:00",
  "last_attempt": "2026-09-27T23:17:32+09:00",
@@ -24,7 +24,7 @@
    "added": 2
   }
  },
- "recomputed_at": "2026-10-05T03:12:37+09:00",
+ "recomputed_at": "2026-10-05T09:22:15+09:00",
  "summary": {
   "code": "419120",
   "name": "산돌",
@@ -33,11 +33,11 @@
   "price_date": "2026-09-23",
   "dps": 100.0,
   "yield": 4.6083,
-  "multiple": 0.8794,
+  "multiple": 0.8728,
   "paid10": 4,
   "known10": 4,
   "paid5": 4,
-  "pct": 95.7,
+  "pct": 95.3,
   "p10": 0.3973,
   "p90": 0.7354,
   "mcap": null,
