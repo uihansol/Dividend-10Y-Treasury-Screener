@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-09-23",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-10-01",
+ "us10y_through": "2026-10-05",
  "created_at": "2026-09-28T01:08:16+09:00",
  "updated_at": "2026-09-28T01:08:16+09:00",
  "last_attempt": "2026-09-28T01:08:16+09:00",
@@ -33,7 +33,7 @@
    ]
   }
  },
- "recomputed_at": "2026-10-05T03:12:37+09:00",
+ "recomputed_at": "2026-10-06T11:02:54+09:00",
  "summary": {
   "code": "298020",
   "name": "효성티앤씨",
@@ -42,11 +42,11 @@
   "price_date": "2026-09-23",
   "dps": 10100.0,
   "yield": 3.2424,
-  "multiple": 0.6188,
+  "multiple": 0.6106,
   "paid10": 7,
   "known10": 7,
   "paid5": 5,
-  "pct": 36.0,
+  "pct": 34.6,
   "p10": 0.3579,
   "p90": 3.9384,
   "mcap": null,

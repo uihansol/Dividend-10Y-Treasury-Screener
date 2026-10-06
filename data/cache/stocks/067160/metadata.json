@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-10-02",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-10-01",
+ "us10y_through": "2026-10-05",
  "created_at": "2026-09-27T23:15:28+09:00",
  "updated_at": "2026-10-02T18:23:27+09:00",
  "last_attempt": "2026-10-02T18:23:27+09:00",
@@ -12,7 +12,7 @@
  "steps": {
   "cache": "cooldown: 네트워크 조회 생략"
  },
- "recomputed_at": "2026-10-05T03:12:34+09:00",
+ "recomputed_at": "2026-10-06T11:02:52+09:00",
  "summary": {
   "code": "067160",
   "name": "SOOP",
@@ -21,11 +21,11 @@
   "price_date": "2026-10-02",
   "dps": 3380.0,
   "yield": 9.3113,
-  "multiple": 1.777,
+  "multiple": 1.7535,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 92.3,
+  "pct": 92.1,
   "p10": 0.1978,
   "p90": 1.537,
   "mcap": null,

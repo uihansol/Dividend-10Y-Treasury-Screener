@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-10-01",
+ "us10y_through": "2026-10-05",
  "created_at": "2026-09-28T02:57:19+09:00",
  "updated_at": "2026-09-28T16:36:14+09:00",
  "last_attempt": "2026-09-28T16:36:14+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-05T03:12:29+09:00",
+ "recomputed_at": "2026-10-06T11:02:49+09:00",
  "summary": {
   "code": "004800",
   "name": "효성",
@@ -37,11 +37,11 @@
   "price_date": "2026-09-28",
   "dps": 5000.0,
   "yield": 3.1646,
-  "multiple": 0.6039,
+  "multiple": 0.596,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 4.4,
+  "pct": 4.3,
   "p10": 0.8223,
   "p90": 4.4833,
   "mcap": null,
