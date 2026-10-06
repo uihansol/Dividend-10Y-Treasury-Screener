@@ -142,7 +142,7 @@ GitHub → Settings → Secrets and variables → Actions
 | `FRED_API_KEY` | common-data, stock-refresh | 선택. 없으면 FRED CSV → 미 재무부 CSV 순서로 시도 |
 | `CLOUDFLARE_API_TOKEN` | deploy | "Edit Cloudflare Workers" 템플릿 토큰(Workers KV Storage 편집 권한 포함). 없으면 빌드만 하고 배포는 건너뜀. 이 권한이 없으면 아래 `SYNC_KV`(기기 간 동기화)만 못 만들고 나머지는 정상 배포됨 |
 | `CLOUDFLARE_ACCOUNT_ID` | deploy | Cloudflare 계정 ID |
-| `WORKER_GITHUB_TOKEN` | deploy (Worker 비밀값 `GITHUB_TOKEN`으로 올림) | **만료되면 사이트가 멈춘다 — 아래 '토큰 만료' 참고(GitHub App으로 대체 가능).** Worker가 쓸 fine-grained 토큰: 이 저장소만, **Contents: Read**, **Actions: Read and write**. 새로고침이 `repository dispatch 실패 403`이면 응답의 `X-Accepted-GitHub-Permissions` 헤더가 요구하는 권한을 추가 |
+| `WORKER_GITHUB_TOKEN` | deploy (Worker 비밀값 `GITHUB_TOKEN`으로 올림) | **만료되면 사이트가 멈춘다 — 아래 '토큰 만료' 참고(GitHub App으로 대체 가능).** Worker가 쓸 fine-grained 토큰: 이 저장소만, **Contents: Read and write**, **Actions: Read**. 새로고침이 `repository dispatch 실패 403`이면 응답의 `X-Accepted-GitHub-Permissions` 헤더가 요구하는 권한을 추가 |
 
 | Variables | 용도 |
 |---|---|
@@ -159,11 +159,11 @@ Worker가 저장소 캐시를 읽을 때 쓰는 `WORKER_GITHUB_TOKEN`(개인 액
 1. **웹에서 즉시 갱신**: 토큰이 만료됐거나 14일 안에 만료되면 알림 창이 저절로 뜨고(탭을 열어 둔 채 만료돼도 5분 안에 감지,
    만료 임박은 하루 한 번), 그 자리에서 새 토큰을 붙여 넣으면 재배포 없이 바로 반영된다. 창을 닫으면 상단 배너로 남는다(Worker가 `SYNC_KV`에 저장하고 `WORKER_GITHUB_TOKEN`보다 먼저 쓴다). 이 저장소에
    쓰기 권한이 있는 계정의 유효한 토큰만 받으며, 토큰 값은 조회 API로 돌려주지 않고 브라우저에도 저장하지 않는다.
-   새 토큰은 이 저장소만 선택하고 **Contents: Read**, **Actions: Read and write**. (`SYNC_KV`가 없으면 이 기능만 꺼지고 아래 2번으로.)
+   새 토큰은 이 저장소만 선택하고 **Contents: Read and write**, **Actions: Read**. (`SYNC_KV`가 없으면 이 기능만 꺼지고 아래 2번으로.)
 2. **PAT 교체(수동)**: 새 토큰 발급 → `WORKER_GITHUB_TOKEN` 시크릿 교체 → Actions → Deploy 실행. `token-check.yml`이 매일
    토큰을 점검해 이미 무효이거나 14일 안에 만료되면 `token-expiry` 라벨 이슈를 열어 알려 준다.
 3. **GitHub App(자동, 권장)**: 앱이 요청마다 1시간짜리 설치 토큰을 새로 발급받으므로 만료 관리가 필요 없다.
-   - GitHub → Settings → Developer settings → GitHub Apps → New: 권한 **Contents: Read**, **Actions: Read and write**,
+   - GitHub → Settings → Developer settings → GitHub Apps → New: 권한 **Contents: Read and write**, **Actions: Read**,
      Webhook 끔. 만든 뒤 *Generate a private key*(.pem)를 받고, 이 저장소에 *Install* 한다.
    - 저장소 시크릿 3개 등록: `WORKER_GITHUB_APP_ID`(앱 ID), `WORKER_GITHUB_APP_INSTALLATION_ID`(설치 URL 끝의 숫자),
      `WORKER_GITHUB_APP_PRIVATE_KEY`(.pem 파일 내용 전체. PKCS#1 그대로 넣어도 된다).

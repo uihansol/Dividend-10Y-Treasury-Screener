@@ -89,7 +89,7 @@ export function TokenAlert() {
               <form className="token-form" onSubmit={submit}>
                 <p className="token-note">
                   <a href={NEW_TOKEN_URL} target="_blank" rel="noreferrer">GitHub에서 새 토큰 만들기</a> — 이 저장소만 선택, 권한은
-                  Contents: Read, Actions: Read and write. 이 저장소에 쓰기 권한이 있는 계정의 토큰만 받습니다.
+                  Contents: Read and write, Actions: Read. 이 저장소에 쓰기 권한이 있는 계정의 토큰만 받습니다.
                 </p>
                 <input ref={inputRef} type="password" autoComplete="off" spellCheck={false} placeholder="github_pat_…"
                   value={value} onChange={(e) => setValue(e.target.value)} aria-label="새 GitHub 토큰" />

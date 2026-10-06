@@ -56,7 +56,7 @@ jobs:
 
           **갱신 방법**
           1. GitHub → Settings → Developer settings → Personal access tokens에서 새 토큰 발급
-             (이 저장소만 선택, Contents: Read, Actions: Read and write)
+             (이 저장소만 선택, Contents: Read and write, Actions: Read)
           2. 저장소 Settings → Secrets and variables → Actions → \`WORKER_GITHUB_TOKEN\` 값 교체
           3. Actions → Deploy → Run workflow
 
