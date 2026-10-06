@@ -86,18 +86,22 @@ jobs:
           fi
 
       # 있는 시크릿만 Worker 비밀값으로 올린다(값은 출력하지 않고 이름만 목록으로 만든다).
-      #  - GITHUB_TOKEN(←WORKER_GITHUB_TOKEN): 없으면 /api 가 설정 안내 오류를 반환
+      #  - GITHUB_TOKEN(←WORKER_GITHUB_TOKEN): 없으면 /api 가 설정 안내 오류를 반환. 만료되면 사람이 바꿔야 한다
+      #  - GITHUB_APP_ID·GITHUB_APP_PRIVATE_KEY·GITHUB_APP_INSTALLATION_ID(←WORKER_GITHUB_APP_*): 셋 다 있으면
+      #     Worker가 GitHub App 설치 토큰을 자동 발급·갱신해 쓴다(만료 관리 불필요). 이 경우 PAT는 없어도 된다
       #  - KRX_ID·KRX_PW: 없으면 /live(KRX 직접 조회 잠정 반영)만 꺼지고 나머지는 그대로 동작
       - name: Worker 비밀값 목록
         id: wsecrets
         if: env.HAS_CF == 'true'
         env:
           HAS_GH: ${{ secrets.WORKER_GITHUB_TOKEN != '' }}
+          HAS_APP: ${{ secrets.WORKER_GITHUB_APP_ID != '' && secrets.WORKER_GITHUB_APP_PRIVATE_KEY != '' && secrets.WORKER_GITHUB_APP_INSTALLATION_ID != '' }}
           HAS_KRX: ${{ secrets.KRX_ID != '' && secrets.KRX_PW != '' }}
         run: |
           {
             echo "list<<EOF"
             if [ "$HAS_GH" = "true" ]; then echo GITHUB_TOKEN; fi
+            if [ "$HAS_APP" = "true" ]; then echo GITHUB_APP_ID; echo GITHUB_APP_PRIVATE_KEY; echo GITHUB_APP_INSTALLATION_ID; fi
             if [ "$HAS_KRX" = "true" ]; then echo KRX_ID; echo KRX_PW; fi
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
@@ -108,6 +112,9 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.WORKER_GITHUB_TOKEN }}
+          GITHUB_APP_ID: ${{ secrets.WORKER_GITHUB_APP_ID }}
+          GITHUB_APP_PRIVATE_KEY: ${{ secrets.WORKER_GITHUB_APP_PRIVATE_KEY }}
+          GITHUB_APP_INSTALLATION_ID: ${{ secrets.WORKER_GITHUB_APP_INSTALLATION_ID }}
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
         with:
@@ -122,7 +129,7 @@ jobs:
         if: steps.deploy.outcome == 'success'
         run: |
           echo "::notice::배포 주소 ${{ steps.deploy.outputs.deployment-url }}"
-          [ -n "${{ secrets.WORKER_GITHUB_TOKEN }}" ] || echo "::warning::WORKER_GITHUB_TOKEN 시크릿이 없어 /api 가 동작하지 않습니다"
+          [ -n "${{ secrets.WORKER_GITHUB_TOKEN }}" ] || [ -n "${{ secrets.WORKER_GITHUB_APP_ID }}" ] || echo "::warning::WORKER_GITHUB_TOKEN(또는 WORKER_GITHUB_APP_*) 시크릿이 없어 /api 가 동작하지 않습니다"
 
       - name: Cloudflare 미설정 안내
         if: env.HAS_CF != 'true'

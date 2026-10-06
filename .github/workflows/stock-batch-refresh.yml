@@ -11,7 +11,7 @@ on:
     types: [stock_batch_refresh]
 
 permissions:
-  contents: read
+  contents: write   # 기본 토큰(github.token)으로 repository_dispatch를 보내려면 필요
 
 jobs:
   stagger:
@@ -21,12 +21,9 @@ jobs:
       - name: 종목별로 시간차를 두고 개별 수집 요청
         env:
           CODES_JSON: ${{ toJson(github.event.client_payload.codes) }}
-          DISPATCH_TOKEN: ${{ secrets.WORKER_GITHUB_TOKEN }}
+          # 워크플로 기본 토큰도 repository_dispatch만큼은 새 실행을 만들 수 있다 → PAT가 만료돼도 이 단계는 동작한다.
+          DISPATCH_TOKEN: ${{ github.token }}
         run: |
-          if [ -z "$DISPATCH_TOKEN" ]; then
-            echo "::error::WORKER_GITHUB_TOKEN 시크릿이 없어 개별 수집을 요청할 수 없습니다."
-            exit 1
-          fi
           echo "$CODES_JSON" | jq -r '.[]' > /tmp/codes.txt
           FIRST=1
           while IFS= read -r CODE; do

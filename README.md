@@ -142,7 +142,7 @@ GitHub → Settings → Secrets and variables → Actions
 | `FRED_API_KEY` | common-data, stock-refresh | 선택. 없으면 FRED CSV → 미 재무부 CSV 순서로 시도 |
 | `CLOUDFLARE_API_TOKEN` | deploy | "Edit Cloudflare Workers" 템플릿 토큰(Workers KV Storage 편집 권한 포함). 없으면 빌드만 하고 배포는 건너뜀. 이 권한이 없으면 아래 `SYNC_KV`(기기 간 동기화)만 못 만들고 나머지는 정상 배포됨 |
 | `CLOUDFLARE_ACCOUNT_ID` | deploy | Cloudflare 계정 ID |
-| `WORKER_GITHUB_TOKEN` | deploy (Worker 비밀값 `GITHUB_TOKEN`으로 올림) | Worker가 쓸 fine-grained 토큰: 이 저장소만, **Contents: Read**, **Actions: Read and write**. 새로고침이 `repository dispatch 실패 403`이면 응답의 `X-Accepted-GitHub-Permissions` 헤더가 요구하는 권한을 추가 |
+| `WORKER_GITHUB_TOKEN` | deploy (Worker 비밀값 `GITHUB_TOKEN`으로 올림) | **만료되면 사이트가 멈춘다 — 아래 '토큰 만료' 참고(GitHub App으로 대체 가능).** Worker가 쓸 fine-grained 토큰: 이 저장소만, **Contents: Read**, **Actions: Read and write**. 새로고침이 `repository dispatch 실패 403`이면 응답의 `X-Accepted-GitHub-Permissions` 헤더가 요구하는 권한을 추가 |
 
 | Variables | 용도 |
 |---|---|
@@ -150,6 +150,20 @@ GitHub → Settings → Secrets and variables → Actions
 
 선택 환경변수 `REFRESH_COOLDOWN_SEC`(기본 600초): 같은 종목 재요청 시 네트워크 조회를 건너뛰는 간격(`updated_at` 기준).
 워크플로에서는 설정하지 않아 기본값을 쓴다. 화면의 장중 자동 갱신 요청 간격(10분)은 이 값에 맞춰 두었다.
+
+### 토큰 만료 (`목록을 불러오지 못했습니다: ... GitHub 401`)
+
+Worker가 저장소 캐시를 읽을 때 쓰는 `WORKER_GITHUB_TOKEN`(개인 액세스 토큰)이 만료·폐기되면 GitHub이 401을 돌려주고
+사이트가 멈춘다. PAT는 코드로 재발급할 수 없어서(그런 API가 없다) 방법은 둘 중 하나다.
+
+1. **PAT 교체(수동)**: 새 토큰 발급 → `WORKER_GITHUB_TOKEN` 시크릿 교체 → Actions → Deploy 실행. `token-check.yml`이 매일
+   토큰을 점검해 이미 무효이거나 14일 안에 만료되면 `token-expiry` 라벨 이슈를 열어 알려 준다.
+2. **GitHub App(자동, 권장)**: 앱이 요청마다 1시간짜리 설치 토큰을 새로 발급받으므로 만료 관리가 필요 없다.
+   - GitHub → Settings → Developer settings → GitHub Apps → New: 권한 **Contents: Read**, **Actions: Read and write**,
+     Webhook 끔. 만든 뒤 *Generate a private key*(.pem)를 받고, 이 저장소에 *Install* 한다.
+   - 저장소 시크릿 3개 등록: `WORKER_GITHUB_APP_ID`(앱 ID), `WORKER_GITHUB_APP_INSTALLATION_ID`(설치 URL 끝의 숫자),
+     `WORKER_GITHUB_APP_PRIVATE_KEY`(.pem 파일 내용 전체. PKCS#1 그대로 넣어도 된다).
+   - Deploy 실행. 세 값이 모두 있으면 Worker는 PAT 대신 앱 토큰을 쓰고, `token-check.yml`은 점검을 건너뛴다.
 
 ### KRX 로그인
 

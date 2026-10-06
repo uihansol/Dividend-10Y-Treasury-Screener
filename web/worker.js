@@ -12,6 +12,8 @@
  * 확정 계산·저장은 여전히 Actions가 한다.
  *
  * env: GITHUB_REPO (vars), GITHUB_BRANCH (vars, 기본 main), GITHUB_TOKEN (secret), KRX_ID·KRX_PW (secret, 선택),
+ *      GITHUB_APP_ID·GITHUB_APP_PRIVATE_KEY·GITHUB_APP_INSTALLATION_ID (secret, 선택: 있으면 GITHUB_TOKEN 대신
+ *      GitHub App 설치 토큰(1시간짜리)을 요청 때마다 자동 발급·갱신한다 — PAT처럼 만료돼 멈추는 일이 없다),
  *      SYNC_KV (KV 네임스페이스, 선택: 기기 간 '최근 조회' 동기화 코드 저장용. 없으면 /api/sync/* 만 꺼짐)
  *
  * 검색창에서 쉼표로 여러 종목을 한꺼번에 추가했을 때(한 번도 수집된 적 없는 종목들)는
@@ -44,11 +46,65 @@ async function cachedJson(ttlSeconds, compute) {
   return json(await compute(), 200, { "cache-control": `public, max-age=${ttlSeconds}` });
 }
 
-function gh(env, path, init = {}) {
+// ---------------------------------------------------------------- GitHub 인증 (PAT 또는 GitHub App)
+// PAT(GITHUB_TOKEN)는 만료되면 사람이 새로 발급해 시크릿을 바꿔야 한다(코드로 재발급하는 API가 없다).
+// GitHub App 자격증명이 있으면 App JWT로 설치 토큰을 직접 발급받아 쓰므로 만료 관리가 필요 없다.
+const appConfigured = (env) => !!(env.GITHUB_APP_ID && env.GITHUB_APP_PRIVATE_KEY && env.GITHUB_APP_INSTALLATION_ID);
+
+const b64url = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
+function derLen(n) {
+  if (n < 0x80) return [n];
+  const out = [];
+  for (let v = n; v > 0; v >>= 8) out.unshift(v & 0xff);
+  return [0x80 | out.length, ...out];
+}
+
+/** GitHub이 내려주는 앱 개인키는 PKCS#1("BEGIN RSA PRIVATE KEY")이지만 WebCrypto는 PKCS#8만 읽는다.
+ * PKCS#8이면 그대로, PKCS#1이면 RSA 알고리즘 식별자 헤더를 씌워 변환한다. 시크릿에 줄바꿈이 "\n" 글자로 들어 있어도 처리한다. */
+export function pemToPkcs8(pem) {
+  const text = String(pem).replace(/\\n/g, "\n");
+  const pkcs1 = /BEGIN RSA PRIVATE KEY/.test(text);
+  const der = Uint8Array.from(atob(text.replace(/-----[^-]+-----/g, "").replace(/\s+/g, "")), (c) => c.charCodeAt(0));
+  if (!pkcs1) return der;
+  const algId = [0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00];
+  const octet = [0x04, ...derLen(der.length), ...der];
+  const body = [0x02, 0x01, 0x00, ...algId, ...octet];
+  return Uint8Array.from([0x30, ...derLen(body.length), ...body]);
+}
+
+async function appJwt(env, nowSec = Math.floor(Date.now() / 1000)) {
+  const enc = (o) => b64url(new TextEncoder().encode(JSON.stringify(o)));
+  const unsigned = `${enc({ alg: "RS256", typ: "JWT" })}.${enc({ iat: nowSec - 60, exp: nowSec + 9 * 60, iss: String(env.GITHUB_APP_ID) })}`;
+  const key = await crypto.subtle.importKey("pkcs8", pemToPkcs8(env.GITHUB_APP_PRIVATE_KEY),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(unsigned));
+  return `${unsigned}.${b64url(sig)}`;
+}
+
+// 같은 isolate 안에서만 유지되는 설치 토큰 캐시. 만료 5분 전부터는 새로 받는다.
+let appTokenCache = null;
+
+export async function githubToken(env, fetchImpl = fetch) {
+  if (!appConfigured(env)) return env.GITHUB_TOKEN;
+  if (appTokenCache && appTokenCache.exp - Date.now() > 5 * 60e3) return appTokenCache.token;
+  const r = await fetchImpl(`${GH}/app/installations/${env.GITHUB_APP_INSTALLATION_ID}/access_tokens`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${await appJwt(env)}`, accept: "application/vnd.github+json",
+      "user-agent": `dividend-10y-worker/${WORKER_VERSION}`, "x-github-api-version": "2022-11-28" },
+  });
+  if (!r.ok) throw new Error(`GitHub App 설치 토큰 발급 실패 ${r.status} (앱 ID·설치 ID·개인키를 확인하세요)`);
+  const j = await r.json();
+  appTokenCache = { token: j.token, exp: Date.parse(j.expires_at) };
+  return j.token;
+}
+
+async function gh(env, path, init = {}) {
+  const token = await githubToken(env);
   return fetch(`${GH}/repos/${env.GITHUB_REPO}${path}`, {
     ...init,
     headers: {
-      authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      authorization: `Bearer ${token}`,
       "user-agent": `dividend-10y-worker/${WORKER_VERSION}`,
       "x-github-api-version": "2022-11-28",
       accept: "application/vnd.github+json",
@@ -70,6 +126,8 @@ async function readRepoFile(env, path, { text = false } = {}) {
   });
   if (r.status === 304 && prev) return prev.body;
   if (r.status === 404) { etags.delete(path); return null; }
+  if (r.status === 401) throw new Error(`GitHub 401: ${path} — 저장소 접근 토큰(WORKER_GITHUB_TOKEN)이 만료·폐기됐습니다. `
+    + "새 토큰으로 시크릿을 바꾸고 Deploy를 다시 실행하세요(README '토큰 만료' 참고).");
   if (!r.ok) throw new Error(`GitHub ${r.status}: ${path}`);
   const body = text ? await r.text() : await r.json();
   const etag = r.headers.get("etag");
@@ -283,7 +341,7 @@ async function api(url, req, env, ctx) {
   const sm = p.match(/^\/api\/sync\/([a-z0-9-]{1,170})$/);
   if (sm) return syncHandler(sm[1], req, env);
 
-  if (!env.GITHUB_TOKEN) return json({ error: "GitHub 저장소 접근용 토큰이 없습니다. "
+  if (!env.GITHUB_TOKEN && !appConfigured(env)) return json({ error: "GitHub 저장소 접근용 토큰이 없습니다. "
     + "저장소 Settings → Secrets and variables → Actions에 WORKER_GITHUB_TOKEN을 등록한 뒤 Deploy를 다시 실행하세요." }, 500);
   if (!env.GITHUB_REPO) return json({ error: "Worker 설정 필요: GITHUB_REPO (wrangler.toml vars)" }, 500);
 
