@@ -12,6 +12,7 @@
  * 확정 계산·저장은 여전히 Actions가 한다.
  *
  * env: GITHUB_REPO (vars), GITHUB_BRANCH (vars, 기본 main), GITHUB_TOKEN (secret), KRX_ID·KRX_PW (secret, 선택),
+ *      웹에서 갱신한 토큰은 SYNC_KV("config:github-token")에 저장돼 있으면 GITHUB_TOKEN보다 먼저 쓴다(PUT /api/token),
  *      GITHUB_APP_ID·GITHUB_APP_PRIVATE_KEY·GITHUB_APP_INSTALLATION_ID (secret, 선택: 있으면 GITHUB_TOKEN 대신
  *      GitHub App 설치 토큰(1시간짜리)을 요청 때마다 자동 발급·갱신한다 — PAT처럼 만료돼 멈추는 일이 없다),
  *      SYNC_KV (KV 네임스페이스, 선택: 기기 간 '최근 조회' 동기화 코드 저장용. 없으면 /api/sync/* 만 꺼짐)
@@ -85,8 +86,22 @@ async function appJwt(env, nowSec = Math.floor(Date.now() / 1000)) {
 // 같은 isolate 안에서만 유지되는 설치 토큰 캐시. 만료 5분 전부터는 새로 받는다.
 let appTokenCache = null;
 
+// 웹에서 갱신한 토큰(PUT /api/token)은 KV에 둔다. 여러 isolate가 있어 바꾼 직후 최대 이 시간만큼 옛 값을 쓸 수 있다.
+const TOKEN_KV_KEY = "config:github-token";
+const STORED_TOKEN_TTL = 30e3;
+let storedTokenCache = null;
+
+async function storedToken(env) {
+  if (!env.SYNC_KV) return null;
+  if (storedTokenCache && Date.now() - storedTokenCache.at < STORED_TOKEN_TTL) return storedTokenCache.token;
+  let token = null;
+  try { token = JSON.parse((await env.SYNC_KV.get(TOKEN_KV_KEY)) || "null")?.token ?? null; } catch { /* 손상값은 없는 것으로 */ }
+  storedTokenCache = { token, at: Date.now() };
+  return token;
+}
+
 export async function githubToken(env, fetchImpl = fetch) {
-  if (!appConfigured(env)) return env.GITHUB_TOKEN;
+  if (!appConfigured(env)) return (await storedToken(env)) || env.GITHUB_TOKEN;
   if (appTokenCache && appTokenCache.exp - Date.now() > 5 * 60e3) return appTokenCache.token;
   const r = await fetchImpl(`${GH}/app/installations/${env.GITHUB_APP_INSTALLATION_ID}/access_tokens`, {
     method: "POST",
@@ -333,15 +348,91 @@ async function batchRefreshHandler(req, env) {
   return json({ status: "queued", codes: clean });
 }
 
+// ---------------------------------------------------------------- 웹에서 GitHub 토큰 갱신
+// 토큰이 만료돼 /api가 401로 멈추면 GitHub 설정·재배포 없이 화면에서 새 토큰을 붙여 넣어 바로 되살린다.
+// 별도 비밀번호 대신 '새 토큰 자체'로 인증한다: 이 저장소에 쓰기 권한이 있는 계정의 유효한 토큰이어야만 저장하고,
+// 조회(상태)는 토큰 값을 절대 돌려주지 않는다. 저장은 SYNC_KV에 하며 없으면 이 기능만 꺼진다.
+const TOKEN_ATTEMPTS = new Map();   // ip → 최근 시도 시각들(같은 isolate 안에서만 유효한 best-effort 제한)
+const TOKEN_ATTEMPT_LIMIT = 8;
+const TOKEN_ATTEMPT_WINDOW = 10 * 60e3;
+
+function tooManyTokenAttempts(ip) {
+  const now = Date.now();
+  const recent = (TOKEN_ATTEMPTS.get(ip) || []).filter((t) => now - t < TOKEN_ATTEMPT_WINDOW);
+  recent.push(now);
+  TOKEN_ATTEMPTS.set(ip, recent);
+  if (TOKEN_ATTEMPTS.size > 500) TOKEN_ATTEMPTS.delete(TOKEN_ATTEMPTS.keys().next().value);
+  return recent.length > TOKEN_ATTEMPT_LIMIT;
+}
+
+function parseTokenExpiry(header) {
+  if (!header) return null;
+  const t = Date.parse(header.replace(" UTC", "Z").replace(" ", "T"));
+  return Number.isFinite(t) ? t : null;
+}
+
+const daysLeft = (expMs) => (expMs === null ? null : Math.floor((expMs - Date.now()) / 86400e3));
+
+async function probeToken(env, token, path = "") {
+  const r = await fetch(`${GH}/repos/${env.GITHUB_REPO}${path}`, {
+    headers: { authorization: `Bearer ${token}`, accept: "application/vnd.github+json",
+      "user-agent": `dividend-10y-worker/${WORKER_VERSION}`, "x-github-api-version": "2022-11-28" },
+  });
+  const body = r.ok && !path ? await r.json().catch(() => null) : null;
+  return { status: r.status, expiresMs: parseTokenExpiry(r.headers.get("github-authentication-token-expiration")),
+    canWrite: !!(body?.permissions && (body.permissions.push || body.permissions.admin)) };
+}
+
+async function tokenStatus(env) {
+  if (!env.GITHUB_REPO) return json({ state: "error", source: "none", can_update: false });
+  const can_update = !!env.SYNC_KV;
+  if (appConfigured(env)) return json({ state: "ok", source: "app", expires_at: null, days_left: null, can_update });
+  const stored = await storedToken(env);
+  const token = stored || env.GITHUB_TOKEN;
+  if (!token) return json({ state: "missing", source: "none", expires_at: null, days_left: null, can_update });
+  const pr = await probeToken(env, token);
+  const state = pr.status === 401 ? "expired" : pr.status >= 400 ? "error" : "ok";
+  return json({ state, source: stored ? "web" : "secret", can_update,
+    expires_at: pr.expiresMs === null ? null : new Date(pr.expiresMs).toISOString(), days_left: daysLeft(pr.expiresMs) });
+}
+
+async function tokenUpdate(req, env) {
+  if (!env.SYNC_KV) return json({ error: "웹에서 토큰을 저장할 공간(KV)이 설정되지 않았습니다. GitHub 저장소 시크릿 "
+    + "WORKER_GITHUB_TOKEN을 직접 바꾸고 Deploy를 실행하세요." }, 503);
+  if (!env.GITHUB_REPO) return json({ error: "Worker 설정 필요: GITHUB_REPO (wrangler.toml vars)" }, 500);
+  if (tooManyTokenAttempts(req.headers.get("cf-connecting-ip") || "unknown"))
+    return json({ error: "시도가 너무 많습니다. 10분 뒤에 다시 시도하세요." }, 429);
+  let body;
+  try { body = await req.json(); } catch { return json({ error: "잘못된 요청 본문" }, 400); }
+  const token = typeof body?.token === "string" ? body.token.trim() : "";
+  if (!/^[A-Za-z0-9_]{20,300}$/.test(token)) return json({ error: "토큰 형식이 올바르지 않습니다." }, 400);
+
+  const repo = await probeToken(env, token);
+  if (repo.status === 401) return json({ error: "유효하지 않거나 만료된 토큰입니다." }, 400);
+  if (repo.status >= 400) return json({ error: `이 토큰으로 저장소에 접근할 수 없습니다 (GitHub ${repo.status}). 대상 저장소를 확인하세요.` }, 400);
+  if (!repo.canWrite) return json({ error: "이 저장소에 쓰기 권한이 있는 계정의 토큰만 등록할 수 있습니다." }, 403);
+  const contents = await probeToken(env, token, `/contents/data/cache/index.json?ref=${env.GITHUB_BRANCH || "main"}`);
+  if (contents.status !== 200) return json({ error: `토큰에 Contents: Read 권한이 없습니다 (GitHub ${contents.status}).` }, 400);
+
+  await env.SYNC_KV.put(TOKEN_KV_KEY, JSON.stringify({ token, saved_at: new Date().toISOString() }));
+  storedTokenCache = { token, at: Date.now() };
+  return json({ status: "ok", expires_at: repo.expiresMs === null ? null : new Date(repo.expiresMs).toISOString(),
+    days_left: daysLeft(repo.expiresMs) });
+}
+
 async function api(url, req, env, ctx) {
   const p = url.pathname;
+
+  // 토큰이 만료·누락된 상태에서도 동작해야 하므로 아래 GitHub 토큰 확인보다 먼저 처리한다.
+  if (p === "/api/token/status" && req.method === "GET") return tokenStatus(env);
+  if (p === "/api/token" && req.method === "PUT") return tokenUpdate(req, env);
 
   // 기기 간 '최근 조회' 동기화 코드(예: apple-tiger-chair). GitHub를 안 쓰므로 아래 GITHUB_TOKEN
   // 확인보다 먼저 처리한다. 코드 형식 자체는 syncHandler가 SYNC_CODE_RE로 다시 검증한다.
   const sm = p.match(/^\/api\/sync\/([a-z0-9-]{1,170})$/);
   if (sm) return syncHandler(sm[1], req, env);
 
-  if (!env.GITHUB_TOKEN && !appConfigured(env)) return json({ error: "GitHub 저장소 접근용 토큰이 없습니다. "
+  if (!(await githubToken(env))) return json({ error: "GitHub 저장소 접근용 토큰이 없습니다. "
     + "저장소 Settings → Secrets and variables → Actions에 WORKER_GITHUB_TOKEN을 등록한 뒤 Deploy를 다시 실행하세요." }, 500);
   if (!env.GITHUB_REPO) return json({ error: "Worker 설정 필요: GITHUB_REPO (wrangler.toml vars)" }, 500);
 

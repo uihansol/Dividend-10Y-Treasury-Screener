@@ -74,6 +74,17 @@ export type KrxStatus = {
   state: "ok" | "password_expired" | "login_failed" | "not_configured" | "unreachable";
   repo?: string; checked_at?: string;
 };
+export type TokenStatus = {
+  state: "ok" | "expired" | "missing" | "error"; source: "app" | "web" | "secret" | "none";
+  expires_at: string | null; days_left: number | null; can_update: boolean;
+};
+/** Worker가 저장소를 읽을 때 쓰는 GitHub 토큰 상태(토큰 값은 오지 않는다). */
+export const getTokenStatus = () => getJson<TokenStatus>("api/token/status");
+/** 만료된 토큰을 새 토큰으로 바꾼다. 이 저장소에 쓰기 권한이 있는 계정의 유효한 토큰만 Worker가 받아 준다. */
+export const updateToken = (token: string) =>
+  getJson<{ status: "ok"; expires_at: string | null; days_left: number | null }>("api/token", {
+    method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ token }),
+  });
 /** KRX 로그인 상태. fresh=true면 Worker 캐시를 건너뛰고 지금 다시 확인한다(교체 후 '다시 확인'). */
 export const getKrxStatus = (fresh = false) => getJson<KrxStatus>(`api/krx/status${fresh ? `?t=${Date.now()}` : ""}`);
 export const getRun = (code: string) => getJson<{ run: RunInfo | null }>(`api/stock/${code}/run`);

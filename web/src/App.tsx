@@ -4,6 +4,7 @@ import type { CacheIndex, MasterStock } from "./lib/types";
 import { Home } from "./pages/Home";
 import { StockPage } from "./pages/StockPage";
 import { KrxAlert } from "./components/KrxAlert";
+import { TokenAlert } from "./components/TokenAlert";
 
 function useHashRoute(): string {
   const [hash, setHash] = useState(window.location.hash);
@@ -35,6 +36,7 @@ export function App() {
   return (
     <>
       <KrxAlert />
+      <TokenAlert />
       {m ? <StockPage key={m[1]} code={m[1]} master={master} onPick={onPick} />
         : <Home master={master} index={index} indexError={indexError} onPick={onPick} reloadIndex={reloadIndex} />}
     </>

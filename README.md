@@ -154,11 +154,15 @@ GitHub → Settings → Secrets and variables → Actions
 ### 토큰 만료 (`목록을 불러오지 못했습니다: ... GitHub 401`)
 
 Worker가 저장소 캐시를 읽을 때 쓰는 `WORKER_GITHUB_TOKEN`(개인 액세스 토큰)이 만료·폐기되면 GitHub이 401을 돌려주고
-사이트가 멈춘다. PAT는 코드로 재발급할 수 없어서(그런 API가 없다) 방법은 둘 중 하나다.
+사이트가 멈춘다. PAT는 코드로 재발급할 수 없어서(그런 API가 없다) 새 토큰을 넣는 방법이 필요하다.
 
-1. **PAT 교체(수동)**: 새 토큰 발급 → `WORKER_GITHUB_TOKEN` 시크릿 교체 → Actions → Deploy 실행. `token-check.yml`이 매일
+1. **웹에서 즉시 갱신**: 토큰이 만료됐거나 14일 안에 만료되면 사이트 상단에 배너가 뜬다. **지금 토큰 갱신**을 눌러 새 토큰을
+   붙여 넣으면 재배포 없이 바로 반영된다(Worker가 `SYNC_KV`에 저장하고 `WORKER_GITHUB_TOKEN`보다 먼저 쓴다). 이 저장소에
+   쓰기 권한이 있는 계정의 유효한 토큰만 받으며, 토큰 값은 조회 API로 돌려주지 않고 브라우저에도 저장하지 않는다.
+   새 토큰은 이 저장소만 선택하고 **Contents: Read**, **Actions: Read and write**. (`SYNC_KV`가 없으면 이 기능만 꺼지고 아래 2번으로.)
+2. **PAT 교체(수동)**: 새 토큰 발급 → `WORKER_GITHUB_TOKEN` 시크릿 교체 → Actions → Deploy 실행. `token-check.yml`이 매일
    토큰을 점검해 이미 무효이거나 14일 안에 만료되면 `token-expiry` 라벨 이슈를 열어 알려 준다.
-2. **GitHub App(자동, 권장)**: 앱이 요청마다 1시간짜리 설치 토큰을 새로 발급받으므로 만료 관리가 필요 없다.
+3. **GitHub App(자동, 권장)**: 앱이 요청마다 1시간짜리 설치 토큰을 새로 발급받으므로 만료 관리가 필요 없다.
    - GitHub → Settings → Developer settings → GitHub Apps → New: 권한 **Contents: Read**, **Actions: Read and write**,
      Webhook 끔. 만든 뒤 *Generate a private key*(.pem)를 받고, 이 저장소에 *Install* 한다.
    - 저장소 시크릿 3개 등록: `WORKER_GITHUB_APP_ID`(앱 ID), `WORKER_GITHUB_APP_INSTALLATION_ID`(설치 URL 끝의 숫자),
