@@ -2,18 +2,18 @@
  "code": "030200",
  "name": "KT",
  "market": "KOSPI",
- "price_through": "2026-10-02",
+ "price_through": "2026-10-06",
  "dividend_through": "2026-10-02",
  "us10y_through": "2026-10-05",
  "created_at": "2026-09-28T00:36:14+09:00",
- "updated_at": "2026-10-02T18:22:34+09:00",
- "last_attempt": "2026-10-02T18:22:34+09:00",
+ "updated_at": "2026-10-06T18:37:06+09:00",
+ "last_attempt": "2026-10-06T18:37:06+09:00",
  "last_error": null,
  "steps": {
   "prices": {
    "mode": "incremental",
    "added": 5,
-   "from": "2026-09-25",
+   "from": "2026-09-29",
    "recent_first": true,
    "recent_days": 7,
    "quick_initial": false,
@@ -21,31 +21,31 @@
   },
   "dividends": {
    "mode": "incremental",
-   "added": 43
+   "added": 0
   },
   "announcements": {
    "mode": "check",
    "added": 0
   }
  },
- "recomputed_at": "2026-10-06T11:02:51+09:00",
+ "valuation_date": "2026-10-06",
  "summary": {
   "code": "030200",
   "name": "KT",
   "market": "KOSPI",
-  "price": 51900.0,
-  "price_date": "2026-10-02",
+  "price": 51500.0,
+  "price_date": "2026-10-06",
   "dps": 2400.0,
-  "yield": 4.6243,
-  "multiple": 0.8709,
+  "yield": 4.6602,
+  "multiple": 0.8776,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 5.7,
+  "pct": 6.0,
   "p10": 0.9188,
-  "p90": 3.3451,
+  "p90": 3.3492,
   "mcap": null,
-  "tv": 8937395478.0,
+  "tv": 16084041470.0,
   "has_div_data": true,
   "flags": [
    "prior_year_unconfirmed_periods_filled"
