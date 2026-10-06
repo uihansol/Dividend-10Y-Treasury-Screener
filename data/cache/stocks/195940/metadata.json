@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-10-01",
  "dividend_through": "2026-10-02",
- "us10y_through": "2026-10-02",
+ "us10y_through": "2026-10-05",
  "created_at": "2026-09-28T00:07:02+09:00",
  "updated_at": "2026-10-02T21:20:14+09:00",
  "last_attempt": "2026-10-02T21:20:14+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-05T09:22:14+09:00",
+ "recomputed_at": "2026-10-06T11:02:54+09:00",
  "summary": {
   "code": "195940",
   "name": "HK이노엔",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-01",
   "dps": 410.0,
   "yield": 1.0099,
-  "multiple": 0.1913,
+  "multiple": 0.1902,
   "paid10": 6,
   "known10": 7,
   "paid5": 5,
-  "pct": 39.9,
+  "pct": 38.7,
   "p10": 0.0,
   "p90": 0.2649,
   "mcap": null,

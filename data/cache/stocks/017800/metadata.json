@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-10-02",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-10-02",
+ "us10y_through": "2026-10-05",
  "created_at": "2026-09-27T19:16:59+09:00",
  "updated_at": "2026-10-02T21:25:38+09:00",
  "last_attempt": "2026-10-02T21:25:38+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-05T09:22:11+09:00",
+ "recomputed_at": "2026-10-06T11:02:50+09:00",
  "summary": {
   "code": "017800",
   "name": "현대엘리베이터",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-02",
   "dps": 14010.0,
   "yield": 19.2445,
-  "multiple": 3.6448,
+  "multiple": 3.6242,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 95.8,
+  "pct": 95.5,
   "p10": 0.1741,
   "p90": 2.3877,
   "mcap": null,
