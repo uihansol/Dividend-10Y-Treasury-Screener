@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-10-02",
  "dividend_through": "2026-10-02",
- "us10y_through": "2026-10-05",
+ "us10y_through": "2026-10-06",
  "created_at": "2026-10-02T19:22:44+09:00",
  "updated_at": "2026-10-02T19:40:31+09:00",
  "last_attempt": "2026-10-02T19:40:31+09:00",
@@ -28,7 +28,7 @@
    "added": 1
   }
  },
- "recomputed_at": "2026-10-06T11:02:51+09:00",
+ "recomputed_at": "2026-10-07T10:09:56+09:00",
  "summary": {
   "code": "025540",
   "name": "한국단자",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-02",
   "dps": 3500.0,
   "yield": 6.2389,
-  "multiple": 1.1749,
+  "multiple": 1.1838,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 89.6,
+  "pct": 89.9,
   "p10": 0.2905,
   "p90": 1.1969,
   "mcap": null,
