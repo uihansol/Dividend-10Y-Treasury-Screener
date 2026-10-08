@@ -1,0 +1,53 @@
+{
+ "code": "091700",
+ "name": "파트론",
+ "market": "KOSDAQ",
+ "price_through": "2026-10-08",
+ "dividend_through": "2026-10-08",
+ "us10y_through": "2026-10-07",
+ "created_at": "2026-10-08T22:24:38+09:00",
+ "updated_at": "2026-10-08T22:24:38+09:00",
+ "last_attempt": "2026-10-08T22:24:38+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 60,
+   "from": "2026-07-10",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 43
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
+  }
+ },
+ "valuation_date": "2026-10-08",
+ "summary": {
+  "code": "091700",
+  "name": "파트론",
+  "market": "KOSDAQ",
+  "price": 5150.0,
+  "price_date": "2026-10-08",
+  "dps": 310.0,
+  "yield": 6.0194,
+  "multiple": 1.14,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 19.2,
+  "p10": 1.1337,
+  "p90": 1.2196,
+  "mcap": null,
+  "tv": 741471445.0,
+  "has_div_data": true,
+  "flags": [],
+  "tags": []
+ }
+}
