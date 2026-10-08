@@ -1,0 +1,56 @@
+{
+ "code": "008060",
+ "name": "대덕",
+ "market": "KOSPI",
+ "price_through": "2026-10-08",
+ "dividend_through": "2026-10-08",
+ "us10y_through": "2026-10-07",
+ "created_at": "2026-10-08T22:21:24+09:00",
+ "updated_at": "2026-10-08T22:21:24+09:00",
+ "last_attempt": "2026-10-08T22:21:24+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "initial",
+   "added": 60,
+   "from": "2026-07-10",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": true,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "initial",
+   "added": 43
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
+  }
+ },
+ "valuation_date": "2026-10-08",
+ "summary": {
+  "code": "008060",
+  "name": "대덕",
+  "market": "KOSPI",
+  "price": 16500.0,
+  "price_date": "2026-10-08",
+  "dps": 1155.0,
+  "yield": 7.0,
+  "multiple": 1.3258,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 0.8,
+  "p10": 1.4518,
+  "p90": 1.7872,
+  "mcap": null,
+  "tv": 961219565.0,
+  "has_div_data": true,
+  "flags": [],
+  "tags": [
+   "crown",
+   "bomb"
+  ]
+ }
+}
