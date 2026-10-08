@@ -2,22 +2,22 @@
  "code": "033920",
  "name": "무학",
  "market": "KOSPI",
- "price_through": "2026-09-28",
+ "price_through": "2026-10-08",
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-10-07",
  "created_at": "2026-09-28T02:56:39+09:00",
- "updated_at": "2026-09-28T22:11:55+09:00",
- "last_attempt": "2026-09-28T22:11:55+09:00",
+ "updated_at": "2026-10-08T22:20:19+09:00",
+ "last_attempt": "2026-10-08T22:20:19+09:00",
  "last_error": null,
  "steps": {
   "prices": {
    "mode": "incremental",
-   "added": 4,
-   "from": "2026-09-21",
+   "added": 7,
+   "from": "2026-09-29",
    "recent_first": true,
    "recent_days": 7,
    "quick_initial": false,
-   "gap_filled": false
+   "gap_filled": true
   },
   "dividends": {
    "mode": "incremental",
@@ -28,24 +28,24 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-08T10:28:58+09:00",
+ "valuation_date": "2026-10-08",
  "summary": {
   "code": "033920",
   "name": "무학",
   "market": "KOSPI",
-  "price": 7610.0,
-  "price_date": "2026-09-28",
+  "price": 7290.0,
+  "price_date": "2026-10-08",
   "dps": 696.0,
-  "yield": 9.1459,
-  "multiple": 1.7322,
+  "yield": 9.5473,
+  "multiple": 1.8082,
   "paid10": 7,
   "known10": 10,
   "paid5": 4,
-  "pct": 86.2,
+  "pct": 86.5,
   "p10": 0.0,
   "p90": 2.0517,
   "mcap": null,
-  "tv": 179072550.0,
+  "tv": 142665260.0,
   "has_div_data": true,
   "flags": [
    "interim_values_treated_as_per_period"
