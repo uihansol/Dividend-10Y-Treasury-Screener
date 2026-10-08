@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-10-06",
+ "us10y_through": "2026-10-07",
  "created_at": "2026-09-28T02:57:32+09:00",
  "updated_at": "2026-09-28T16:38:47+09:00",
  "last_attempt": "2026-09-28T16:38:47+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-07T10:09:57+09:00",
+ "recomputed_at": "2026-10-08T10:29:00+09:00",
  "summary": {
   "code": "214150",
   "name": "클래시스",
@@ -37,7 +37,7 @@
   "price_date": "2026-09-28",
   "dps": 1000.0,
   "yield": 3.252,
-  "multiple": 0.6171,
+  "multiple": 0.6159,
   "paid10": 9,
   "known10": 10,
   "paid5": 5,
