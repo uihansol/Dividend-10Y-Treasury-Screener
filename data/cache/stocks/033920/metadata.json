@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-10-08",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-10-07",
+ "us10y_through": "2026-10-08",
  "created_at": "2026-09-28T02:56:39+09:00",
  "updated_at": "2026-10-08T22:20:19+09:00",
  "last_attempt": "2026-10-08T22:20:19+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "valuation_date": "2026-10-08",
+ "recomputed_at": "2026-10-09T10:36:32+09:00",
  "summary": {
   "code": "033920",
   "name": "무학",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-08",
   "dps": 696.0,
   "yield": 9.5473,
-  "multiple": 1.8082,
+  "multiple": 1.829,
   "paid10": 7,
   "known10": 10,
   "paid5": 4,
-  "pct": 86.5,
+  "pct": 86.9,
   "p10": 0.0,
   "p90": 2.0517,
   "mcap": null,

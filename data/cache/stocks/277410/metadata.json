@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-10-07",
+ "us10y_through": "2026-10-08",
  "created_at": "2026-09-27T23:42:57+09:00",
  "updated_at": "2026-09-28T16:48:32+09:00",
  "last_attempt": "2026-09-28T16:48:32+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-08T10:29:00+09:00",
+ "recomputed_at": "2026-10-09T10:36:35+09:00",
  "summary": {
   "code": "277410",
   "name": "인산가",
@@ -37,11 +37,11 @@
   "price_date": "2026-09-28",
   "dps": 200.0,
   "yield": 3.5842,
-  "multiple": 0.6788,
+  "multiple": 0.6866,
   "paid10": 8,
   "known10": 9,
   "paid5": 5,
-  "pct": 49.1,
+  "pct": 49.7,
   "p10": 0.0,
   "p90": 1.6143,
   "mcap": null,

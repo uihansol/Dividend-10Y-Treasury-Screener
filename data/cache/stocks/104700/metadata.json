@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-10-08",
  "dividend_through": "2026-10-08",
- "us10y_through": "2026-10-07",
+ "us10y_through": "2026-10-08",
  "created_at": "2026-10-02T19:20:47+09:00",
  "updated_at": "2026-10-08T22:20:59+09:00",
  "last_attempt": "2026-10-08T22:20:59+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "valuation_date": "2026-10-08",
+ "recomputed_at": "2026-10-09T10:36:34+09:00",
  "summary": {
   "code": "104700",
   "name": "한국철강",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-08",
   "dps": 750.0,
   "yield": 8.03,
-  "multiple": 1.5208,
+  "multiple": 1.5383,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 64.6,
+  "pct": 65.1,
   "p10": 0.9258,
   "p90": 3.0263,
   "mcap": null,

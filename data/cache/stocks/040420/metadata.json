@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-10-08",
  "dividend_through": "2026-10-02",
- "us10y_through": "2026-10-07",
+ "us10y_through": "2026-10-08",
  "created_at": "2026-10-02T19:15:37+09:00",
  "updated_at": "2026-10-08T22:20:21+09:00",
  "last_attempt": "2026-10-08T22:20:21+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "valuation_date": "2026-10-08",
+ "recomputed_at": "2026-10-09T10:36:33+09:00",
  "summary": {
   "code": "040420",
   "name": "정상제이엘에스",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-08",
   "dps": 530.0,
   "yield": 9.0909,
-  "multiple": 1.7218,
+  "multiple": 1.7416,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 3.4,
+  "pct": 3.9,
   "p10": 1.8528,
   "p90": 5.0313,
   "mcap": null,

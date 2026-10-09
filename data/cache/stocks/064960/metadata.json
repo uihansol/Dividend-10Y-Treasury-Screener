@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-09-28",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-10-07",
+ "us10y_through": "2026-10-08",
  "created_at": "2026-09-28T02:57:04+09:00",
  "updated_at": "2026-09-28T17:50:00+09:00",
  "last_attempt": "2026-09-28T17:50:00+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-08T10:28:59+09:00",
+ "recomputed_at": "2026-10-09T10:36:34+09:00",
  "summary": {
   "code": "064960",
   "name": "SNT모티브",
@@ -37,11 +37,11 @@
   "price_date": "2026-09-28",
   "dps": 1600.0,
   "yield": 5.8394,
-  "multiple": 1.106,
+  "multiple": 1.1187,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 51.7,
+  "pct": 52.8,
   "p10": 0.7976,
   "p90": 2.9136,
   "mcap": null,
