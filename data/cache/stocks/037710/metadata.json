@@ -2,18 +2,18 @@
  "code": "037710",
  "name": "광주신세계",
  "market": "KOSPI",
- "price_through": "2026-10-08",
+ "price_through": "2026-10-12",
  "dividend_through": "2026-09-28",
  "us10y_through": "2026-10-09",
  "created_at": "2026-09-27T23:15:17+09:00",
- "updated_at": "2026-10-10T10:57:20+09:00",
- "last_attempt": "2026-10-10T10:57:20+09:00",
+ "updated_at": "2026-10-12T17:17:24+09:00",
+ "last_attempt": "2026-10-12T17:17:24+09:00",
  "last_error": null,
  "steps": {
   "prices": {
    "mode": "incremental",
-   "added": 3,
-   "from": "2026-10-03",
+   "added": 4,
+   "from": "2026-10-05",
    "recent_first": true,
    "recent_days": 7,
    "quick_initial": false,
@@ -26,35 +26,26 @@
   "announcements": {
    "mode": "check",
    "added": 0
-  },
-  "us10y": {
-   "ok": true,
-   "source": "treasury",
-   "added": 1,
-   "through": "2026-10-09",
-   "errors": [
-    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
-   ]
   }
  },
- "valuation_date": "2026-10-10",
+ "valuation_date": "2026-10-12",
  "summary": {
   "code": "037710",
   "name": "광주신세계",
   "market": "KOSPI",
-  "price": 33750.0,
-  "price_date": "2026-10-08",
+  "price": 34900.0,
+  "price_date": "2026-10-12",
   "dps": 3600.0,
-  "yield": 10.6667,
-  "multiple": 2.0356,
+  "yield": 10.3152,
+  "multiple": 1.9685,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 89.9,
+  "pct": 88.0,
   "p10": 0.2126,
-  "p90": 2.0395,
+  "p90": 2.0398,
   "mcap": null,
-  "tv": 472665225.0,
+  "tv": 4486048075.0,
   "has_div_data": true,
   "flags": [],
   "tags": [
