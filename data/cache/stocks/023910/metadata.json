@@ -2,18 +2,18 @@
  "code": "023910",
  "name": "대한약품",
  "market": "KOSDAQ",
- "price_through": "2026-10-12",
- "dividend_through": "2026-10-02",
+ "price_through": "2026-10-13",
+ "dividend_through": "2026-10-14",
  "us10y_through": "2026-10-09",
  "created_at": "2026-10-02T19:29:40+09:00",
- "updated_at": "2026-10-12T17:18:14+09:00",
- "last_attempt": "2026-10-12T17:18:14+09:00",
+ "updated_at": "2026-10-14T01:10:55+09:00",
+ "last_attempt": "2026-10-14T01:10:55+09:00",
  "last_error": null,
  "steps": {
   "prices": {
    "mode": "incremental",
    "added": 4,
-   "from": "2026-10-05",
+   "from": "2026-10-07",
    "recent_first": true,
    "recent_days": 7,
    "quick_initial": false,
@@ -26,26 +26,35 @@
   "announcements": {
    "mode": "check",
    "added": 0
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-10-09",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
   }
  },
- "valuation_date": "2026-10-12",
+ "valuation_date": "2026-10-14",
  "summary": {
   "code": "023910",
   "name": "대한약품",
   "market": "KOSDAQ",
-  "price": 25800.0,
-  "price_date": "2026-10-12",
+  "price": 25950.0,
+  "price_date": "2026-10-13",
   "dps": 1100.0,
-  "yield": 4.2636,
-  "multiple": 0.8137,
+  "yield": 4.2389,
+  "multiple": 0.809,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 70.0,
+  "pct": 69.0,
   "p10": 0.272,
   "p90": 1.0471,
   "mcap": null,
-  "tv": 178380650.0,
+  "tv": 156224200.0,
   "has_div_data": true,
   "flags": [],
   "tags": [
