@@ -2,18 +2,18 @@
  "code": "035600",
  "name": "KG이니시스",
  "market": "KOSDAQ",
- "price_through": "2026-10-12",
- "dividend_through": "2026-10-08",
+ "price_through": "2026-10-13",
+ "dividend_through": "2026-10-14",
  "us10y_through": "2026-10-09",
  "created_at": "2026-10-08T22:29:01+09:00",
- "updated_at": "2026-10-12T17:18:02+09:00",
- "last_attempt": "2026-10-12T17:18:02+09:00",
+ "updated_at": "2026-10-14T01:09:53+09:00",
+ "last_attempt": "2026-10-14T01:09:53+09:00",
  "last_error": null,
  "steps": {
   "prices": {
    "mode": "incremental",
    "added": 4,
-   "from": "2026-10-05",
+   "from": "2026-10-07",
    "recent_first": true,
    "recent_days": 7,
    "quick_initial": false,
@@ -26,26 +26,35 @@
   "announcements": {
    "mode": "check",
    "added": 0
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-10-09",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
   }
  },
- "valuation_date": "2026-10-12",
+ "valuation_date": "2026-10-14",
  "summary": {
   "code": "035600",
   "name": "KG이니시스",
   "market": "KOSDAQ",
-  "price": 9600.0,
-  "price_date": "2026-10-12",
+  "price": 9580.0,
+  "price_date": "2026-10-13",
   "dps": 600.0,
-  "yield": 6.25,
-  "multiple": 1.1927,
+  "yield": 6.263,
+  "multiple": 1.1952,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 71.5,
+  "pct": 71.7,
   "p10": 0.5861,
   "p90": 1.5787,
   "mcap": null,
-  "tv": 358058310.0,
+  "tv": 535567095.0,
   "has_div_data": true,
   "flags": [],
   "tags": [
