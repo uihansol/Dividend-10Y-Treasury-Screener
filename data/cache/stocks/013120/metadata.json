@@ -2,50 +2,59 @@
  "code": "013120",
  "name": "동원개발",
  "market": "KOSDAQ",
- "price_through": "2026-10-02",
- "dividend_through": "2026-10-02",
- "us10y_through": "2026-10-08",
+ "price_through": "2026-10-13",
+ "dividend_through": "2026-10-14",
+ "us10y_through": "2026-10-09",
  "created_at": "2026-09-28T01:08:36+09:00",
- "updated_at": "2026-10-02T21:24:06+09:00",
- "last_attempt": "2026-10-02T21:24:06+09:00",
+ "updated_at": "2026-10-14T01:10:31+09:00",
+ "last_attempt": "2026-10-14T01:10:31+09:00",
  "last_error": null,
  "steps": {
   "prices": {
    "mode": "incremental",
    "added": 5,
-   "from": "2026-09-25",
+   "from": "2026-10-03",
    "recent_first": true,
    "recent_days": 7,
    "quick_initial": false,
-   "gap_filled": false
+   "gap_filled": true
   },
   "dividends": {
    "mode": "incremental",
-   "added": 43
+   "added": 0
   },
   "announcements": {
    "mode": "check",
    "added": 0
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-10-09",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
   }
  },
- "recomputed_at": "2026-10-09T10:36:32+09:00",
+ "valuation_date": "2026-10-14",
  "summary": {
   "code": "013120",
   "name": "동원개발",
   "market": "KOSDAQ",
-  "price": 2120.0,
-  "price_date": "2026-10-02",
+  "price": 2045.0,
+  "price_date": "2026-10-13",
   "dps": 90.0,
-  "yield": 4.2453,
-  "multiple": 0.8133,
+  "yield": 4.401,
+  "multiple": 0.8399,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 20.7,
+  "pct": 22.1,
   "p10": 0.7141,
-  "p90": 3.0117,
+  "p90": 3.012,
   "mcap": null,
-  "tv": 156785255.0,
+  "tv": 199786471.0,
   "has_div_data": true,
   "flags": [],
   "tags": []
