@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-10-12",
  "dividend_through": "2026-10-02",
- "us10y_through": "2026-10-09",
+ "us10y_through": "2026-10-13",
  "created_at": "2026-10-02T19:27:34+09:00",
  "updated_at": "2026-10-12T17:17:54+09:00",
  "last_attempt": "2026-10-12T17:17:54+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "valuation_date": "2026-10-12",
+ "recomputed_at": "2026-10-14T09:47:24+09:00",
  "summary": {
   "code": "105630",
   "name": "한세실업",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-12",
   "dps": 700.0,
   "yield": 8.0552,
-  "multiple": 1.5373,
+  "multiple": 1.5461,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 72.9,
+  "pct": 73.3,
   "p10": 0.5233,
   "p90": 2.4429,
   "mcap": null,
