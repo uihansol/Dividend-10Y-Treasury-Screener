@@ -70,7 +70,8 @@ export async function login(id, pw, fetchImpl = fetch) {
       body: new URLSearchParams({ ...form, ...extra }).toString(),
     }, fetchImpl);
     const j = await res.json().catch(() => null);
-    return { code: String(j?._error_code || ""), http: res.status, json: j !== null };
+    return { code: String(j?._error_code || ""), http: res.status, json: j !== null,
+      type: (res.headers.get("content-type") || "").split(";")[0].trim().toLowerCase().slice(0, 40) };
   };
   let r = await post();
   if (r.code === "CD011") r = await post({ skipDup: "Y" });   // 중복 로그인
@@ -78,8 +79,12 @@ export async function login(id, pw, fetchImpl = fetch) {
   if (r.code === "CD001") return { jar, expires: Date.now() + SESSION_TTL_MS };
   // 결과 코드 자체가 없으면 비밀번호 문제가 아니다: KRX가 로그인 JSON 대신 차단·점검·오류 페이지를 준 경우다.
   // 이걸 login_failed로 처리하면 멀쩡한 비밀번호를 "다르다"고 알리고 6시간 재시도까지 막는다.
-  if (!r.code) throw new KrxError("login_no_response",
-    `KRX 로그인 응답에 결과 코드가 없습니다(HTTP ${r.http}, ${r.json ? "JSON" : "JSON 아님"})`);
+  if (!r.code) {
+    const err = new KrxError("login_no_response",
+      `KRX 로그인 응답에 결과 코드가 없습니다(HTTP ${r.http}, ${r.json ? "JSON" : "JSON 아님"})`);
+    err.http = r.http; err.json = r.json; err.contentType = r.type;   // 진단용(비밀 아님)
+    throw err;
+  }
   throw new KrxError("login_failed", `KRX 로그인 실패(${r.code})`, r.code);
 }
 

@@ -25,6 +25,12 @@ export function KrxAlert() {
           <strong>KRX 로그인 응답을 받지 못했습니다.</strong>
           <span> 비밀번호 문제가 아닐 수 있습니다(KRX 점검, 이 서버의 접속 차단, 응답 형식 변경 등). 장중 잠정 시세만 영향을 받고,
             확정 가격 수집(GitHub Actions)은 별도로 동작합니다.</span>
+          {st.http && (
+            <p className="token-note">진단 코드: <strong>HTTP {st.http}</strong>{st.content_type ? ` · ${st.content_type}` : ""} · {st.json ? "JSON 응답(결과 코드 없음)" : "JSON 아님"}
+              {" — "}{st.http === 403 || st.http === 401 ? "KRX가 이 서버의 접속을 막았을 가능성이 큽니다."
+                : st.http >= 500 ? "KRX 점검·장애일 가능성이 큽니다."
+                : st.json ? "KRX 응답 형식이 바뀌었을 수 있습니다." : "KRX가 안내·오류 페이지를 돌려줬습니다."}</p>
+          )}
           <div><button type="button" className="btn" onClick={recheck} disabled={checking}>{checking ? "확인 중…" : "다시 확인"}</button></div>
         </section>
       </div>
