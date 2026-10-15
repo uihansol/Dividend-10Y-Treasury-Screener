@@ -1,0 +1,62 @@
+{
+ "code": "091700",
+ "name": "파트론",
+ "market": "KOSDAQ",
+ "price_through": "2026-10-13",
+ "dividend_through": "2026-10-14",
+ "us10y_through": "2026-10-14",
+ "created_at": "2026-10-08T22:29:56+09:00",
+ "updated_at": "2026-10-14T01:09:39+09:00",
+ "last_attempt": "2026-10-14T01:09:39+09:00",
+ "last_error": null,
+ "steps": {
+  "prices": {
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-10-07",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "incremental",
+   "added": 0
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-10-09",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "recomputed_at": "2026-10-15T09:15:03+09:00",
+ "summary": {
+  "code": "091700",
+  "name": "파트론",
+  "market": "KOSDAQ",
+  "price": 4920.0,
+  "price_date": "2026-10-13",
+  "dps": 310.0,
+  "yield": 6.3008,
+  "multiple": 1.214,
+  "paid10": 10,
+  "known10": 10,
+  "paid5": 5,
+  "pct": 76.0,
+  "p10": 0.7176,
+  "p90": 2.1468,
+  "mcap": null,
+  "tv": 985081252.0,
+  "has_div_data": true,
+  "flags": [],
+  "tags": []
+ }
+}

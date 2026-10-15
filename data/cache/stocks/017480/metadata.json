@@ -2,32 +2,59 @@
  "code": "017480",
  "name": "삼현철강",
  "market": "KOSDAQ",
- "price_through": "2026-10-02",
- "dividend_through": "2026-10-02",
- "us10y_through": "2026-10-05",
+ "price_through": "2026-10-13",
+ "dividend_through": "2026-10-14",
+ "us10y_through": "2026-10-14",
  "created_at": "2026-10-02T19:16:25+09:00",
- "updated_at": "2026-10-02T19:20:40+09:00",
- "last_attempt": "2026-10-02T19:20:40+09:00",
+ "updated_at": "2026-10-14T01:09:31+09:00",
+ "last_attempt": "2026-10-14T01:09:31+09:00",
  "last_error": null,
- "steps": {},
- "recomputed_at": "2026-10-06T11:02:50+09:00",
+ "steps": {
+  "prices": {
+   "mode": "incremental",
+   "added": 5,
+   "from": "2026-10-03",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": true
+  },
+  "dividends": {
+   "mode": "incremental",
+   "added": 0
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-10-09",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "recomputed_at": "2026-10-15T09:15:02+09:00",
  "summary": {
   "code": "017480",
   "name": "삼현철강",
   "market": "KOSDAQ",
-  "price": 4695.0,
-  "price_date": "2026-10-02",
+  "price": 4705.0,
+  "price_date": "2026-10-13",
   "dps": 300.0,
-  "yield": 6.3898,
-  "multiple": 1.2033,
+  "yield": 6.3762,
+  "multiple": 1.2286,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 10.4,
-  "p10": 1.1906,
-  "p90": 3.1197,
+  "pct": 12.2,
+  "p10": 1.1905,
+  "p90": 3.1209,
   "mcap": null,
-  "tv": 65230420.0,
+  "tv": 80432030.0,
   "has_div_data": true,
   "flags": [],
   "tags": [

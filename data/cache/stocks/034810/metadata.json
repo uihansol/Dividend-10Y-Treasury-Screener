@@ -2,32 +2,59 @@
  "code": "034810",
  "name": "해성산업",
  "market": "KOSDAQ",
- "price_through": "2026-10-02",
- "dividend_through": "2026-10-02",
- "us10y_through": "2026-10-05",
+ "price_through": "2026-10-13",
+ "dividend_through": "2026-10-14",
+ "us10y_through": "2026-10-14",
  "created_at": "2026-10-02T19:32:17+09:00",
- "updated_at": "2026-10-02T19:39:22+09:00",
- "last_attempt": "2026-10-02T19:39:22+09:00",
+ "updated_at": "2026-10-14T01:12:10+09:00",
+ "last_attempt": "2026-10-14T01:12:10+09:00",
  "last_error": null,
- "steps": {},
- "recomputed_at": "2026-10-06T11:02:51+09:00",
+ "steps": {
+  "prices": {
+   "mode": "incremental",
+   "added": 4,
+   "from": "2026-10-07",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": false
+  },
+  "dividends": {
+   "mode": "incremental",
+   "added": 0
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
+  },
+  "us10y": {
+   "ok": true,
+   "source": "treasury",
+   "added": 0,
+   "through": "2026-10-09",
+   "errors": [
+    "fred_csv: ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=20)\"))"
+   ]
+  }
+ },
+ "recomputed_at": "2026-10-15T09:15:02+09:00",
  "summary": {
   "code": "034810",
   "name": "해성산업",
   "market": "KOSDAQ",
-  "price": 5950.0,
-  "price_date": "2026-10-02",
+  "price": 5700.0,
+  "price_date": "2026-10-13",
   "dps": 250.0,
-  "yield": 4.2017,
-  "multiple": 0.7913,
+  "yield": 4.386,
+  "multiple": 0.8451,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 73.4,
+  "pct": 80.3,
   "p10": 0.3214,
-  "p90": 1.0713,
+  "p90": 1.0769,
   "mcap": null,
-  "tv": 57243720.0,
+  "tv": 107351775.0,
   "has_div_data": true,
   "flags": [],
   "tags": [
