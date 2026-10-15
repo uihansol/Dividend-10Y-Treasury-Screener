@@ -348,6 +348,58 @@ async function batchRefreshHandler(req, env) {
   return json({ status: "queued", codes: clean });
 }
 
+// ---------------------------------------------------------------- 외부 시세 후보의 접속 가능 여부 진단
+// KRX가 Cloudflare Worker의 접속을 막는 것처럼(실제 확인됨), 대체 시세 후보도 Worker 서버(IP)에서 막힐 수 있다.
+// 차단은 요청을 보내는 서버에 따라 달라서 샌드박스나 GitHub Actions에서는 알 수 없고, 배포된 Worker가 직접 접속해 봐야 한다.
+// 계정·키 없이 가짜 키로 토큰 발급만 시도하므로 응답이 JSON 오류면 '접속은 된다', 차단 페이지·예외면 '막힘'이다.
+// 대상은 아래 고정 목록뿐(임의 URL 요청 불가), 결과는 10분 캐시해 외부 서버에 부담을 주지 않는다.
+const DIAG_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+const DIAG_TARGETS = [
+  { id: "kis", label: "한국투자증권 KIS (실전, 포트 9443) 토큰 발급 — 가짜 키", url: "https://openapi.koreainvestment.com:9443/oauth2/tokenP",
+    init: { method: "POST", headers: { "content-type": "application/json; charset=UTF-8" },
+      body: JSON.stringify({ grant_type: "client_credentials", appkey: "diagnostic-dummy", appsecret: "diagnostic-dummy" }) } },
+  { id: "kis_vts", label: "한국투자증권 KIS (모의투자, 포트 29443) 토큰 발급 — 가짜 키", url: "https://openapivts.koreainvestment.com:29443/oauth2/tokenP",
+    init: { method: "POST", headers: { "content-type": "application/json; charset=UTF-8" },
+      body: JSON.stringify({ grant_type: "client_credentials", appkey: "diagnostic-dummy", appsecret: "diagnostic-dummy" }) } },
+  { id: "naver", label: "네이버 금융 시세 (비공식) — 삼성전자", url: "https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:005930", init: { headers: { "user-agent": DIAG_UA } } },
+  { id: "yahoo", label: "Yahoo Finance (비공식, 지연 시세) — 삼성전자", url: "https://query1.finance.yahoo.com/v8/finance/chart/005930.KS?range=1d&interval=1m", init: { headers: { "user-agent": DIAG_UA } } },
+];
+
+function diagSnippet(text) {
+  const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(text)?.[1];
+  return (title || text.replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim().slice(0, 140);
+}
+
+export function diagVerdict({ status, type, snippet, error }) {
+  if (error) return "막힘/실패: 연결 자체가 되지 않음 (표준이 아닌 포트 제한, 차단, 네트워크 오류)";
+  if (/block|denied|forbidden|차단|접근이 제한|에러페이지|captcha|cloudflare|just a moment/i.test(snippet) && !type.includes("json"))
+    return "막힘: 차단 페이지를 돌려줌";
+  if (status === 429) return "제한: 요청 횟수 제한(429)";
+  if (type.includes("json") && status < 500) return "접속 가능: 서버가 JSON으로 응답함 (가짜 키라 오류 응답은 정상)";
+  if (status === 403 || status === 401) return "막힘 의심: 403/401 (JSON이 아님)";
+  return status < 400 ? "접속 가능(응답 형식 확인 필요)" : "불확실: 응답 형식이 예상과 다름";
+}
+
+async function probeOutbound(t) {
+  const t0 = Date.now();
+  try {
+    const res = await fetch(t.url, { ...t.init, redirect: "manual", signal: AbortSignal.timeout(8000) });
+    const type = (res.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+    const snippet = diagSnippet(await res.text().catch(() => ""));
+    const out = { id: t.id, label: t.label, status: res.status, type, redirect: res.headers.get("location") || undefined, ms: Date.now() - t0, snippet };
+    return { ...out, verdict: diagVerdict(out) };
+  } catch (e) {
+    const out = { id: t.id, label: t.label, error: `${e?.name || "Error"}: ${String(e?.message || e).slice(0, 160)}`, ms: Date.now() - t0 };
+    return { ...out, verdict: diagVerdict(out) };
+  }
+}
+
+async function outboundDiag() {
+  const results = await Promise.all(DIAG_TARGETS.map(probeOutbound));
+  return json({ checked_at: new Date().toISOString(), note: "이 Worker 서버에서 각 서비스로 직접 접속해 본 결과입니다(키 없이 가짜 값으로 시도).", results },
+    200, { "cache-control": "public, max-age=600" });
+}
+
 // ---------------------------------------------------------------- 웹에서 GitHub 토큰 갱신
 // 토큰이 만료돼 /api가 401로 멈추면 GitHub 설정·재배포 없이 화면에서 새 토큰을 붙여 넣어 바로 되살린다.
 // 별도 비밀번호 대신 '새 토큰 자체'로 인증한다: 이 저장소에 쓰기 권한이 있는 계정의 유효한 토큰이어야만 저장하고,
@@ -422,6 +474,8 @@ async function tokenUpdate(req, env) {
 
 async function api(url, req, env, ctx) {
   const p = url.pathname;
+
+  if (p === "/api/diag/outbound" && req.method === "GET") return outboundDiag();
 
   // 토큰이 만료·누락된 상태에서도 동작해야 하므로 아래 GitHub 토큰 확인보다 먼저 처리한다.
   if (p === "/api/token/status" && req.method === "GET") return tokenStatus(env);
