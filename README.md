@@ -178,6 +178,8 @@ Worker가 저장소 캐시를 읽을 때 쓰는 `WORKER_GITHUB_TOKEN`(개인 액
 - 같은 계정으로 Worker와 Actions가 동시에 로그인해도 기존 세션이 끊기지 않는 것을 확인했다(KRX live check의 중복 로그인 실험).
 - **만료 알림**: Worker가 `GET /api/krx/status`로 KRX 로그인 상태를 확인해(결과는 Workers Cache 5~10분),
   만료(`password_expired`, KRX CD010)나 로그인 실패(`login_failed`)면 모든 화면 위에 알림을 띄운다.
+  `login_failed`는 KRX가 결과 코드(예: CD002)를 주며 거부한 경우로 코드를 함께 보여준다. KRX가 결과 코드 자체를 주지 않으면(차단·점검 등)
+  비밀번호 문제가 아니므로 `unreachable`(reason `login_no_response`)로 따로 안내하고 재시도를 막지 않는다. 시크릿 값 앞뒤 공백·줄바꿈은 자동 제거한다.
   알림에서 ① KRX 비밀번호 변경 ② GitHub 저장소 시크릿 목록(여기서 `KRX_PW` 수정) ③ Deploy 실행 페이지를 바로 열 수 있고, "다시 확인"으로 즉시 재확인한다.
   틀린 비밀번호로 반복 로그인해 계정이 잠기지 않도록, Worker는 실패한 같은 비밀번호로 6시간 동안 다시 로그인하지 않는다
   (시크릿을 새 값으로 바꾸면 바로 다시 시도). 앱이 비밀번호를 직접 저장하지는 않는다.

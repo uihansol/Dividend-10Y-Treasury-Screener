@@ -72,6 +72,8 @@ export const getLive = (code: string) =>
   getJson<{ status: "live"; code: string; analysis: Detail } | { status: "unavailable"; reason: string }>(`api/stock/${code}/live`);
 export type KrxStatus = {
   state: "ok" | "password_expired" | "login_failed" | "not_configured" | "unreachable";
+  /** login_failed일 때 KRX가 돌려준 결과 코드, reason은 내부 분류(login_no_response = KRX가 코드를 안 줌) */
+  code?: string; reason?: string;
   repo?: string; checked_at?: string;
 };
 export type TokenStatus = {

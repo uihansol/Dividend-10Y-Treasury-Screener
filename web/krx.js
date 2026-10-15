@@ -17,7 +17,8 @@ const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 const SESSION_TTL_MS = 50 * 60e3;   // KRX 세션은 1시간 만료(pykrx 기준). 여유를 두고 50분
 
 export class KrxError extends Error {
-  constructor(code, message) { super(message); this.code = code; }
+  /** code: 내부 분류(login_failed 등), krxCode: KRX가 응답에 실어 준 원본 결과 코드(CD002 등, 비밀 아님) */
+  constructor(code, message, krxCode = "") { super(message); this.code = code; this.krxCode = krxCode; }
 }
 
 /** 쿠키 저장소: 이름 → 값. Set-Cookie의 속성은 무시하고 같은 도메인(data.krx.co.kr)에만 보낸다. */
@@ -54,6 +55,9 @@ async function send(jar, url, init = {}, fetchImpl = fetch) {
 }
 
 export async function login(id, pw, fetchImpl = fetch) {
+  // 시크릿을 붙여 넣을 때 끝에 공백·줄바꿈이 딸려 들어가는 일이 흔하다(그러면 비밀번호가 맞아도 불일치로 거부된다).
+  id = String(id ?? "").trim();
+  pw = String(pw ?? "").trim();
   if (!id || !pw) throw new KrxError("no_credentials", "KRX_ID/KRX_PW 미설정");
   const jar = new Map();
   await send(jar, LOGIN_PAGE, {}, fetchImpl);
@@ -65,14 +69,18 @@ export async function login(id, pw, fetchImpl = fetch) {
       headers: { referer: LOGIN_PAGE, "content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
       body: new URLSearchParams({ ...form, ...extra }).toString(),
     }, fetchImpl);
-    const j = await res.json().catch(() => ({}));
-    return String(j._error_code || "");
+    const j = await res.json().catch(() => null);
+    return { code: String(j?._error_code || ""), http: res.status, json: j !== null };
   };
-  let code = await post();
-  if (code === "CD011") code = await post({ skipDup: "Y" });   // 중복 로그인
-  if (code === "CD010") throw new KrxError("password_change", "KRX 비밀번호 변경이 필요합니다(90일 만료)");
-  if (code !== "CD001") throw new KrxError("login_failed", `KRX 로그인 실패(${code || "응답 없음"})`);
-  return { jar, expires: Date.now() + SESSION_TTL_MS };
+  let r = await post();
+  if (r.code === "CD011") r = await post({ skipDup: "Y" });   // 중복 로그인
+  if (r.code === "CD010") throw new KrxError("password_change", "KRX 비밀번호 변경이 필요합니다(90일 만료)", r.code);
+  if (r.code === "CD001") return { jar, expires: Date.now() + SESSION_TTL_MS };
+  // 결과 코드 자체가 없으면 비밀번호 문제가 아니다: KRX가 로그인 JSON 대신 차단·점검·오류 페이지를 준 경우다.
+  // 이걸 login_failed로 처리하면 멀쩡한 비밀번호를 "다르다"고 알리고 6시간 재시도까지 막는다.
+  if (!r.code) throw new KrxError("login_no_response",
+    `KRX 로그인 응답에 결과 코드가 없습니다(HTTP ${r.http}, ${r.json ? "JSON" : "JSON 아님"})`);
+  throw new KrxError("login_failed", `KRX 로그인 실패(${r.code})`, r.code);
 }
 
 async function getJson(session, params, fetchImpl = fetch) {
@@ -149,12 +157,12 @@ export async function withSession(env, fn, { fetchImpl = fetch, allowLogin = () 
   const fresh = async () => {
     if (!(await allowLogin())) throw new KrxError("login_deferred", "다른 KRX 수집이 진행 중이라 로그인을 미룹니다");
     if (loginBlock && loginBlock.pw === env.KRX_PW && loginBlock.until > Date.now()) {
-      throw new KrxError(loginBlock.code, "최근 같은 비밀번호로 로그인에 실패해 재시도를 미룹니다");
+      throw new KrxError(loginBlock.code, "최근 같은 비밀번호로 로그인에 실패해 재시도를 미룹니다", loginBlock.krxCode);
     }
     try {
       cached = await login(env.KRX_ID, env.KRX_PW, fetchImpl);
     } catch (e) {
-      if (e instanceof KrxError && BLOCK_MS[e.code]) loginBlock = { pw: env.KRX_PW, code: e.code, until: Date.now() + BLOCK_MS[e.code] };
+      if (e instanceof KrxError && BLOCK_MS[e.code]) loginBlock = { pw: env.KRX_PW, code: e.code, krxCode: e.krxCode, until: Date.now() + BLOCK_MS[e.code] };
       throw e;
     }
     loginBlock = null;
