@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-10-13",
  "dividend_through": "2026-10-14",
- "us10y_through": "2026-10-13",
+ "us10y_through": "2026-10-14",
  "created_at": "2026-10-08T22:29:01+09:00",
  "updated_at": "2026-10-14T01:09:53+09:00",
  "last_attempt": "2026-10-14T01:09:53+09:00",
@@ -37,7 +37,7 @@
    ]
   }
  },
- "recomputed_at": "2026-10-14T09:47:22+09:00",
+ "recomputed_at": "2026-10-15T09:15:02+09:00",
  "summary": {
   "code": "035600",
   "name": "KG이니시스",
@@ -46,11 +46,11 @@
   "price_date": "2026-10-13",
   "dps": 600.0,
   "yield": 6.263,
-  "multiple": 1.2021,
+  "multiple": 1.2068,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 72.9,
+  "pct": 73.5,
   "p10": 0.5861,
   "p90": 1.5787,
   "mcap": null,
