@@ -27,6 +27,6 @@ export async function krxStatus(env, fetchImpl = fetch) {
     const state = (e instanceof KrxError && STATE_BY_CODE[e.code]) || "unreachable";
     // 원인 구분용 비밀 아닌 정보만: KRX 결과 코드, 내부 분류. 자격 증명은 어떤 메시지에도 들어가지 않는다.
     return { state, ...(e instanceof KrxError ? { reason: e.code, ...(e.krxCode ? { code: e.krxCode } : {}),
-      ...(e.http ? { http: e.http, json: e.json, content_type: e.contentType } : {}) } : {}) };
+      ...(e.http ? { http: e.http, json: e.json, content_type: e.contentType, trail: e.trail, snippet: e.snippet } : {}) } : {}) };
   }
 }

@@ -34,7 +34,7 @@ function storeCookies(jar, res) {
 const cookieHeader = (jar) => [...jar].map(([k, v]) => `${k}=${v}`).join("; ");
 
 /** requests.Session처럼 리다이렉트를 따라가며 쿠키를 모은다. */
-async function send(jar, url, init = {}, fetchImpl = fetch) {
+async function send(jar, url, init = {}, fetchImpl = fetch, trail = null) {
   let target = url;
   for (let hop = 0; hop < 5; hop++) {
     const res = await fetchImpl(target, {
@@ -43,6 +43,7 @@ async function send(jar, url, init = {}, fetchImpl = fetch) {
       headers: { "user-agent": UA, ...(init.headers || {}), ...(jar.size ? { cookie: cookieHeader(jar) } : {}) },
     });
     storeCookies(jar, res);
+    if (trail) trail.push(`${res.status} ${new URL(target).pathname}`);   // 진단용: 어떤 경로를 거쳤는지
     const loc = res.headers.get("location");
     if (res.status >= 300 && res.status < 400 && loc) {
       target = new URL(loc, target).toString();
@@ -54,6 +55,14 @@ async function send(jar, url, init = {}, fetchImpl = fetch) {
   throw new KrxError("redirect", "KRX 리다이렉트가 너무 많습니다");
 }
 
+/** HTML 응답의 <title> 또는 본문 앞부분을 짧게 줄인다(원인 파악용). 혹시 모를 자격 증명 문자열은 지운다. */
+function pageSnippet(text, id, pw) {
+  const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(text)?.[1];
+  let s = (title || text.replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim().slice(0, 120);
+  for (const secret of [id, pw]) if (secret) s = s.split(secret).join("***");
+  return s;
+}
+
 export async function login(id, pw, fetchImpl = fetch) {
   // 시크릿을 붙여 넣을 때 끝에 공백·줄바꿈이 딸려 들어가는 일이 흔하다(그러면 비밀번호가 맞아도 불일치로 거부된다).
   id = String(id ?? "").trim();
@@ -63,14 +72,18 @@ export async function login(id, pw, fetchImpl = fetch) {
   await send(jar, LOGIN_PAGE, {}, fetchImpl);
   await send(jar, LOGIN_JSP, { headers: { referer: LOGIN_PAGE } }, fetchImpl);
   const form = { mbrNm: "", telNo: "", di: "", certType: "", mbrId: id, pw };
+  const trail = [];
   const post = async (extra = {}) => {
+    trail.length = 0;
     const res = await send(jar, LOGIN_URL, {
       method: "POST",
       headers: { referer: LOGIN_PAGE, "content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
       body: new URLSearchParams({ ...form, ...extra }).toString(),
-    }, fetchImpl);
-    const j = await res.json().catch(() => null);
-    return { code: String(j?._error_code || ""), http: res.status, json: j !== null,
+    }, fetchImpl, trail);
+    const text = await res.text().catch(() => "");
+    let j = null;
+    try { j = JSON.parse(text); } catch { /* HTML 등 */ }
+    return { code: String(j?._error_code || ""), http: res.status, json: j !== null, snippet: pageSnippet(text, id, pw),
       type: (res.headers.get("content-type") || "").split(";")[0].trim().toLowerCase().slice(0, 40) };
   };
   let r = await post();
@@ -83,6 +96,7 @@ export async function login(id, pw, fetchImpl = fetch) {
     const err = new KrxError("login_no_response",
       `KRX 로그인 응답에 결과 코드가 없습니다(HTTP ${r.http}, ${r.json ? "JSON" : "JSON 아님"})`);
     err.http = r.http; err.json = r.json; err.contentType = r.type;   // 진단용(비밀 아님)
+    err.trail = trail.join(" → "); err.snippet = r.snippet;
     throw err;
   }
   throw new KrxError("login_failed", `KRX 로그인 실패(${r.code})`, r.code);

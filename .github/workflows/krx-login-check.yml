@@ -1,0 +1,66 @@
+name: KRX login check
+# KRX 로그인이 어디서 막히는지 가리는 진단 워크플로. 같은 시크릿으로 GitHub 서버에서
+#  (A) Worker가 쓰는 로그인 코드(web/krx.js)와  (B) 수집에 쓰는 pykrx 를 나란히 돌려 결과만 로그에 남긴다.
+#  A·B 모두 성공  → 시크릿은 맞다. Worker(Cloudflare) 쪽 접속만 막힌 것.
+#  A 실패, B 성공 → web/krx.js의 로그인 절차가 pykrx와 어긋난 것.
+#  A·B 모두 실패  → 아이디·비밀번호가 실제로 다르거나 계정 문제.
+# 자격 증명은 출력하지 않는다(GitHub이 시크릿 값을 로그에서 가린다). 수동 실행하거나 이 파일·web/krx.js가 바뀔 때 돈다.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/krx-login-check.yml", "web/krx.js"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      KRX_ID: ${{ secrets.KRX_ID }}
+      KRX_PW: ${{ secrets.KRX_PW }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 시크릿 존재 확인
+        run: |
+          [ -n "$KRX_ID" ] && echo "::notice title=secrets::KRX_ID 설정됨 (길이 ${#KRX_ID})" || echo "::error title=secrets::KRX_ID 시크릿이 비어 있습니다"
+          [ -n "$KRX_PW" ] && echo "::notice title=secrets::KRX_PW 설정됨 (길이 ${#KRX_PW})" || echo "::error title=secrets::KRX_PW 시크릿이 비어 있습니다"
+          # 앞뒤 공백·줄바꿈이 섞였는지(여부만 알리고 값은 출력하지 않는다)
+          ws='^[[:space:]]|[[:space:]]$'
+          if [[ "$KRX_ID" =~ $ws ]]; then echo "::warning title=secrets::KRX_ID 앞뒤에 공백/줄바꿈이 있습니다(코드가 자동 제거함)"; fi
+          if [[ "$KRX_PW" =~ $ws ]]; then echo "::warning title=secrets::KRX_PW 앞뒤에 공백/줄바꿈이 있습니다(코드가 자동 제거함)"; fi
+
+      - name: A) Worker 로그인 코드(web/krx.js) — GitHub 서버에서 실행
+        run: |
+          node --input-type=module -e '
+            import { login, KrxError } from "./web/krx.js";
+            try {
+              await login(process.env.KRX_ID, process.env.KRX_PW);
+              console.log("::notice title=A-worker-code::성공: KRX가 로그인을 승인했습니다 (CD001)");
+            } catch (e) {
+              const d = { kind: e.code, krxCode: e.krxCode || null, http: e.http ?? null, json: e.json ?? null,
+                contentType: e.contentType ?? null, trail: e.trail ?? null, page: e.snippet ?? null };
+              console.log("::error title=A-worker-code::실패 " + JSON.stringify(d));
+            }'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: B) pykrx 로그인 — 수집(stock-refresh)이 쓰는 방식
+        run: |
+          pip install -q pykrx
+          python - <<'PY'
+          import os
+          from pykrx.website.comm.auth import login_krx
+          try:
+              ok = login_krx(os.environ["KRX_ID"], os.environ["KRX_PW"])
+              print(("::notice" if ok else "::error") + " title=B-pykrx::" + ("성공: 수집용 로그인 정상" if ok else "실패: KRX가 로그인을 승인하지 않았습니다"))
+          except Exception as e:
+              print("::error title=B-pykrx::예외 " + type(e).__name__ + ": " + str(e)[:200].replace(os.environ["KRX_ID"], "***").replace(os.environ["KRX_PW"], "***"))
+          PY

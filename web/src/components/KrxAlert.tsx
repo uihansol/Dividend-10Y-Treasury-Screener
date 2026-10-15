@@ -31,6 +31,9 @@ export function KrxAlert() {
                 : st.http >= 500 ? "KRX 점검·장애일 가능성이 큽니다."
                 : st.json ? "KRX 응답 형식이 바뀌었을 수 있습니다." : "KRX가 안내·오류 페이지를 돌려줬습니다."}</p>
           )}
+          {st.http && (st.snippet || st.trail) && (
+            <p className="token-note">{st.trail && <>경로: {st.trail}<br /></>}{st.snippet && <>응답 페이지: “{st.snippet}”</>}</p>
+          )}
           <div><button type="button" className="btn" onClick={recheck} disabled={checking}>{checking ? "확인 중…" : "다시 확인"}</button></div>
         </section>
       </div>
