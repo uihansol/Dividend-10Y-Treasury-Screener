@@ -111,7 +111,9 @@ export function Home({ master, index, indexError, onPick, reloadIndex }: {
     fetchLiveIndex()
       .then((res) => {
         if (res.status === "live") setLive(res);
-        else setLiveError(`잠정 시세를 가져오지 못했습니다 (${res.reason}).`);
+        else setLiveError(res.reason === "blocked"
+          ? "KRX가 이 서버의 접속을 차단해 장중 잠정 시세를 쓸 수 없습니다. 확정 가격은 정상적으로 반영됩니다."
+          : `잠정 시세를 가져오지 못했습니다 (${res.reason}).`);
       })
       .catch((e) => setLiveError(`잠정 시세를 가져오지 못했습니다 (${(e as Error).message}).`))
       .finally(() => setLiveLoading(false));

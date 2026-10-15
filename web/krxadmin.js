@@ -2,7 +2,7 @@
  * KRX 로그인 상태 확인 (Worker) — 비밀번호 만료 알림용.
  *
  *  GET /api/krx/status  → {state, repo, code?, reason?}
- *    state: ok | password_expired(KRX CD010, 90일 만료) | login_failed(KRX가 거부 — code에 KRX 결과 코드) | not_configured | unreachable
+ *    state: ok | blocked(KRX가 이 서버의 접속을 차단 — 비밀번호와 무관, 잠정 시세만 불가) | password_expired(KRX CD010, 90일 만료) | login_failed(KRX가 거부 — code에 KRX 결과 코드) | not_configured | unreachable
  *    unreachable의 reason=login_no_response: KRX가 로그인 결과 코드를 주지 않음(차단·점검 등) — 비밀번호 문제가 아닐 수 있다.
  *    이때 http(응답 상태), json(JSON 여부), content_type을 함께 돌려줘 원인을 구분한다(403=차단, 5xx=점검·장애, HTML=안내 페이지)
  *
@@ -13,6 +13,7 @@ import { withSession, KrxError } from "./krx.js";
 
 const STATE_BY_CODE = {
   password_change: "password_expired",
+  blocked: "blocked",
   login_failed: "login_failed",
   no_credentials: "not_configured",
 };

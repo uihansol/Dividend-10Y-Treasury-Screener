@@ -59,7 +59,7 @@ async function send(jar, url, init = {}, fetchImpl = fetch, trail = null) {
 function pageSnippet(text, id, pw) {
   const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(text)?.[1];
   let s = (title || text.replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim().slice(0, 120);
-  for (const secret of [id, pw]) if (secret) s = s.split(secret).join("***");
+  for (const secret of [id, pw]) if (secret && secret.length >= 4) s = s.split(secret).join("***");
   return s;
 }
 
@@ -90,6 +90,13 @@ export async function login(id, pw, fetchImpl = fetch) {
   if (r.code === "CD011") r = await post({ skipDup: "Y" });   // 중복 로그인
   if (r.code === "CD010") throw new KrxError("password_change", "KRX 비밀번호 변경이 필요합니다(90일 만료)", r.code);
   if (r.code === "CD001") return { jar, expires: Date.now() + SESSION_TTL_MS };
+  // KRX가 요청을 차단 전용 오류 페이지(/comm/error/blockError_*.jsp)로 보낸 경우: 자격 증명과 무관하게 이 서버(IP)가 막혔다.
+  // 같은 코드가 GitHub 서버에서는 로그인되는데 Cloudflare Worker에서만 이렇게 된다. 우회할 방법이 없다.
+  if (!r.code && trail.some((t) => /blockError/i.test(t))) {
+    const err = new KrxError("blocked", "KRX가 이 서버의 접속을 차단했습니다(blockError)");
+    err.http = r.http; err.json = r.json; err.contentType = r.type; err.trail = trail.join(" → "); err.snippet = r.snippet;
+    throw err;
+  }
   // 결과 코드 자체가 없으면 비밀번호 문제가 아니다: KRX가 로그인 JSON 대신 차단·점검·오류 페이지를 준 경우다.
   // 이걸 login_failed로 처리하면 멀쩡한 비밀번호를 "다르다"고 알리고 6시간 재시도까지 막는다.
   if (!r.code) {
@@ -169,7 +176,8 @@ let cached = null;             // {jar, expires}
 const isinCache = new Map();   // code → ISIN (상장 중에는 바뀌지 않음)
 // 틀린 비밀번호로 로그인을 반복하면 KRX 계정이 잠길 수 있다. 실패한 비밀번호로는 일정 시간 다시 로그인하지 않는다.
 let loginBlock = null;         // {pw, code, until}
-const BLOCK_MS = { login_failed: 6 * 3600e3, password_change: 15 * 60e3 };
+// blocked: KRX가 이 서버의 접속 자체를 막은 상태라 재시도해도 소용없고 반복 시도는 차단을 굳힐 수 있다.
+const BLOCK_MS = { login_failed: 6 * 3600e3, password_change: 15 * 60e3, blocked: 3600e3 };
 
 /** 로그인 세션을 재사용하고, 응답이 이상하면(세션 만료·중복 로그인으로 끊김) 한 번만 다시 로그인한다. */
 export async function withSession(env, fn, { fetchImpl = fetch, allowLogin = () => true } = {}) {

@@ -9,6 +9,7 @@ export function KrxAlert() {
   const [checking, setChecking] = useState(false);
   useEffect(() => { getKrxStatus().then(setSt).catch(() => setSt(null)); }, []);
 
+  // state "blocked"(KRX가 Worker 서버를 차단)는 배너를 띄우지 않는다: 사용자가 할 조치가 없고 확정 데이터는 정상이다.
   const noResponse = st?.state === "unreachable" && st.reason === "login_no_response";
   if (!st || (st.state !== "password_expired" && st.state !== "login_failed" && !noResponse)) return null;
   const repo = st.repo ? `https://github.com/${st.repo}` : null;
