@@ -229,6 +229,11 @@
    "status": "no_data",
    "fetched_at": "2026-09-28T18:39:42+09:00",
    "parser_version": 2
+  },
+  "2026-Q3": {
+   "status": "no_data",
+   "fetched_at": "2026-10-15T17:45:55+09:00",
+   "parser_version": 2
   }
  },
  "reports": [
