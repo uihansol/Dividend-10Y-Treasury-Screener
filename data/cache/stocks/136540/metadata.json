@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-10-15",
  "dividend_through": "2026-10-15",
- "us10y_through": "2026-10-14",
+ "us10y_through": "2026-10-15",
  "created_at": "2026-09-28T18:39:45+09:00",
  "updated_at": "2026-10-15T17:45:56+09:00",
  "last_attempt": "2026-10-15T17:45:56+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "valuation_date": "2026-10-15",
+ "recomputed_at": "2026-10-16T09:02:21+09:00",
  "summary": {
   "code": "136540",
   "name": "윈스테크넷",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-15",
   "dps": 800.0,
   "yield": 7.3937,
-  "multiple": 1.4246,
+  "multiple": 1.4497,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 64.7,
+  "pct": 66.5,
   "p10": 0.8335,
   "p90": 1.8669,
   "mcap": null,
