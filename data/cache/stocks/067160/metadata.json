@@ -2,34 +2,50 @@
  "code": "067160",
  "name": "SOOP",
  "market": "KOSDAQ",
- "price_through": "2026-10-02",
- "dividend_through": "2026-09-28",
+ "price_through": "2026-10-21",
+ "dividend_through": "2026-10-21",
  "us10y_through": "2026-10-20",
  "created_at": "2026-09-27T23:15:28+09:00",
- "updated_at": "2026-10-02T18:23:27+09:00",
- "last_attempt": "2026-10-02T18:23:27+09:00",
+ "updated_at": "2026-10-21T21:40:37+09:00",
+ "last_attempt": "2026-10-21T21:40:37+09:00",
  "last_error": null,
  "steps": {
-  "cache": "cooldown: 네트워크 조회 생략"
+  "prices": {
+   "mode": "incremental",
+   "added": 11,
+   "from": "2026-10-03",
+   "recent_first": true,
+   "recent_days": 7,
+   "quick_initial": false,
+   "gap_filled": true
+  },
+  "dividends": {
+   "mode": "incremental",
+   "added": 0
+  },
+  "announcements": {
+   "mode": "check",
+   "added": 0
+  }
  },
- "recomputed_at": "2026-10-21T09:18:16+09:00",
+ "valuation_date": "2026-10-21",
  "summary": {
   "code": "067160",
   "name": "SOOP",
   "market": "KOSDAQ",
-  "price": 36300.0,
-  "price_date": "2026-10-02",
+  "price": 39150.0,
+  "price_date": "2026-10-21",
   "dps": 3380.0,
-  "yield": 9.3113,
-  "multiple": 1.8186,
+  "yield": 8.6335,
+  "multiple": 1.6862,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 92.4,
+  "pct": 91.5,
   "p10": 0.1978,
-  "p90": 1.537,
+  "p90": 1.5655,
   "mcap": null,
-  "tv": 916504550.0,
+  "tv": 1605132000.0,
   "has_div_data": true,
   "flags": [],
   "tags": [
