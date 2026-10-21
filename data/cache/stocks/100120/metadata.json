@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-09-23",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-10-19",
+ "us10y_through": "2026-10-20",
  "created_at": "2026-09-28T00:43:17+09:00",
  "updated_at": "2026-09-28T00:43:17+09:00",
  "last_attempt": "2026-09-28T00:43:17+09:00",
@@ -33,7 +33,7 @@
    ]
   }
  },
- "recomputed_at": "2026-10-20T09:51:16+09:00",
+ "recomputed_at": "2026-10-21T09:18:17+09:00",
  "summary": {
   "code": "100120",
   "name": "뷰웍스",
@@ -42,11 +42,11 @@
   "price_date": "2026-09-23",
   "dps": 690.0,
   "yield": 2.6692,
-  "multiple": 0.5183,
+  "multiple": 0.5213,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 42.2,
+  "pct": 42.8,
   "p10": 0.1895,
   "p90": 0.9578,
   "mcap": null,
