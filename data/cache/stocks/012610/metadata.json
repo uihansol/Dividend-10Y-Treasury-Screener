@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-10-13",
  "dividend_through": "2026-10-18",
- "us10y_through": "2026-10-20",
+ "us10y_through": "2026-10-21",
  "created_at": "2026-10-02T19:43:30+09:00",
  "updated_at": "2026-10-14T01:11:09+09:00",
  "last_attempt": "2026-10-18T09:23:33+09:00",
@@ -30,7 +30,7 @@
    ]
   }
  },
- "recomputed_at": "2026-10-21T09:18:14+09:00",
+ "recomputed_at": "2026-10-22T09:22:22+09:00",
  "summary": {
   "code": "012610",
   "name": "경인양행",
@@ -39,11 +39,11 @@
   "price_date": "2026-10-13",
   "dps": 100.0,
   "yield": 3.1299,
-  "multiple": 0.6113,
+  "multiple": 0.6101,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 89.6,
+  "pct": 89.4,
   "p10": 0.2732,
   "p90": 0.6282,
   "mcap": null,
