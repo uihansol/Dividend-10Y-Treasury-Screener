@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-10-13",
  "dividend_through": "2026-10-14",
- "us10y_through": "2026-10-21",
+ "us10y_through": "2026-10-22",
  "created_at": "2026-10-02T19:32:17+09:00",
  "updated_at": "2026-10-14T01:12:10+09:00",
  "last_attempt": "2026-10-14T01:12:10+09:00",
@@ -37,7 +37,7 @@
    ]
   }
  },
- "recomputed_at": "2026-10-22T09:22:23+09:00",
+ "recomputed_at": "2026-10-23T09:18:51+09:00",
  "summary": {
   "code": "034810",
   "name": "해성산업",
@@ -46,11 +46,11 @@
   "price_date": "2026-10-13",
   "dps": 250.0,
   "yield": 4.386,
-  "multiple": 0.855,
+  "multiple": 0.8843,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 81.9,
+  "pct": 85.6,
   "p10": 0.3214,
   "p90": 1.0769,
   "mcap": null,
