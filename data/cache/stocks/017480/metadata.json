@@ -4,7 +4,7 @@
  "market": "KOSDAQ",
  "price_through": "2026-10-13",
  "dividend_through": "2026-10-14",
- "us10y_through": "2026-10-14",
+ "us10y_through": "2026-10-22",
  "created_at": "2026-10-02T19:16:25+09:00",
  "updated_at": "2026-10-14T01:09:31+09:00",
  "last_attempt": "2026-10-14T01:09:31+09:00",
@@ -37,7 +37,7 @@
    ]
   }
  },
- "recomputed_at": "2026-10-15T09:15:02+09:00",
+ "recomputed_at": "2026-10-23T09:18:50+09:00",
  "summary": {
   "code": "017480",
   "name": "삼현철강",
@@ -46,11 +46,11 @@
   "price_date": "2026-10-13",
   "dps": 300.0,
   "yield": 6.3762,
-  "multiple": 1.2286,
+  "multiple": 1.2855,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 12.2,
+  "pct": 15.9,
   "p10": 1.1905,
   "p90": 3.1209,
   "mcap": null,

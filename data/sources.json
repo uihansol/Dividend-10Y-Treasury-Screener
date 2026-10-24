@@ -1,16 +1,16 @@
 {
  "us10y": {
-  "last_attempt": "2026-10-15T09:15:01+09:00",
+  "last_attempt": "2026-10-23T09:18:49+09:00",
   "last_error": null,
-  "last_success": "2026-10-15T09:15:01+09:00",
-  "data_through": "2026-10-14",
+  "last_success": "2026-10-23T09:18:49+09:00",
+  "data_through": "2026-10-22",
   "note": "treasury +1 rows"
  },
  "master": {
-  "last_attempt": "2026-09-27T17:15:19+09:00",
-  "last_success": "2026-09-27T17:15:19+09:00",
+  "last_attempt": "2026-10-19T08:54:35+09:00",
+  "last_success": "2026-10-19T08:54:35+09:00",
   "last_error": null,
-  "data_through": "2026-09-27",
-  "note": "2649 stocks"
+  "data_through": "2026-10-19",
+  "note": "2648 stocks"
  }
 }
