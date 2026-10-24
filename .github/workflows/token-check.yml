@@ -1,7 +1,11 @@
 name: Token check
-# Worker가 저장소를 읽을 때 쓰는 개인 액세스 토큰(WORKER_GITHUB_TOKEN)은 만료되면 코드로 갱신할 수 없고,
-# 사람이 새로 발급해 시크릿을 바꿔야 한다. 만료돼서 사이트가 멈추기 전에 알 수 있도록 매일 확인해
-# 이미 무효이거나 14일 안에 만료되면 이슈를 연다. (GitHub App 자격증명을 쓰면 이 점검은 필요 없다.)
+# Worker가 저장소를 읽을 때 쓰는 개인 액세스 토큰은 만료되면 코드로 갱신할 수 없고 사람이 새로 넣어야 한다.
+# 사이트가 멈추기 전에 알 수 있도록 매일 확인해, 이미 무효이거나 14일 안에 만료되면 이슈를 연다.
+#  - 저장소 변수 SITE_URL(예: https://이름.계정.workers.dev)을 설정하면 Worker가 '실제로 쓰는' 토큰의 상태(/api/token/status)를
+#    기준으로 삼는다. 웹 화면에서 갱신한 토큰(KV 저장)도 여기서만 보인다. 없으면 WORKER_GITHUB_TOKEN 시크릿 값을 직접 점검한다.
+#  - 토큰이 정상으로 돌아오면(갱신 후) 열려 있던 알림 이슈를 자동으로 닫는다.
+#  - 새 이슈를 만든 실행만 실패로 표시한다(실패 메일이 알림 역할). 이미 이슈가 열려 있으면 매일 실패하지 않는다.
+# GitHub App 자격증명을 쓰면 만료가 없으므로 점검하지 않는다.
 on:
   schedule:
     - cron: "17 0 * * *"
@@ -17,49 +21,72 @@ jobs:
     env:
       WORKER_TOKEN: ${{ secrets.WORKER_GITHUB_TOKEN }}
       APP_ID: ${{ secrets.WORKER_GITHUB_APP_ID }}
+      SITE_URL: ${{ vars.SITE_URL }}
       GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
       WARN_DAYS: "14"
     steps:
       - name: 토큰 상태 확인
         run: |
           if [ -n "$APP_ID" ]; then echo "GitHub App 방식이라 만료 점검이 필요 없습니다."; exit 0; fi
-          if [ -z "$WORKER_TOKEN" ]; then echo "::warning::WORKER_GITHUB_TOKEN 시크릿이 없습니다."; exit 0; fi
 
-          HDR="$(curl -sS -D - -o /dev/null -H "Authorization: Bearer $WORKER_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/contents/data/cache/index.json?ref=main")"
-          CODE="$(echo "$HDR" | awk 'toupper($1) ~ /^HTTP/ {c=$2} END {print c}')"
-          EXP="$(echo "$HDR" | tr -d '\r' | awk -F': ' 'tolower($1)=="github-authentication-token-expiration" {print $2}')"
-          echo "HTTP $CODE, 만료 시각: ${EXP:-없음(만료 없음 또는 확인 불가)}"
-
-          TITLE=""; BODY=""
-          if [ "$CODE" = "401" ] || [ "$CODE" = "403" ]; then
-            TITLE="WORKER_GITHUB_TOKEN이 만료됐거나 무효입니다 (HTTP $CODE)"
-            BODY="사이트가 '목록을 불러오지 못했습니다'로 멈춘 상태일 수 있습니다."
-          elif [ -n "$EXP" ]; then
-            LEFT=$(( ( $(date -u -d "$EXP" +%s) - $(date -u +%s) ) / 86400 ))
-            if [ "$LEFT" -le "$WARN_DAYS" ]; then
-              TITLE="WORKER_GITHUB_TOKEN이 ${LEFT}일 뒤 만료됩니다 ($EXP)"
-              BODY="만료되면 사이트가 멈춥니다."
+          # 1) 상태 수집: STATE(ok|dead), LEFT(남은 일수, 모르면 빈 값), EXP, SRC
+          STATE=""; LEFT=""; EXP=""; SRC=""
+          if [ -n "$SITE_URL" ]; then
+            J="$(curl -sS -m 20 "${SITE_URL%/}/api/token/status" || true)"
+            if echo "$J" | jq -e '.state' >/dev/null 2>&1; then
+              SRC="Worker가 실제로 쓰는 토큰($(echo "$J" | jq -r '.source'))"
+              case "$(echo "$J" | jq -r '.state')" in
+                ok) STATE=ok ;; expired|missing) STATE=dead ;; *) echo "::warning::토큰 상태를 확인하지 못했습니다(state=$(echo "$J" | jq -r '.state'))"; exit 0 ;;
+              esac
+              LEFT="$(echo "$J" | jq -r '.days_left // empty')"; EXP="$(echo "$J" | jq -r '.expires_at // empty')"
+            else
+              echo "::warning::SITE_URL 응답을 읽지 못해 시크릿 값을 직접 점검합니다."
             fi
           fi
-          [ -n "$TITLE" ] || { echo "정상"; exit 0; }
-
-          # 같은 문제로 열린 이슈가 있으면 새로 만들지 않는다.
-          if [ -n "$(gh issue list --repo "${{ github.repository }}" --state open --label token-expiry --json number --jq '.[0].number')" ]; then
-            echo "이미 열린 알림 이슈가 있습니다."; exit 1
+          if [ -z "$STATE" ]; then
+            [ -n "$WORKER_TOKEN" ] || { echo "::warning::WORKER_GITHUB_TOKEN 시크릿이 없습니다."; exit 0; }
+            SRC="WORKER_GITHUB_TOKEN 시크릿"
+            HDR="$(curl -sS -D - -o /dev/null -H "Authorization: Bearer $WORKER_TOKEN" -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$REPO/contents/data/cache/index.json?ref=main")"
+            CODE="$(echo "$HDR" | awk 'toupper($1) ~ /^HTTP/ {c=$2} END {print c}')"
+            EXP="$(echo "$HDR" | tr -d '\r' | awk -F': ' 'tolower($1)=="github-authentication-token-expiration" {print $2}')"
+            if [ "$CODE" = "401" ] || [ "$CODE" = "403" ]; then STATE=dead; else STATE=ok; fi
+            [ -n "$EXP" ] && LEFT=$(( ( $(date -u -d "$EXP" +%s) - $(date -u +%s) ) / 86400 ))
           fi
-          gh label create token-expiry --repo "${{ github.repository }}" --color d93f0b \
-            --description "Worker 토큰 만료 알림" 2>/dev/null || true
-          gh issue create --repo "${{ github.repository }}" --label token-expiry --title "$TITLE" --body "$(cat <<EOM
-          $BODY
+          echo "상태=$STATE, 남은 일수=${LEFT:-알 수 없음}, 만료=${EXP:-없음}, 기준=$SRC"
 
-          **갱신 방법**
-          1. GitHub → Settings → Developer settings → Personal access tokens에서 새 토큰 발급
-             (이 저장소만 선택, Contents: Read and write, Actions: Read)
-          2. 저장소 Settings → Secrets and variables → Actions → \`WORKER_GITHUB_TOKEN\` 값 교체
-          3. Actions → Deploy → Run workflow
+          # 2) 문제 판정
+          TITLE=""
+          if [ "$STATE" = "dead" ]; then TITLE="GitHub 접근 토큰이 만료됐거나 무효입니다 ($SRC)"
+          elif [ -n "$LEFT" ] && [ "$LEFT" -le "$WARN_DAYS" ]; then TITLE="GitHub 접근 토큰이 ${LEFT}일 뒤 만료됩니다 ($EXP, $SRC)"; fi
 
+          OPEN="$(gh issue list --repo "$REPO" --state open --label token-expiry --json number --jq '.[].number')"
+
+          # 3) 정상이면 열린 알림 이슈를 닫는다
+          if [ -z "$TITLE" ]; then
+            for n in $OPEN; do
+              gh issue close "$n" --repo "$REPO" --comment "토큰이 정상으로 확인되어 자동으로 닫습니다. (${SRC}, 남은 일수 ${LEFT:-알 수 없음})"
+            done
+            echo "정상"; exit 0
+          fi
+
+          # 4) 이미 알림 이슈가 있으면 새로 만들지도, 실패 처리하지도 않는다
+          if [ -n "$OPEN" ]; then echo "::warning::$TITLE — 이미 열린 알림 이슈(#$(echo $OPEN | tr ' ' ',#'))가 있습니다."; exit 0; fi
+
+          gh label create token-expiry --repo "$REPO" --color d93f0b --description "토큰 만료 알림" 2>/dev/null || true
+          gh issue create --repo "$REPO" --label token-expiry --title "$TITLE" --body "$(cat <<'EOM'
+          사이트가 '목록을 불러오지 못했습니다'로 멈추거나, 곧 멈출 수 있습니다.
+
+          **가장 빠른 방법 (재배포 없음)**: 사이트를 열면 뜨는 토큰 알림 창(또는 상단 배너의 '토큰 입력')에 새 토큰을 붙여 넣으세요.
+
+          **새 토큰 만들기**: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
+          - Repository access: Only select repositories → 이 저장소만
+          - Repository permissions: **Contents: Read and write**, **Actions: Read-only**
+
+          **시크릿으로 넣을 때**: 저장소 Settings → Secrets and variables → Actions → `WORKER_GITHUB_TOKEN` 교체 → Actions → Deploy → Run workflow.
+
+          토큰이 정상이 되면 이 이슈는 다음 점검 때 자동으로 닫힙니다.
           만료 관리를 없애려면 GitHub App 방식을 쓰세요 (README '토큰 만료' 참고).
           EOM
           )"

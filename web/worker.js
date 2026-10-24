@@ -425,14 +425,13 @@ function parseTokenExpiry(header) {
 
 const daysLeft = (expMs) => (expMs === null ? null : Math.floor((expMs - Date.now()) / 86400e3));
 
-async function probeToken(env, token, path = "") {
+async function probeToken(env, token, path = "", init = {}) {
   const r = await fetch(`${GH}/repos/${env.GITHUB_REPO}${path}`, {
+    ...init,
     headers: { authorization: `Bearer ${token}`, accept: "application/vnd.github+json",
-      "user-agent": `dividend-10y-worker/${WORKER_VERSION}`, "x-github-api-version": "2022-11-28" },
+      "user-agent": `dividend-10y-worker/${WORKER_VERSION}`, "x-github-api-version": "2022-11-28", ...(init.headers || {}) },
   });
-  const body = r.ok && !path ? await r.json().catch(() => null) : null;
-  return { status: r.status, expiresMs: parseTokenExpiry(r.headers.get("github-authentication-token-expiration")),
-    canWrite: !!(body?.permissions && (body.permissions.push || body.permissions.admin)) };
+  return { status: r.status, expiresMs: parseTokenExpiry(r.headers.get("github-authentication-token-expiration")) };
 }
 
 async function tokenStatus(env) {
@@ -461,10 +460,21 @@ async function tokenUpdate(req, env) {
 
   const repo = await probeToken(env, token);
   if (repo.status === 401) return json({ error: "유효하지 않거나 만료된 토큰입니다." }, 400);
-  if (repo.status >= 400) return json({ error: `이 토큰으로 저장소에 접근할 수 없습니다 (GitHub ${repo.status}). 대상 저장소를 확인하세요.` }, 400);
-  if (!repo.canWrite) return json({ error: "이 저장소에 쓰기 권한이 있는 계정의 토큰만 등록할 수 있습니다." }, 403);
+  if (repo.status >= 400) return json({ error: `이 토큰으로 저장소에 접근할 수 없습니다 (GitHub ${repo.status}). 토큰 생성 때 'Only select repositories'에서 이 저장소(${env.GITHUB_REPO})를 선택했는지 확인하세요.` }, 400);
+  if (repo.expiresMs !== null && repo.expiresMs <= Date.now()) return json({ error: "이미 만료된 토큰입니다." }, 400);
+  // Worker가 실제로 쓰는 권한을 부작용 없이 직접 시험한다(GET /repos 의 permissions 값은 세분화 토큰에서 믿을 수 없다).
+  //  - 읽기:   캐시 파일 조회가 되어야 한다 (Contents: Read)
+  //  - 쓰기:   repository_dispatch 를 event_type 없이 보내면 실행은 만들어지지 않고, 권한이 있으면 422, 없으면 403/404 다 (Contents: Read and write).
+  //            이 쓰기 권한이 곧 '이 저장소에 쓸 수 있는 사람의 토큰'이라는 인증이다.
+  //  - 상태:   수집 진행 표시용 실행 목록 조회 (Actions: Read)
   const contents = await probeToken(env, token, `/contents/data/cache/index.json?ref=${env.GITHUB_BRANCH || "main"}`);
-  if (contents.status !== 200) return json({ error: `토큰에 Contents: Read 권한이 없습니다 (GitHub ${contents.status}).` }, 400);
+  if (contents.status !== 200) return json({ error: `토큰에 Contents 읽기 권한이 없습니다 (GitHub ${contents.status}). 권한을 Contents: Read and write 로 만드세요.` }, 400);
+  const write = await probeToken(env, token, "/dispatches", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+  if (write.status !== 422 && write.status !== 204)
+    return json({ error: `토큰에 쓰기 권한이 없습니다 (GitHub ${write.status}). 새로고침·신규 종목 수집 요청에는 Contents 권한이 Read-only가 아니라 `
+      + "'Read and write'여야 합니다. 토큰을 다시 만들 때 Repository permissions → Contents 를 Read and write 로 바꾸세요." }, 403);
+  const actions = await probeToken(env, token, `/actions/workflows/${WORKFLOW}/runs?per_page=1`);
+  if (actions.status !== 200) return json({ error: `토큰에 Actions 읽기 권한이 없습니다 (GitHub ${actions.status}). Repository permissions → Actions 를 Read-only 이상으로 추가하세요.` }, 400);
 
   await env.SYNC_KV.put(TOKEN_KV_KEY, JSON.stringify({ token, saved_at: new Date().toISOString() }));
   storedTokenCache = { token, at: Date.now() };
