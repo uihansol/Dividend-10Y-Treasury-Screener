@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-10-15",
  "dividend_through": "2026-10-15",
- "us10y_through": "2026-10-27",
+ "us10y_through": "2026-10-28",
  "created_at": "2026-09-28T00:36:49+09:00",
  "updated_at": "2026-10-15T22:56:07+09:00",
  "last_attempt": "2026-10-15T22:56:07+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-28T09:52:55+09:00",
+ "recomputed_at": "2026-10-29T10:25:37+09:00",
  "summary": {
   "code": "035420",
   "name": "NAVER",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-15",
   "dps": 2630.0,
   "yield": 1.515,
-  "multiple": 0.3036,
+  "multiple": 0.3,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 98.7,
+  "pct": 98.4,
   "p10": 0.0605,
   "p90": 0.2045,
   "mcap": null,
