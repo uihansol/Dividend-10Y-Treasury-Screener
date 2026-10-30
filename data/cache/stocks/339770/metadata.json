@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-10-21",
  "dividend_through": "2026-10-21",
- "us10y_through": "2026-10-28",
+ "us10y_through": "2026-10-29",
  "created_at": "2026-10-02T21:20:49+09:00",
  "updated_at": "2026-10-21T21:40:07+09:00",
  "last_attempt": "2026-10-21T21:40:07+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-29T10:25:40+09:00",
+ "recomputed_at": "2026-10-30T10:29:17+09:00",
  "summary": {
   "code": "339770",
   "name": "교촌에프앤비",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-21",
   "dps": 410.0,
   "yield": 10.733,
-  "multiple": 2.1253,
+  "multiple": 2.1552,
   "paid10": 6,
   "known10": 6,
   "paid5": 5,
-  "pct": 97.3,
+  "pct": 98.0,
   "p10": 0.5978,
   "p90": 1.5603,
   "mcap": null,

@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-10-08",
  "dividend_through": "2026-09-28",
- "us10y_through": "2026-10-28",
+ "us10y_through": "2026-10-29",
  "created_at": "2026-09-27T21:46:21+09:00",
  "updated_at": "2026-10-08T22:21:10+09:00",
  "last_attempt": "2026-10-08T22:21:10+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-29T10:25:36+09:00",
+ "recomputed_at": "2026-10-30T10:29:14+09:00",
  "summary": {
   "code": "003230",
   "name": "삼양식품",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-08",
   "dps": 5800.0,
   "yield": 0.4949,
-  "multiple": 0.098,
+  "multiple": 0.0994,
   "paid10": 9,
   "known10": 10,
   "paid5": 5,
-  "pct": 40.9,
+  "pct": 41.6,
   "p10": 0.0342,
   "p90": 0.4958,
   "mcap": null,

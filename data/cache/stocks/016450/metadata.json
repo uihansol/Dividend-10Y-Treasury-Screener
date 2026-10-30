@@ -4,7 +4,7 @@
  "market": "KOSPI",
  "price_through": "2026-10-21",
  "dividend_through": "2026-10-21",
- "us10y_through": "2026-10-28",
+ "us10y_through": "2026-10-29",
  "created_at": "2026-10-02T19:18:42+09:00",
  "updated_at": "2026-10-21T21:40:10+09:00",
  "last_attempt": "2026-10-21T21:40:10+09:00",
@@ -28,7 +28,7 @@
    "added": 0
   }
  },
- "recomputed_at": "2026-10-29T10:25:37+09:00",
+ "recomputed_at": "2026-10-30T10:29:15+09:00",
  "summary": {
   "code": "016450",
   "name": "한세예스24홀딩스",
@@ -37,11 +37,11 @@
   "price_date": "2026-10-21",
   "dps": 500.0,
   "yield": 11.9048,
-  "multiple": 2.3574,
+  "multiple": 2.3905,
   "paid10": 10,
   "known10": 10,
   "paid5": 5,
-  "pct": 84.9,
+  "pct": 85.6,
   "p10": 0.6857,
   "p90": 2.707,
   "mcap": null,
